@@ -1,10 +1,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Design tokens: all colours, type, and spacing go through these variables. */
 :root {
+  color-scheme: dark;
   --bg: #0a0a0a;
   --fg: #f2f2f2;
   --muted: #8a8a8a;
   --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gutter: 1.5rem;
 }
 
 html.lenis, html.lenis body { height: auto; }
@@ -21,14 +24,30 @@ body {
 
 main { position: relative; z-index: 1; }
 
+/* Mobile-first: base styles target small screens, media queries scale up. */
 .section {
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 8vw;
+  padding: 0 var(--gutter);
 }
 
 h1 { font-size: clamp(3rem, 12vw, 10rem); line-height: 0.9; letter-spacing: -0.04em; }
 h2 { font-size: clamp(2rem, 6vw, 5rem); letter-spacing: -0.03em; }
-p  { color: var(--muted); font-size: 1.25rem; margin-top: 1rem; }
+p  { color: var(--muted); font-size: 1.125rem; margin-top: 1rem; }
+
+@media (min-width: 768px) {
+  :root { --gutter: 8vw; }
+  p { font-size: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

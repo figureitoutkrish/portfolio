@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export function createScene(canvas) {
+export function createScene(canvas, { reducedMotion = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -13,33 +13,41 @@ export function createScene(canvas) {
     new THREE.IcosahedronGeometry(1.6, 1),
     new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.25 })
   );
+  mesh.rotation.set(0.4, 0.6, 0);
   scene.add(mesh);
 
   const state = { scroll: 0 };
   const clock = new THREE.Clock();
+  const render = () => renderer.render(scene, camera);
 
   function onResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
+    if (reducedMotion) render();
   }
   window.addEventListener('resize', onResize);
 
+  // Reduced motion: draw a single still frame instead of running a loop.
   let rafId;
   function tick() {
     const t = clock.getElapsedTime();
-    mesh.rotation.x = t * 0.15 + state.scroll * 0.002;
-    mesh.rotation.y = t * 0.2;
-    renderer.render(scene, camera);
+    mesh.rotation.x = 0.4 + t * 0.15 + state.scroll * 0.002;
+    mesh.rotation.y = 0.6 + t * 0.2;
+    render();
     rafId = requestAnimationFrame(tick);
   }
-  tick();
+  if (reducedMotion) render();
+  else tick();
 
   return {
     setScroll(y) { state.scroll = y; },
     dispose() {
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', onResize);
+      mesh.geometry.dispose();
+      mesh.material.dispose();
       renderer.dispose();
     },
   };
