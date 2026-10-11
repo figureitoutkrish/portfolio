@@ -1,6 +1,7 @@
 import './styles/main.css';
 import Lenis from 'lenis';
 import gsap from 'gsap';
+import { initHome } from './sections/home.js';
 import { initIntro } from './sections/intro.js';
 import { prefersReducedMotion } from './utils/motion.js';
 
@@ -15,4 +16,5 @@ if (!reducedMotion) {
 
 // Wait for Nohemi (max 1.5s) so intro text doesn't swap fonts mid-animation.
 const fontsReady = Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1500))]);
-fontsReady.then(() => initIntro({ reducedMotion }));
+const home = initHome();
+fontsReady.then(() => initIntro({ reducedMotion, home }));

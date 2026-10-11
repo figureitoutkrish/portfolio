@@ -10,3 +10,10 @@ dist/
 # Local-only
 inspiration/
 .claude/
+# Original photos (optimised copies live in public/assets/images)
+content/*.png
+content/*.jpg
+content/*.jpeg
+content/*.heic
+content/*.HEIC
+content/*.webp

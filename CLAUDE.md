@@ -4,10 +4,10 @@ Personal portfolio for Krish Viramgama (B.Tech + Diploma, Data Science), titled 
 
 ## Visual direction
 
-- Light theme (context-con.com style): `--bg #f7f7f7`, `--fg #111`.
-- **All text lowercase.** The landing page uses only **Nohemi Semi Bold, 2% letter spacing** (`--tracking: 0.02em`, applied per element so it scales). Inter, Bowlby One SC and Morganite are reserved for the alter-ego pages.
+- Light theme (context-con.com style): `--bg #f7f7f7`, `--fg #111`. **Accent: blue `--accent #1f4fff`.**
+- **All text lowercase.** The landing page uses only **Nohemi** (Semi Bold), with tight tracking: `--tracking: -0.01em`, `--tracking-display: -0.035em` for the big name (applied per element so it scales). Inter, Bowlby One SC and Morganite are reserved for the alter-ego pages.
 - Nohemi's licence forbids modifying the font files: serve the original TTF, don't convert/subset it.
-- Photos of Krish are placeholders until real ones are added to `public/assets/images/`.
+- Original photos go in `content/` (git-ignored); optimised JPEG copies live in `public/assets/images/`.
 
 ## Stack
 
@@ -29,7 +29,7 @@ npm run preview   # serve the production build
 ## Folder structure
 
 ```
-index.html              # Landing page (intro animation: greeting → polaroid stack → alter-egos headline)
+index.html              # Home (pamidordesign.co-style hero) + intro overlay + gradient wipe
 content/about.md        # Personal copy, links and timeline (source for About content)
 vite.config.js
 public/assets/
@@ -40,14 +40,14 @@ src/
   main.js               # Entry: imports CSS, starts Lenis, waits for fonts, inits sections
   styles/main.css       # Global styles + design tokens
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)
-  sections/             # One JS module per page section (intro.js)
+  sections/             # One JS module per page section (home.js, intro.js)
   utils/                # Small shared helpers (e.g. motion.js)
 ```
 
 ## Architecture
 
 - `main.js` is the only entry point. It wires Lenis into `gsap.ticker` (`lenis.raf(time * 1000)`, `lagSmoothing(0)`), waits for fonts (max 1.5s), then calls each section's `init`.
-- The intro (`src/sections/intro.js`) is one GSAP timeline; any click or key press skips to the end. An inline script in `<head>` adds `html.js` so CSS can hide end-state pieces until the timeline runs; without JS (or with reduced motion) the end state shows directly.
+- The intro (`src/sections/intro.js`) is a fixed overlay above home, driven by one GSAP timeline: greeting → polaroids stack → headline → blue gradient wipe (bottom → top, bryangarage.dev-inspired) → `home.reveal()`. The intro is hidden while the wipe fully covers the screen (its midpoint). Any click or key press skips to the end. Without JS or with reduced motion, CSS hides the intro and home shows directly.
 - The Three.js scene isn't mounted on the landing page. If it's used again: fixed full-screen `#webgl` canvas behind `<main>`, pixel ratio capped at 2, and the rest of the app talks to it only through its returned API (`setScroll`, `dispose`).
 
 ## Conventions

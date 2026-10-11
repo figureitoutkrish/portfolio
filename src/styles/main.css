@@ -18,11 +18,16 @@
   --bg: #f7f7f7;
   --fg: #111111;
   --muted: #6b6b6b;
+  --line: rgba(17, 17, 17, 0.3);
   --paper: #ffffff;
+  --accent: #1f4fff;
+
   --font: "Nohemi", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --tracking: 0.02em; /* Nohemi at 2% letter spacing */
+  --tracking: -0.01em;
+  --tracking-display: -0.035em; /* large display type */
   --weight-heading: 600; /* Nohemi Semi Bold */
-  --gutter: 1.5rem;
+  --weight-body: 500;
+  --gutter: 1.25rem;
 
   --polaroid-w: clamp(150px, 42vw, 260px);
   --polaroid-pad: 0.6rem 0.6rem 2.1rem;
@@ -42,29 +47,135 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-main { position: relative; }
+img { display: block; max-width: 100%; }
 
-/* ---------- Intro ---------- */
+/* ---------- Home ---------- */
+
+.home {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem var(--gutter) 2rem;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: inherit;
+  text-decoration: none;
+  font-size: 1.125rem;
+}
+
+.menu-btn {
+  display: grid;
+  gap: 6px;
+  width: 44px;
+  height: 44px;
+  place-content: center end;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.menu-btn span {
+  display: block;
+  width: 34px;
+  height: 2px;
+  background: var(--fg);
+}
+
+.home__grid {
+  flex: 1;
+  display: grid;
+  gap: 2.5rem;
+  align-items: center;
+  padding-top: 2rem;
+}
+
+.home__name {
+  font-size: clamp(3.5rem, 17vw, 8.5rem);
+  font-weight: var(--weight-heading);
+  line-height: 0.92;
+}
+.home__name, .home__name * { letter-spacing: var(--tracking-display); }
+
+/* Each line is a mask the text rises through. */
+.home__name .line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em; /* room for descenders (g, y) */
+}
+.home__name .line > span { display: block; }
+
+.home__title {
+  margin-top: 1rem;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+}
+
+.accent { color: var(--accent); }
+
+.home__bio {
+  margin-top: 0.5rem;
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-weight: var(--weight-body);
+  line-height: 1.35;
+}
+
+.home__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+  list-style: none;
+}
+.home__tags li {
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--line);
+  font-size: 0.875rem;
+  font-weight: var(--weight-body);
+}
+
+.home__photo {
+  overflow: hidden;
+  aspect-ratio: 1216 / 1294;
+  background: #dedede;
+}
+.home__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- Intro (fixed overlay above home) ---------- */
 
 .intro {
-  position: relative;
-  height: 100vh;
-  height: 100svh;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
   overflow: hidden;
   display: grid;
   place-items: center;
   padding: 0 var(--gutter);
+  background: var(--bg);
   text-align: center;
 }
 
+/* No JS: skip the intro and show home straight away (reduced motion: see bottom). */
+html:not(.js) .intro { display: none; }
+
 /* Greeting and headline share the centre of the screen; one replaces the other. */
 .intro__hello,
-.intro__headline { grid-area: 1 / 1; }
+.intro__headline { grid-area: 1 / 1; visibility: hidden; }
 
 .intro__hello {
   font-size: clamp(1.75rem, 6vw, 3.5rem);
   line-height: 1.1;
-  visibility: hidden; /* only shown by the intro animation */
 }
 
 .intro__headline {
@@ -87,19 +198,18 @@ main { position: relative; }
   right: 0;
   bottom: 0.02em;
   height: var(--underline-thickness);
-  background: currentColor;
+  background: var(--accent);
   transform: scaleX(var(--underline-progress, 1));
   transform-origin: left center;
 }
 
-/* Polaroid stack. End state (no JS / reduced motion): small, resting on the bottom edge. */
+/* Transforms are owned by the GSAP timeline. */
 .intro__stack {
   position: absolute;
   left: 50%;
-  top: 100%;
+  top: 50%;
   display: grid;
   place-items: center;
-  transform: translate(-50%, -62%) scale(0.42);
 }
 
 .polaroid {
@@ -108,36 +218,80 @@ main { position: relative; }
   padding: var(--polaroid-pad);
   background: var(--paper);
   box-shadow: var(--polaroid-shadow);
+  visibility: hidden;
 }
-.polaroid--1 { transform: translate(-18%, -4%) rotate(-7deg); }
-.polaroid--2 { width: calc(var(--polaroid-w) * 1.18); transform: translate(20%, -8%) rotate(8deg); }
-.polaroid--3 { transform: rotate(-2deg); }
+.polaroid--2 { width: calc(var(--polaroid-w) * 1.18); }
 
 .polaroid__photo {
-  display: grid;
-  place-items: center;
+  overflow: hidden;
   aspect-ratio: 1.05;
-  color: var(--muted);
-  font-size: 0.875rem;
+  background: #dedede;
 }
-.polaroid--1 .polaroid__photo { background: #d8d2c8; }
-.polaroid--2 .polaroid__photo { background: #c8ced6; aspect-ratio: 3 / 2; }
-.polaroid--3 .polaroid__photo { background: #d4cbc0; }
+.polaroid--2 .polaroid__photo { aspect-ratio: 3 / 2; }
+.polaroid__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-/* With JS, the animation owns transforms and visibility; hide end-state pieces to avoid a flash. */
-.js .intro__stack { top: 50%; transform: none; }
-.js .intro.is-done .intro__stack { top: 100%; }
-.js .polaroid { transform: none; visibility: hidden; }
-.js .intro__headline { visibility: hidden; }
+/* ---------- Gradient wipe ---------- */
+
+/* A tall glowing band that sweeps bottom → top. Its opaque middle (22–78%) is taller than
+   the viewport, so at the midpoint it fully covers the screen while the intro swaps for home. */
+.wipe {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 30;
+  width: 100%;
+  height: 220vh;
+  pointer-events: none;
+  visibility: hidden;
+  background:
+    radial-gradient(45% 18% at 22% 30%, rgba(160, 190, 255, 0.95), transparent 70%),
+    radial-gradient(40% 16% at 78% 42%, rgba(120, 90, 255, 0.85), transparent 70%),
+    radial-gradient(60% 20% at 50% 62%, rgba(10, 30, 140, 0.9), transparent 70%),
+    radial-gradient(35% 14% at 30% 76%, rgba(90, 200, 255, 0.8), transparent 70%),
+    linear-gradient(to top, #dbe5ff, var(--accent) 24%, #0a1a6b 50%, var(--accent) 76%, #dbe5ff);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
+}
+/* Vertical light streaks. */
+.wipe::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 11px);
+  mix-blend-mode: overlay;
+}
+
+/* ---------- Larger screens ---------- */
 
 @media (min-width: 768px) {
   :root {
     --gutter: 8vw;
     --polaroid-w: clamp(200px, 22vw, 280px);
   }
+  .home { padding-top: 2rem; }
+}
+
+@media (min-width: 960px) {
+  .home__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 4vw;
+    padding-top: 2.5rem;
+  }
+  /* Sized to the column so "viramgama" never squeezes the photo. */
+  .home__name { font-size: min(7.2vw, 9.5rem); }
+  .home__photo {
+    justify-self: end;
+    width: 100%;
+    max-height: calc(100svh - 8.5rem);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .intro { display: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
