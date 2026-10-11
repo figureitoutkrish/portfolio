@@ -18,3 +18,4 @@ content/*.heic
 content/*.HEIC
 content/*.webp
 content/*.zip
+content/*/
