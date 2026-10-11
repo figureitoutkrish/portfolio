@@ -265,8 +265,8 @@ img { display: block; max-width: 100%; }
   position: absolute;
   left: 0;
   top: 0;
-  width: 76px;
-  height: 76px;
+  width: 110px;
+  height: auto;
   opacity: 0;
   will-change: transform, opacity;
 }

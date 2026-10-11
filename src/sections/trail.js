@@ -1,8 +1,8 @@
 import gsap from 'gsap';
 
 // Cursor trail over the portrait (inspired by pamidordesign.co): every SPACING px of pointer
-// travel, the next drawing drops where the pointer is, pops in, then fades. Decorative only —
-// pointer devices only, nothing for touch or reduced motion.
+// travel, the next of Krish's 24 sketch illustrations drops where the pointer is, pops in, then
+// fades. Decorative only — pointer devices only, nothing for touch or reduced motion.
 const SPACING = 90;
 
 export function initTrail({ reducedMotion }) {
@@ -24,7 +24,7 @@ export function initTrail({ reducedMotion }) {
     const img = images[next];
     next = (next + 1) % images.length;
     gsap.killTweensOf(img);
-    gsap.set(img, { x: x - 38, y: y - 38, rotation: gsap.utils.random(-14, 14), zIndex: z++ });
+    gsap.set(img, { x: x - img.offsetWidth / 2, y: y - img.offsetHeight / 2, rotation: gsap.utils.random(-14, 14), zIndex: z++ });
     gsap
       .timeline()
       .fromTo(img, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'ui-out' })
