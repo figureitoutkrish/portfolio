@@ -270,6 +270,7 @@ html:not(.js) .intro { display: none; }
   text-wrap: balance;
 }
 
+.intro__hello .word,
 .intro__headline .word { display: inline-block; }
 
 .underline {
@@ -287,27 +288,6 @@ html:not(.js) .intro { display: none; }
   transform: scaleX(var(--underline-progress, 1));
   transform-origin: left center;
 }
-
-/* Visible, keyboard-reachable way out of the intro (any click or key also skips). */
-.intro__skip {
-  --tracking: var(--tracking-small);
-  position: absolute;
-  right: var(--gutter);
-  bottom: 1.25rem;
-  z-index: 1;
-  min-height: 44px;
-  padding: 0 0.25rem;
-  background: none;
-  border: 0;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: var(--weight-body);
-  cursor: pointer;
-  visibility: hidden;
-  transition: color 150ms var(--ease-out);
-}
-.intro__skip:hover { color: var(--fg); }
 
 /* Transforms are owned by the GSAP timeline. */
 .intro__stack {

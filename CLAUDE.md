@@ -50,7 +50,7 @@ src/
 ## Architecture
 
 - `main.js` is the only entry point. It wires Lenis into `gsap.ticker` (`lenis.raf(time * 1000)`, `lagSmoothing(0)`), waits for fonts (max 1.5s), then calls each section's `init`.
-- The intro (`src/sections/intro.js`) is a fixed overlay above home, driven by one GSAP timeline: greeting → polaroids stack → headline → blue gradient wipe (bottom → top, bryangarage.dev-inspired) → `home.reveal()`. The intro is hidden while the wipe fully covers the screen (its midpoint). A "skip intro" button, any click or key press skips to the end; in production it plays once per session (sessionStorage). Without JS or with reduced motion, CSS hides the intro and home shows directly.
+- The intro (`src/sections/intro.js`) is a fixed overlay above home, driven by one GSAP timeline: greeting → polaroids stack → headline → blue gradient wipe (bottom → top, bryangarage.dev-inspired) → `home.reveal()`. The intro is hidden while the wipe fully covers the screen (its midpoint). Any click or key press skips to the end; in production it plays once per session (sessionStorage). Without JS or with reduced motion, CSS hides the intro and home shows directly.
 - The Three.js scene isn't mounted on the landing page. If it's used again: fixed full-screen `#webgl` canvas behind `<main>`, pixel ratio capped at 2, and the rest of the app talks to it only through its returned API (`setScroll`, `dispose`).
 
 ## Conventions

@@ -82,12 +82,13 @@ export function initIntro({ reducedMotion, home, lenis }) {
   const polaroids = gsap.utils.toArray('.polaroid', root);
   const headline = root.querySelector('.intro__headline');
   const underline = root.querySelector('.underline');
-  const skipButton = root.querySelector('.intro__skip');
 
+  const helloWords = splitWords(hello);
   const words = splitWords(headline);
   home.hide();
   gsap.set(stack, STACK_CENTER);
-  gsap.set(headline, { autoAlpha: 1 });
+  gsap.set([hello, headline], { autoAlpha: 1 });
+  gsap.set(helloWords, { autoAlpha: 0, yPercent: 60 });
   gsap.set(words, { autoAlpha: 0, yPercent: 60 });
   gsap.set(underline, { '--underline-progress': 0 });
 
@@ -101,12 +102,10 @@ export function initIntro({ reducedMotion, home, lenis }) {
 
   const tl = gsap.timeline({ delay: 0.8, onComplete: finish }); // a beat of empty screen before the greeting
 
-  // "skip intro" fades in once the greeting has landed.
-  tl.fromTo(skipButton, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: 'power2.out' }, 1);
-
   // 1. "hi, i'm krish"
-  tl.fromTo(hello, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' })
-    .to(hello, { autoAlpha: 0, y: -16, duration: 0.5, ease: 'power2.in' }, '+=1.1');
+  // Words rise in one by one (same motion as the headline), then lift away in the same order.
+  tl.to(helloWords, { autoAlpha: 1, yPercent: 0, duration: 0.8, ease: 'power3.out', stagger: 0.09 })
+    .to(helloWords, { autoAlpha: 0, yPercent: -40, duration: 0.45, ease: 'power2.in', stagger: 0.05 }, '+=1');
 
   // 2. Polaroids drop in one by one and stack.
   polaroids.forEach((p, i) => {
@@ -134,7 +133,6 @@ export function initIntro({ reducedMotion, home, lenis }) {
 
   // 5. Gradient wipe bottom → top; swap intro for home while it covers the screen.
   tl.addLabel('wipe', '+=1')
-    .to(skipButton, { autoAlpha: 0, duration: 0.2 }, 'wipe')
     .set(wipe, { autoAlpha: 1 }, 'wipe')
     .fromTo(
       wipe,
@@ -146,7 +144,7 @@ export function initIntro({ reducedMotion, home, lenis }) {
     .add(home.reveal(), `wipe+=${WIPE_DURATION / 2 + 0.15}`)
     .set(wipe, { autoAlpha: 0 }, `wipe+=${WIPE_DURATION}`);
 
-  // The skip button, or any click or key press, goes straight to the home page.
+  // Any click (or key press, for keyboard users) goes straight to the home page.
   const skip = () => tl.progress(1);
   function removeSkip() {
     window.removeEventListener('pointerdown', skip);
