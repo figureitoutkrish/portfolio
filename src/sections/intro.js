@@ -101,8 +101,9 @@ export function initIntro({ reducedMotion, home, lenis }) {
 
   // 1. "hi, i'm krish"
   // Words rise in one by one (same motion as the headline), then lift away in the same order.
-  tl.to(helloWords, { autoAlpha: 1, yPercent: 0, duration: 0.8, ease: 'power3.out', stagger: 0.09 })
-    .to(helloWords, { autoAlpha: 0, yPercent: -40, duration: 0.45, ease: 'power2.in', stagger: 0.05 }, '+=1');
+  // Exits are quicker than entrances, and still ease-out (never ease-in).
+  tl.to(helloWords, { autoAlpha: 1, yPercent: 0, duration: 0.8, ease: 'ui-out', stagger: 0.07 })
+    .to(helloWords, { autoAlpha: 0, yPercent: -40, duration: 0.35, ease: 'ui-out', stagger: 0.04 }, '+=1');
 
   // 2. Polaroids drop in one by one and stack.
   polaroids.forEach((p, i) => {
@@ -121,12 +122,12 @@ export function initIntro({ reducedMotion, home, lenis }) {
   });
 
   // 3. Shrink a little, then slide down to rest on the bottom edge.
-  tl.to(stack, { scale: 0.85, duration: 0.5, ease: 'power2.inOut' }, '+=0.5')
-    .to(stack, { y: () => window.innerHeight / 2, ...STACK_END, duration: 1, ease: 'power3.inOut' });
+  tl.to(stack, { scale: 0.85, duration: 0.5, ease: 'ui-in-out' }, '+=0.5')
+    .to(stack, { y: () => window.innerHeight / 2, ...STACK_END, duration: 1, ease: 'ui-in-out' });
 
   // 4. "lemme introduce you to my alter egos." with the underline drawing in.
-  tl.to(words, { autoAlpha: 1, yPercent: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06 }, '-=0.35')
-    .to(underline, { '--underline-progress': 1, duration: 0.6, ease: 'power2.inOut' }, '-=0.15');
+  tl.to(words, { autoAlpha: 1, yPercent: 0, duration: 0.8, ease: 'ui-out', stagger: 0.06 }, '-=0.35')
+    .to(underline, { '--underline-progress': 1, duration: 0.6, ease: 'ui-in-out' }, '-=0.15');
 
   // 5. Gradient wipe bottom → top; swap intro for home while it covers the screen.
   // (The same wipe every page change uses: cover, swap underneath, reveal.)

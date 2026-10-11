@@ -20,10 +20,10 @@ export function initHome() {
     reveal() {
       return gsap
         .timeline()
-        .to(photo, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.2, ease: 'power4.inOut' }, 0)
-        .to(img, { scale: 1, duration: 1.6, ease: 'power3.out' }, 0)
-        .to(lines, { yPercent: 0, duration: 1, ease: 'power4.out', stagger: 0.08 }, 0.15)
-        .to(fades, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.05 }, 0.45);
+        .to(photo, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'ui-in-out' }, 0)
+        .to(img, { scale: 1, duration: 1.4, ease: 'ui-out' }, 0)
+        .to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.07 }, 0.15)
+        .to(fades, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'ui-out', stagger: 0.04 }, 0.4);
     },
   };
 }

@@ -92,6 +92,7 @@ function setupRefraction(el, { radius, bezel, strength }) {
     <feDisplacementMap in="SourceGraphic" in2="map" scale="${strength}" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>`;
   filterHost().append(filter);
   const feImage = filter.querySelector('feImage');
+  const displacement = filter.querySelector('feDisplacementMap');
 
   let size = '';
   const build = () => {
@@ -107,9 +108,13 @@ function setupRefraction(el, { radius, bezel, strength }) {
   build();
   const ro = new ResizeObserver(build);
   ro.observe(el);
-  return () => {
-    ro.disconnect();
-    filter.remove();
+  return {
+    // Lensing strength in px; animate it to "materialize" the glass.
+    setStrength: (v) => displacement.setAttribute('scale', v),
+    destroy: () => {
+      ro.disconnect();
+      filter.remove();
+    },
   };
 }
 
@@ -175,7 +180,8 @@ function luminanceAt(x, y, self) {
 export function createLiquidGlass(el, { radius, bezel = 14, strength = 28, adaptive = true, shine = true } = {}) {
   const cleanups = [];
 
-  if (supportsRefraction) cleanups.push(setupRefraction(el, { radius, bezel, strength }));
+  const refraction = supportsRefraction ? setupRefraction(el, { radius, bezel, strength }) : null;
+  if (refraction) cleanups.push(refraction.destroy);
 
   // Adaptive tone, with hysteresis so it doesn't flicker on mid-grey backgrounds.
   let tone = el.dataset.tone || 'light';
@@ -241,7 +247,13 @@ export function createLiquidGlass(el, { radius, bezel = 14, strength = 28, adapt
   }
 
   return {
+    strength,
     updateTone,
+    setTone: (next) => {
+      tone = next;
+      el.dataset.tone = next;
+    },
+    setStrength: (v) => refraction?.setStrength(v),
     destroy: () => cleanups.forEach((fn) => fn()),
   };
 }

@@ -1,7 +1,7 @@
 import './styles/main.css';
 import gsap from 'gsap';
 import { initShared } from './shared.js';
-import { arrivedViaWipe, wipeReveal } from './utils/transition.js';
+import { arrivedViaWipe, revealArrival } from './utils/transition.js';
 
 // Alter-ego pages (data, creative). Placeholder content for now.
 const { reducedMotion, fontsReady } = initShared();
@@ -16,10 +16,10 @@ if (!reducedMotion) {
 }
 
 fontsReady.then(() => {
-  if (viaWipe) wipeReveal();
+  if (viaWipe) revealArrival();
   if (reducedMotion) return;
   gsap
-    .timeline({ delay: viaWipe ? 0.15 : 0 })
-    .to(lines, { yPercent: 0, duration: 1, ease: 'power4.out', stagger: 0.08 })
-    .to(fades, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.05 }, 0.3);
+    .timeline({ delay: viaWipe ? 0.1 : 0 })
+    .to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.07 })
+    .to(fades, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'ui-out', stagger: 0.04 }, 0.3);
 });

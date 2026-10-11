@@ -39,8 +39,11 @@
   --polaroid-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
   --underline-thickness: 0.07em;
 
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --press-scale: 0.94;
+  /* Motion curves (mirrored in src/utils/ease.js as ui-out / ui-in-out / drawer). */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --press-scale: 0.96;
 }
 
 html.lenis, html.lenis body { height: auto; }
@@ -87,9 +90,8 @@ img { display: block; max-width: 100%; }
   color: inherit;
   text-decoration: none;
   font-size: 1.125rem;
-  transition: color 150ms var(--ease-out);
+  transition: color 150ms ease;
 }
-.logo:hover { color: var(--accent); }
 
 .menu-btn {
   position: relative;
@@ -101,7 +103,7 @@ img { display: block; max-width: 100%; }
   color: var(--fg);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 100ms ease-out;
+  transition: transform 160ms var(--ease-out);
 }
 /* Feedback lives on the press, and it's instant. */
 .menu-btn:active { transform: scale(var(--press-scale)); }
@@ -111,13 +113,14 @@ img { display: block; max-width: 100%; }
   width: 34px;
   height: 2px;
   background: currentColor;
-  transition: transform 300ms var(--ease-out), width 300ms var(--ease-out);
+  transform-origin: right center;
+  transition: transform 200ms var(--ease-out);
 }
 .menu-btn span:first-child { top: 18px; }
 .menu-btn span:last-child { top: 24px; }
-.menu-btn:hover span:last-child { width: 24px; }
+.menu-btn[aria-expanded="true"] span { transform-origin: center; }
 .menu-btn[aria-expanded="true"] span:first-child { transform: translateY(3px) rotate(45deg); }
-.menu-btn[aria-expanded="true"] span:last-child { width: 34px; transform: translateY(-3px) rotate(-45deg); }
+.menu-btn[aria-expanded="true"] span:last-child { transform: translateY(-3px) rotate(-45deg); }
 
 /* Menu: regular liquid glass (it holds text), growing out of the button that opened it. */
 .menu {
@@ -150,7 +153,7 @@ img { display: block; max-width: 100%; }
   text-decoration: none;
   font-size: 1.375rem;
   --tracking: var(--tracking-heading);
-  transition: color 150ms var(--ease-out), background-color 150ms var(--ease-out);
+  transition: color 150ms ease, background-color 150ms ease;
 }
 .menu a svg {
   flex: none;
@@ -158,8 +161,13 @@ img { display: block; max-width: 100%; }
   height: 0.75em;
   transition: transform 200ms var(--ease-out);
 }
-.menu a:hover { color: var(--accent); }
-.menu a:hover svg { transform: translate(2px, -2px); }
+/* Hover effects only where hover really exists (touch taps would trigger them falsely). */
+@media (hover: hover) and (pointer: fine) {
+  .logo:hover { color: var(--accent); }
+  .menu-btn:not([aria-expanded="true"]):hover span:last-child { transform: scaleX(0.7); }
+  .menu a:hover { color: var(--accent); }
+  .menu a:hover svg { transform: translate(2px, -2px); }
+}
 .menu a {
   border-radius: 14px;
 }
@@ -322,7 +330,7 @@ img { display: block; max-width: 100%; }
   left: 0;
   right: 0;
   bottom: max(1.25rem, env(safe-area-inset-bottom));
-  z-index: 15;
+  z-index: 40; /* above the page wipe, so it stays put while pages change underneath */
   display: flex;
   width: fit-content;
   margin-inline: auto;
@@ -340,52 +348,64 @@ img { display: block; max-width: 100%; }
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 68px;
+  width: 76px;
   height: 52px;
   border-radius: 999px;
   color: inherit;
   -webkit-user-drag: none;
-  transition: color 250ms ease;
 }
-.tabbar__item svg {
-  width: 26px;
-  height: 26px;
-  opacity: 0.72;
-  transition: opacity 200ms ease, transform 160ms var(--ease-out);
-}
-.tabbar__item:active svg { transform: scale(0.9); }
-.tabbar__item[aria-current="page"] { color: var(--accent); }
-.tabbar__item[aria-current="page"] svg { opacity: 1; }
 .tabbar__item:focus-visible { outline-offset: -4px; }
+
+/* Outline and filled versions sit on top of each other and cross-fade. A touch of blur during
+   the swap makes it read as one icon changing state, not two icons trading places. */
+.tabbar__icon {
+  grid-area: 1 / 1;
+  width: 24px;
+  height: 24px;
+  transition:
+    opacity 200ms ease,
+    filter 200ms ease,
+    transform 200ms var(--ease-out);
+}
+.tabbar__icon--line { opacity: 0.6; }
+.tabbar__icon--fill { opacity: 0; filter: blur(2px); transform: scale(0.9); }
+.tabbar__item.is-selected .tabbar__icon--line { opacity: 0; filter: blur(2px); transform: scale(0.9); }
+.tabbar__item.is-selected .tabbar__icon--fill { opacity: 1; filter: blur(0); transform: scale(1); }
+/* No-JS: the current page is still marked. */
+html:not(.js) .tabbar__item[aria-current="page"] .tabbar__icon--line { opacity: 0; }
+html:not(.js) .tabbar__item[aria-current="page"] .tabbar__icon--fill { opacity: 1; filter: none; transform: none; }
+
+.tabbar__item:active .tabbar__icon { transform: scale(var(--press-scale)); }
 @media (hover: hover) and (pointer: fine) {
-  .tabbar__item:hover svg { opacity: 1; }
+  .tabbar__item:hover .tabbar__icon--line { opacity: 0.9; }
 }
 
-/* The circle marking the open page. Its transform is driven by springs in tabbar.js. */
+/* The capsule marking the open page. Its transform is driven by springs in tabbar.js.
+   A faint tint plus a bright top edge: a lens sitting in the glass, not a solid chip. */
 .tabbar__indicator {
   position: absolute;
   z-index: 2;
   left: 0;
   top: 50%;
-  width: 48px;
-  height: 48px;
-  margin-top: -24px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.62);
+  width: 76px;
+  height: 52px;
+  margin-top: -26px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.06);
   box-shadow:
-    inset 0 1px 0.5px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.04),
-    0 2px 10px rgba(0, 0, 0, 0.08),
-    0 0 0 0.5px rgba(0, 0, 0, 0.04);
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.75),
+    inset 0 -0.5px 0.5px rgba(17, 17, 17, 0.06),
+    inset 0 0 0 0.5px rgba(17, 17, 17, 0.04);
   pointer-events: none;
   will-change: transform;
   transition: background-color 300ms ease, box-shadow 300ms ease;
 }
 .tabbar[data-tone="dark"] .tabbar__indicator {
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.35), 0 2px 10px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.22),
+    inset 0 0 12px rgba(255, 255, 255, 0.04);
 }
-.tabbar[data-tone="dark"] .tabbar__item[aria-current="page"] { color: #8fa9ff; }
 
 /* ---------- Intro (fixed overlay above home) ---------- */
 
@@ -499,12 +519,26 @@ html:not(.js) .intro { display: none; }
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
 }
-/* Arriving from another page: start covered (matches wipeReveal's start), no flash. */
-.is-wiping .wipe {
-  visibility: visible;
-  transform: translateY(-60vh);
-  transform: translateY(-60dvh);
+/* Page changes sweep sideways: the same band, laid out along x. */
+.wipe-x .wipe {
+  width: 220vw;
+  height: 100%;
+  background:
+    radial-gradient(18% 45% at 30% 22%, rgba(160, 190, 255, 0.95), transparent 70%),
+    radial-gradient(16% 40% at 42% 78%, rgba(120, 90, 255, 0.85), transparent 70%),
+    radial-gradient(20% 60% at 62% 50%, rgba(10, 30, 140, 0.9), transparent 70%),
+    radial-gradient(14% 35% at 76% 30%, rgba(90, 200, 255, 0.8), transparent 70%),
+    linear-gradient(to left, #dbe5ff, var(--accent) 24%, #0a1a6b 50%, var(--accent) 76%, #dbe5ff);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
 }
+.wipe-x .wipe::after {
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 11px);
+}
+
+/* Arriving from another page: start covered (matches the reveal's start), so there's no flash. */
+.is-wiping .wipe { visibility: visible; }
+.is-wiping.wipe-x .wipe { transform: translateX(-60vw); }
 
 /* Vertical light streaks. */
 .wipe::after {

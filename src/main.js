@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { initShared } from './shared.js';
 import { initHome } from './sections/home.js';
 import { initIntro } from './sections/intro.js';
-import { arrivedViaWipe, wipeReveal } from './utils/transition.js';
+import { arrivedViaWipe, revealArrival } from './utils/transition.js';
 
 // Home page.
 const { reducedMotion, lenis, fontsReady } = initShared();
@@ -14,8 +14,8 @@ if (arrivedViaWipe()) {
   gsap.set('.intro', { autoAlpha: 0 });
   home.hide();
   fontsReady.then(() => {
-    wipeReveal();
-    home.reveal().delay(0.15);
+    revealArrival();
+    home.reveal().delay(0.1);
   });
 } else {
   fontsReady.then(() => initIntro({ reducedMotion, home, lenis }));

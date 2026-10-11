@@ -1,3 +1,4 @@
+import './utils/ease.js'; // registers the site's custom curves first
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { initMenu } from './sections/menu.js';

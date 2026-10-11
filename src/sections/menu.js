@@ -11,24 +11,22 @@ export function initMenu({ reducedMotion }) {
   const links = panel.querySelectorAll('a');
   let open = false;
 
-  function setOpen(next, { returnFocus = true } = {}) {
+  // Dropdown timing: 220ms in, a quicker 150ms out, both ease-out (never ease-in).
+  // Keyboard-driven open/close (Enter, Space, Escape) is instant — keyboard actions shouldn't wait on animation.
+  function setOpen(next, { returnFocus = true, instant = false } = {}) {
     if (next === open) return;
     open = next;
     button.setAttribute('aria-expanded', String(open));
+    const still = instant || reducedMotion;
 
     if (open) {
       // Visible right away (only opacity/scale animate) so focus can move into the menu now.
       gsap.set(panel, { visibility: 'visible' });
-      gsap.to(panel, {
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        duration: reducedMotion ? 0.15 : 0.45,
-        ease: 'expo.out',
-        overwrite: true,
-      });
-      if (!reducedMotion) {
-        gsap.fromTo(links, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out', stagger: 0.035, delay: 0.05, overwrite: true });
+      gsap.to(panel, { opacity: 1, scale: 1, y: 0, duration: still ? 0 : 0.22, ease: 'ui-out', overwrite: true });
+      if (!still) {
+        gsap.fromTo(links, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.22, ease: 'ui-out', stagger: 0.03, delay: 0.03, overwrite: true });
+      } else {
+        gsap.set(links, { opacity: 1, y: 0 });
       }
       links[0]?.focus({ preventScroll: true });
     } else {
@@ -36,8 +34,8 @@ export function initMenu({ reducedMotion }) {
         autoAlpha: 0,
         scale: reducedMotion ? 1 : 0.96,
         y: reducedMotion ? 0 : -6,
-        duration: reducedMotion ? 0.15 : 0.25,
-        ease: 'power2.in',
+        duration: still ? 0 : 0.15,
+        ease: 'ui-out',
         overwrite: true,
       });
       if (returnFocus) button.focus({ preventScroll: true });
@@ -46,9 +44,10 @@ export function initMenu({ reducedMotion }) {
 
   gsap.set(panel, { autoAlpha: 0, scale: reducedMotion ? 1 : 0.96, y: reducedMotion ? 0 : -6 });
 
-  const onButton = () => setOpen(!open);
+  // e.detail === 0 means the click came from the keyboard (Enter/Space), not a pointer.
+  const onButton = (e) => setOpen(!open, { instant: e.detail === 0 });
   const onKey = (e) => {
-    if (e.key === 'Escape' && open) setOpen(false);
+    if (e.key === 'Escape' && open) setOpen(false, { instant: true });
   };
   // Clicking anywhere outside closes it, without stealing focus back to the button.
   const onPointer = (e) => {

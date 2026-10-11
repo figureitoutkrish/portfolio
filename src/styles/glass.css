@@ -11,16 +11,19 @@
 
 .glass {
   --glass-radius: 999px;
-  --glass-tint: rgba(255, 255, 255, 0.24);
-  --glass-blur: 5px;
-  --glass-saturate: 1.8;
-  --glass-brightness: 1.06;
-  --glass-edge-top: rgba(255, 255, 255, 0.8);
-  --glass-edge-bottom: rgba(255, 255, 255, 0.28);
-  --glass-glow: rgba(255, 255, 255, 0.14);
-  --glass-rim-a: rgba(255, 255, 255, 0.85);
-  --glass-rim-b: rgba(255, 255, 255, 0.4);
-  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+  /* Clear by default: almost no fill — the surface is defined by its rim, edge light,
+     refraction and shadow, so whatever is behind it stays visible. */
+  --glass-tint: rgba(255, 255, 255, 0.04);
+  --glass-blur: 8px; /* enough that text behind turns into soft tone, not competing letterforms */
+  --glass-saturate: 1.6;
+  --glass-brightness: 1; /* no lift on light pages — it would turn the glass white */
+  --glass-edge-top: rgba(255, 255, 255, 0.85);
+  --glass-edge-bottom: rgba(255, 255, 255, 0.35);
+  --glass-glow: rgba(255, 255, 255, 0.05);
+  --glass-hairline: rgba(17, 17, 17, 0.09);
+  --glass-rim-a: rgba(255, 255, 255, 0.95);
+  --glass-rim-b: rgba(255, 255, 255, 0.55);
+  --glass-shadow: 0 10px 28px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
   --glass-ink: #111111;
 
   position: relative;
@@ -34,6 +37,7 @@
     inset 0 1px 0.5px var(--glass-edge-top),
     inset 0 -1px 0.5px var(--glass-edge-bottom),
     inset 0 0 20px var(--glass-glow),
+    0 0 0 0.5px var(--glass-hairline),
     var(--glass-shadow);
   transition:
     background-color 300ms ease,
@@ -107,13 +111,15 @@
 
 /* Adaptive tone: liquid-glass.js flips this based on what's underneath. */
 .glass[data-tone="dark"] {
-  --glass-tint: rgba(20, 20, 24, 0.32);
-  --glass-edge-top: rgba(255, 255, 255, 0.35);
+  --glass-tint: rgba(255, 255, 255, 0.04);
+  --glass-brightness: 1.12;
+  --glass-edge-top: rgba(255, 255, 255, 0.32);
   --glass-edge-bottom: rgba(255, 255, 255, 0.12);
-  --glass-glow: rgba(255, 255, 255, 0.06);
+  --glass-glow: rgba(255, 255, 255, 0.05);
+  --glass-hairline: rgba(255, 255, 255, 0.06);
   --glass-rim-a: rgba(255, 255, 255, 0.5);
-  --glass-rim-b: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.16);
+  --glass-rim-b: rgba(255, 255, 255, 0.28);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.18);
   --glass-ink: #ffffff;
 }
 

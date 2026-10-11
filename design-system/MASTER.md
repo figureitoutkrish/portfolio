@@ -45,10 +45,18 @@ Blue is the only accent. Use it sparingly: underlines, the "/" in the title, hov
 ## Motion
 
 - Library: GSAP (+ Lenis smooth scroll, paused during the intro).
+- **Curves (Emil Kowalski's set)** — registered in `src/utils/ease.js`, mirrored as CSS tokens:
+  `ui-out` / `--ease-out` `cubic-bezier(.23,1,.32,1)` for anything entering or exiting;
+  `ui-in-out` / `--ease-in-out` `cubic-bezier(.77,0,.175,1)` for on-screen movement;
+  `drawer` / `--ease-drawer` `cubic-bezier(.32,.72,0,1)` for big surfaces answering a click (the wipe's cover). **Never ease-in.**
+- **Durations:** press 160ms, hover/colour 150–200ms `ease`, dropdowns ~220ms in / 150ms out, scene-setting (intro, page entrances) can be longer. Exits are always faster than entrances.
+- **Staggers** 30–80ms. **Hover effects only under `@media (hover: hover) and (pointer: fine)`.**
+- **Keyboard-initiated UI (Enter/Space/Escape on the menu) doesn't animate.**
+- **Cross-fades between two states use a 2px blur** so they read as one thing changing.
 - Only animate `transform`, `opacity` (and `clip-path` for image reveals) — never layout properties like `top`.
 - **Feel:** confident and smooth. `power3/power4.out` for entrances, `expo.out` for UI that opens, `power2.in` for UI that closes.
 - **Interruptible:** UI tweens start from the current on-screen value (`gsap.to` + `overwrite: true`), so toggling mid-animation reverses smoothly.
-- **Press feedback is instant:** `:active { transform: scale(.94) }` at 100ms.
+- **Press feedback is instant:** `:active { transform: scale(var(--press-scale)) }` (0.96) at 160ms.
 - **Spatial consistency:** things appear from where they come from — the menu grows from the burger (`transform-origin: top right`); the wipe travels bottom → top and the home photo opens bottom → top behind it.
 - Reveal pattern: masked line rise for display type, staggered word rise for statements, small staggered fades for supporting text.
 - Every animation has a reduced-motion path (intro skipped, menu fades only).
@@ -65,7 +73,7 @@ Blue is the only accent. Use it sparingly: underlines, the "/" in the title, hov
 
 Reusable material: `.glass` in `src/styles/glass.css` + behaviour in `src/utils/liquid-glass.js`. Following Apple's HIG:
 - **Only for navigation and controls** (tab bar, menu) — never content, and sparingly.
-- **Variants:** base `.glass` (tab bar: light 5px blur, content stays recognisable); `.glass--regular` (menu/popovers with text: thicker, 22px blur); `.glass--clear` (+ `.glass--dim`) for controls over photos/video.
+- **Variants:** base `.glass` is clear (tab bar): ~4% tint, 8px blur, no brightness lift on light pages — measured identical to the page colour, so it's defined only by rim, edge light, refraction and shadow. `.glass--regular` (menu/popovers with text: thicker, 22px blur); `.glass--clear` (+ `.glass--dim`) for controls over photos/video.
 - **Layers:** refraction at the rim (SVG displacement map, Chromium only) → blur + saturate + luminosity → thin tint → inner glow + top specular / bottom bounce edges → 1px gradient rim → pointer-following specular shine (desktop).
 - **Adaptive tone:** samples what's underneath (image pixels included) and flips to dark glass with white icons; active icon becomes `#8fa9ff` on dark.
 - Solid fallbacks for no backdrop-filter, reduced transparency and increased contrast.
@@ -73,14 +81,16 @@ Reusable material: `.glass` in `src/styles/glass.css` + behaviour in `src/utils/
 
 ## Navigation
 
-- **Tab bar** (`src/sections/tabbar.js`): floating pill, bottom centre — code `</>` (data), house (home), fountain pen (creative). The page's icon is accent blue with a white circle behind it.
-- The circle runs on springs (`src/utils/spring.js`, Apple's response/damping model): moves on press, can be dragged 1:1 with rubber-banding, is thrown to the projected icon on release, stretches like a droplet with velocity.
+- **Tab bar** (`src/sections/tabbar.js`): floating clear-glass pill, bottom centre — code `</>` (data), house (home), pen-tool nib (creative), Lucide-style 1.75px outline icons. Monochrome (per HIG, and the reference): the selected icon cross-fades outline → filled with a 2px blur; a faint translucent capsule sits behind it.
+- It sits **above the page wipe** (z-index 40), so it never leaves the screen during page changes; it goes dark-tone while the blue passes behind it.
+- **Entrance:** materialises — the pill swells from a narrower droplet (scaleX .82 → 1) while the refraction strength fades 0 → full, then icons resolve from a 4px blur with a 45ms stagger. Exit: 180ms, simpler.
+- The capsule runs on springs (`src/utils/spring.js`, Apple's response/damping model): moves on press, can be dragged 1:1 with rubber-banding, is thrown to the projected icon on release, stretches like a droplet with velocity.
 - Home: hidden at the top, appears after scrolling 20% of a screen, hides again near the top. Other pages: always visible (HIG: keep the tab bar visible inside a section).
 - Tapping the current page's icon scrolls to the top instead of reloading.
 
 ## Page transitions
 
-- **Every page change uses the blue wipe** (`src/utils/transition.js`): cover (bottom → covering) → navigate → the new page paints already covered (`html.is-wiping`, set by the inline head script) → reveal (covering → top). The intro uses the same two halves.
+- **Every page change uses the blue wipe** (`src/utils/transition.js`), travelling sideways in the direction of the tab bar: to a page on the right (e.g. creative) it sweeps right → left; to a page on the left it sweeps left → right. Cover (`drawer`, 0.55s) → navigate → the new page paints already covered (`html.is-wiping.wipe-x`, set by the inline head script from the stored direction) → reveal (`ui-in-out`, 0.55s). The page content drifts 64px with the wipe on both sides. The intro uses the same wipe vertically (bottom → top, 0.8s halves).
 - Internal links go through it automatically; external links (`target="_blank"`) don't. Back/forward-cache restores uncover themselves.
 - Arriving on home from another page skips the intro.
 
