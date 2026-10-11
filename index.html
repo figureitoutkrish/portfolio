@@ -7,6 +7,7 @@
     <meta name="theme-color" content="#f7f7f7" />
     <title>Krish Viramgama — Data Scientist / Creative</title>
     <meta name="description" content="Krish Viramgama — data science student, designer, and co-founder of Koach. Meet the alter egos." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/assets/fonts/Nohemi-VF.ttf" as="font" type="font/ttf" crossorigin />
     <!-- Flags JS before first paint so the intro can hide its pieces until the animation runs. -->
     <script>document.documentElement.classList.add('js');</script>
@@ -16,7 +17,17 @@
       <section id="home" class="home" aria-label="Home">
         <header class="site-header" data-fade>
           <a class="logo" href="/">krish.</a>
-          <button class="menu-btn" type="button" aria-label="Menu"><span></span><span></span></button>
+          <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-menu"><span></span><span></span></button>
+          <nav id="site-menu" class="menu" aria-label="Find me online">
+            <p class="menu__label">find me online</p>
+            <ul>
+              <li><a href="https://www.instagram.com/figureitoutwithkrish/" target="_blank" rel="noopener">instagram <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
+              <li><a href="https://www.youtube.com/@figureitoutwithkrish" target="_blank" rel="noopener">youtube <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
+              <li><a href="https://www.linkedin.com/in/krish-viramgama-27951927a/" target="_blank" rel="noopener">linkedin <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
+              <li><a href="https://www.behance.net/theinvrangers" target="_blank" rel="noopener">behance <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
+              <li><a href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener">koach studio <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
+            </ul>
+          </nav>
         </header>
 
         <div class="home__grid">
@@ -37,7 +48,7 @@
           </div>
 
           <figure class="home__photo">
-            <img src="/assets/images/krish-portrait.jpg" width="1216" height="1294" alt="Krish Viramgama, backlit silhouette looking over his shoulder" />
+            <img src="/assets/images/krish-portrait.jpg" width="1216" height="1294" decoding="async" alt="Krish Viramgama, backlit silhouette looking over his shoulder" />
           </figure>
         </div>
       </section>
@@ -46,6 +57,7 @@
     <!-- Intro overlay: plays over the home page, then a gradient wipe reveals it. -->
     <section class="intro" aria-label="Introduction">
       <p class="intro__hello">hi, my name is krish</p>
+      <button class="intro__skip" type="button">skip intro</button>
 
       <div class="intro__stack" aria-hidden="true">
         <figure class="polaroid polaroid--1"><div class="polaroid__photo"><img src="/assets/images/polaroid-1.jpg" width="640" height="610" alt="" /></div></figure>

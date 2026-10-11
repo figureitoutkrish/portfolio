@@ -7,13 +7,32 @@ const POSES = [
   { xPercent: 0, yPercent: 0, rotation: -2 },
 ];
 
-// Stack centred on screen vs. shrunk onto the bottom edge (top itself is tweened separately).
+// Stack centred on screen vs. shrunk onto the bottom edge (the drop itself is a `y` tween).
 const STACK_CENTER = { xPercent: -50, yPercent: -50, scale: 1 };
 const STACK_END = { xPercent: -50, yPercent: -62, scale: 0.42 };
 
 // The wipe travels from just below the screen to just above it. With a symmetric ease it
 // sits at -60vh — fully covering the screen — exactly halfway through.
 const WIPE_DURATION = 1.6;
+
+// In production the intro plays once per browser session; reloads and return visits go straight
+// home. It always plays in dev so it can be reviewed.
+const SEEN_KEY = 'krish:intro-seen';
+function seenThisSession() {
+  if (import.meta.env.DEV) return false;
+  try {
+    return sessionStorage.getItem(SEEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+function markSeen() {
+  try {
+    sessionStorage.setItem(SEEN_KEY, '1');
+  } catch {
+    /* storage unavailable: the intro just plays again next time */
+  }
+}
 
 // Wraps each word of the headline in a span so words can rise in one by one.
 // Child elements (the underlined "alter egos") are kept whole and animate as one word.
@@ -43,19 +62,27 @@ function splitWords(el) {
   return words;
 }
 
-// Plays the intro over the home page, then wipes to it. `home` is the object from initHome().
-export function initIntro({ reducedMotion, home }) {
+// Plays the intro over the home page, then wipes to it. `home` is the object from initHome();
+// `lenis` (optional) is paused so the page underneath can't scroll during the intro.
+export function initIntro({ reducedMotion, home, lenis }) {
   const root = document.querySelector('.intro');
   const wipe = document.querySelector('.wipe');
 
   // Reduced motion: CSS already hides the intro; home shows as-is.
   if (!root || reducedMotion) return () => {};
 
+  if (seenThisSession()) {
+    gsap.set(root, { autoAlpha: 0 });
+    return () => {};
+  }
+  markSeen();
+
   const hello = root.querySelector('.intro__hello');
   const stack = root.querySelector('.intro__stack');
   const polaroids = gsap.utils.toArray('.polaroid', root);
   const headline = root.querySelector('.intro__headline');
   const underline = root.querySelector('.underline');
+  const skipButton = root.querySelector('.intro__skip');
 
   const words = splitWords(headline);
   home.hide();
@@ -64,7 +91,18 @@ export function initIntro({ reducedMotion, home }) {
   gsap.set(words, { autoAlpha: 0, yPercent: 60 });
   gsap.set(underline, { '--underline-progress': 0 });
 
-  const tl = gsap.timeline({ delay: 0.2, onComplete: removeSkip });
+  lenis?.stop();
+  document.documentElement.style.overflow = 'hidden';
+  const finish = () => {
+    removeSkip();
+    lenis?.start();
+    document.documentElement.style.overflow = '';
+  };
+
+  const tl = gsap.timeline({ delay: 0.2, onComplete: finish });
+
+  // "skip intro" fades in once the greeting has landed.
+  tl.fromTo(skipButton, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: 'power2.out' }, 1);
 
   // 1. "hi, my name is krish"
   tl.fromTo(hello, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' })
@@ -88,7 +126,7 @@ export function initIntro({ reducedMotion, home }) {
 
   // 3. Shrink a little, then slide down to rest on the bottom edge.
   tl.to(stack, { scale: 0.85, duration: 0.5, ease: 'power2.inOut' }, '+=0.5')
-    .to(stack, { top: '100%', ...STACK_END, duration: 1, ease: 'power3.inOut' });
+    .to(stack, { y: () => window.innerHeight / 2, ...STACK_END, duration: 1, ease: 'power3.inOut' });
 
   // 4. "lemme introduce you to my alter egos." with the underline drawing in.
   tl.to(words, { autoAlpha: 1, yPercent: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06 }, '-=0.35')
@@ -96,6 +134,7 @@ export function initIntro({ reducedMotion, home }) {
 
   // 5. Gradient wipe bottom → top; swap intro for home while it covers the screen.
   tl.addLabel('wipe', '+=1')
+    .to(skipButton, { autoAlpha: 0, duration: 0.2 }, 'wipe')
     .set(wipe, { autoAlpha: 1 }, 'wipe')
     .fromTo(
       wipe,
@@ -107,7 +146,7 @@ export function initIntro({ reducedMotion, home }) {
     .add(home.reveal(), `wipe+=${WIPE_DURATION / 2 + 0.15}`)
     .set(wipe, { autoAlpha: 0 }, `wipe+=${WIPE_DURATION}`);
 
-  // Any click or key press skips straight to the home page.
+  // The skip button, or any click or key press, goes straight to the home page.
   const skip = () => tl.progress(1);
   function removeSkip() {
     window.removeEventListener('pointerdown', skip);
@@ -117,7 +156,7 @@ export function initIntro({ reducedMotion, home }) {
   window.addEventListener('keydown', skip);
 
   return () => {
-    removeSkip();
+    finish();
     tl.kill();
   };
 }

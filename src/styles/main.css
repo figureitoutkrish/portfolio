@@ -1,7 +1,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* Set on every element so the em-based tracking scales with each element's own font size
-   (inherited letter-spacing is fixed at the parent's size). */
+   (inherited letter-spacing is fixed at the parent's size). Components set --tracking to
+   their size's value: negative for large type, ~0 for body, slightly positive for small. */
 * { letter-spacing: var(--tracking); }
 
 /* Nohemi by Rajesh Rajput (freeware; files must not be modified, so served as the original TTF). */
@@ -23,8 +24,10 @@
   --accent: #1f4fff;
 
   --font: "Nohemi", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --tracking: -0.01em;
-  --tracking-display: -0.035em; /* large display type */
+  --tracking: 0em; /* body */
+  --tracking-heading: -0.02em; /* headings */
+  --tracking-display: -0.035em; /* the big name */
+  --tracking-small: 0.01em; /* labels, tags */
   --weight-heading: 600; /* Nohemi Semi Bold */
   --weight-body: 500;
   --gutter: 1.25rem;
@@ -33,6 +36,9 @@
   --polaroid-pad: 0.6rem 0.6rem 2.1rem;
   --polaroid-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
   --underline-thickness: 0.07em;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --press-scale: 0.94;
 }
 
 html.lenis, html.lenis body { height: auto; }
@@ -49,6 +55,11 @@ body {
 
 img { display: block; max-width: 100%; }
 
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 /* ---------- Home ---------- */
 
 .home {
@@ -60,33 +71,97 @@ img { display: block; max-width: 100%; }
 }
 
 .site-header {
+  position: relative;
+  z-index: 10;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: inherit;
   text-decoration: none;
   font-size: 1.125rem;
+  transition: color 150ms var(--ease-out);
 }
+.logo:hover { color: var(--accent); }
 
 .menu-btn {
-  display: grid;
-  gap: 6px;
+  position: relative;
   width: 44px;
   height: 44px;
-  place-content: center end;
+  margin-right: -5px; /* optically align the lines with the gutter */
   background: none;
   border: 0;
+  color: var(--fg);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 100ms ease-out;
 }
+/* Feedback lives on the press, and it's instant. */
+.menu-btn:active { transform: scale(var(--press-scale)); }
 .menu-btn span {
-  display: block;
+  position: absolute;
+  right: 5px;
   width: 34px;
   height: 2px;
-  background: var(--fg);
+  background: currentColor;
+  transition: transform 300ms var(--ease-out), width 300ms var(--ease-out);
 }
+.menu-btn span:first-child { top: 18px; }
+.menu-btn span:last-child { top: 24px; }
+.menu-btn:hover span:last-child { width: 24px; }
+.menu-btn[aria-expanded="true"] span:first-child { transform: translateY(3px) rotate(45deg); }
+.menu-btn[aria-expanded="true"] span:last-child { width: 34px; transform: translateY(-3px) rotate(-45deg); }
+
+/* Menu: a light material panel that grows out of the button that opened it. */
+.menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: min(20rem, calc(100vw - 2 * var(--gutter)));
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform-origin: top right;
+  visibility: hidden;
+}
+.menu__label {
+  padding: 0.75rem 0.75rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: var(--weight-body);
+  --tracking: var(--tracking-small);
+}
+.menu ul { list-style: none; }
+.menu a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  min-height: 48px;
+  padding: 0 0.75rem;
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 1.375rem;
+  --tracking: var(--tracking-heading);
+  transition: color 150ms var(--ease-out), background-color 150ms var(--ease-out);
+}
+.menu a svg {
+  flex: none;
+  width: 0.75em;
+  height: 0.75em;
+  transition: transform 200ms var(--ease-out);
+}
+.menu a:hover { color: var(--accent); }
+.menu a:hover svg { transform: translate(2px, -2px); }
+.menu a:active { background: rgba(31, 79, 255, 0.08); }
 
 .home__grid {
   flex: 1;
@@ -95,13 +170,15 @@ img { display: block; max-width: 100%; }
   align-items: center;
   padding-top: 2rem;
 }
+.home__grid > * { min-width: 0; } /* never let content stretch the grid past the gutters */
 
 .home__name {
-  font-size: clamp(3.5rem, 17vw, 8.5rem);
+  --tracking: var(--tracking-display);
+  /* "viramgama" is ~5.14em wide; 15.5vw keeps it inside the gutters at every single-column width. */
+  font-size: clamp(3.5rem, 15.5vw, 8.5rem);
   font-weight: var(--weight-heading);
   line-height: 0.92;
 }
-.home__name, .home__name * { letter-spacing: var(--tracking-display); }
 
 /* Each line is a mask the text rises through. */
 .home__name .line {
@@ -112,6 +189,7 @@ img { display: block; max-width: 100%; }
 .home__name .line > span { display: block; }
 
 .home__title {
+  --tracking: -0.01em;
   margin-top: 1rem;
   font-size: clamp(1.15rem, 2.2vw, 1.5rem);
 }
@@ -124,7 +202,8 @@ img { display: block; max-width: 100%; }
   color: var(--muted);
   font-size: clamp(1rem, 1.6vw, 1.2rem);
   font-weight: var(--weight-body);
-  line-height: 1.35;
+  line-height: 1.45;
+  text-wrap: pretty;
 }
 
 .home__tags {
@@ -135,6 +214,7 @@ img { display: block; max-width: 100%; }
   list-style: none;
 }
 .home__tags li {
+  --tracking: var(--tracking-small);
   padding: 0.65rem 1rem;
   border: 1px solid var(--line);
   font-size: 0.875rem;
@@ -171,7 +251,11 @@ html:not(.js) .intro { display: none; }
 
 /* Greeting and headline share the centre of the screen; one replaces the other. */
 .intro__hello,
-.intro__headline { grid-area: 1 / 1; visibility: hidden; }
+.intro__headline {
+  --tracking: var(--tracking-heading);
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
 
 .intro__hello {
   font-size: clamp(1.75rem, 6vw, 3.5rem);
@@ -183,6 +267,7 @@ html:not(.js) .intro { display: none; }
   font-weight: var(--weight-heading);
   line-height: 1.05;
   max-width: 16ch;
+  text-wrap: balance;
 }
 
 .intro__headline .word { display: inline-block; }
@@ -202,6 +287,27 @@ html:not(.js) .intro { display: none; }
   transform: scaleX(var(--underline-progress, 1));
   transform-origin: left center;
 }
+
+/* Visible, keyboard-reachable way out of the intro (any click or key also skips). */
+.intro__skip {
+  --tracking: var(--tracking-small);
+  position: absolute;
+  right: var(--gutter);
+  bottom: 1.25rem;
+  z-index: 1;
+  min-height: 44px;
+  padding: 0 0.25rem;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: var(--weight-body);
+  cursor: pointer;
+  visibility: hidden;
+  transition: color 150ms var(--ease-out);
+}
+.intro__skip:hover { color: var(--fg); }
 
 /* Transforms are owned by the GSAP timeline. */
 .intro__stack {
@@ -247,6 +353,7 @@ html:not(.js) .intro { display: none; }
   height: 220vh;
   pointer-events: none;
   visibility: hidden;
+  will-change: transform;
   background:
     radial-gradient(45% 18% at 22% 30%, rgba(160, 190, 255, 0.95), transparent 70%),
     radial-gradient(40% 16% at 78% 42%, rgba(120, 90, 255, 0.85), transparent 70%),
@@ -288,6 +395,15 @@ html:not(.js) .intro { display: none; }
     width: 100%;
     max-height: calc(100svh - 8.5rem);
   }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .menu { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+@media (prefers-contrast: more) {
+  :root { --muted: #3d3d3d; --line: var(--fg); }
+  .menu { background: var(--paper); border-color: var(--fg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
