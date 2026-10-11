@@ -104,7 +104,7 @@ export function initIntro({ reducedMotion, home, lenis }) {
   // "skip intro" fades in once the greeting has landed.
   tl.fromTo(skipButton, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: 'power2.out' }, 1);
 
-  // 1. "hi, my name is krish"
+  // 1. "hi, i'm krish"
   tl.fromTo(hello, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' })
     .to(hello, { autoAlpha: 0, y: -16, duration: 0.5, ease: 'power2.in' }, '+=1.1');
 
