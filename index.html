@@ -3,22 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#0a0a0a" />
-    <title>Krish — Developer & Designer</title>
-    <meta name="description" content="Portfolio of Krish — code, design, and everything in between." />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f7f7f7" />
+    <title>Krish Viramgama — Data Scientist / Creative</title>
+    <meta name="description" content="Krish Viramgama — data science student, designer, and co-founder of Koach. Meet the alter egos." />
+    <link rel="preload" href="/assets/fonts/Nohemi-VF.ttf" as="font" type="font/ttf" crossorigin />
+    <!-- Flags JS before first paint so the intro can hide its end state until the animation runs. -->
+    <script>document.documentElement.classList.add('js');</script>
   </head>
   <body>
-    <canvas id="webgl"></canvas>
     <main>
-      <section id="hero" class="section">
-        <h1 class="reveal">Krish</h1>
-        <p class="reveal">Developer · Designer · Builder</p>
+      <section id="intro" class="intro" aria-label="Introduction">
+        <p class="intro__hello">hi, my name is krish</p>
+
+        <div class="intro__stack" aria-hidden="true">
+          <!-- Placeholder photos until real ones are added to public/assets/images/ -->
+          <figure class="polaroid polaroid--1"><div class="polaroid__photo">photo 1</div></figure>
+          <figure class="polaroid polaroid--2"><div class="polaroid__photo">photo 2</div></figure>
+          <figure class="polaroid polaroid--3"><div class="polaroid__photo">photo 3</div></figure>
+        </div>
+
+        <h1 class="intro__headline">lemme introduce you to my <span class="underline">alter egos</span>.</h1>
       </section>
-      <section id="code" class="section"><h2 class="reveal">Code</h2></section>
-      <section id="design" class="section"><h2 class="reveal">Design</h2></section>
-      <section id="about" class="section"><h2 class="reveal">About</h2></section>
-      <section id="contact" class="section"><h2 class="reveal">Contact</h2></section>
     </main>
     <script type="module" src="/src/main.js"></script>
   </body>

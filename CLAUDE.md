@@ -1,6 +1,13 @@
 # Portfolio — project guide
 
-Personal portfolio for Krish (B.Tech Data Science) showcasing coding and design work. Target quality: Awwwards-level, with WebGL/3D, smooth scroll, and polished motion. Built iteratively; the visual design is a minimal dark placeholder until inspiration references are shared.
+Personal portfolio for Krish Viramgama (B.Tech + Diploma, Data Science), titled "Data Scientist / Creative". Concept: two **alter egos** visitors can explore — data science / engineering, and design / social media / Koach (Krish's creative agency). Target quality: Awwwards-level, polished motion. Built page by page from Krish's references (Figma board + sites); `content/about.md` holds all personal copy.
+
+## Visual direction
+
+- Light theme (context-con.com style): `--bg #f7f7f7`, `--fg #111`.
+- **All text lowercase.** The landing page uses only **Nohemi Semi Bold, 2% letter spacing** (`--tracking: 0.02em`, applied per element so it scales). Inter, Bowlby One SC and Morganite are reserved for the alter-ego pages.
+- Nohemi's licence forbids modifying the font files: serve the original TTF, don't convert/subset it.
+- Photos of Krish are placeholders until real ones are added to `public/assets/images/`.
 
 ## Stack
 
@@ -22,25 +29,26 @@ npm run preview   # serve the production build
 ## Folder structure
 
 ```
-index.html              # Single page; one <section> per area (hero, code, design, about, contact)
+index.html              # Landing page (intro animation: greeting → polaroid stack → alter-egos headline)
+content/about.md        # Personal copy, links and timeline (source for About content)
 vite.config.js
 public/assets/
   images/               # Static images, served as-is at /assets/images/...
   models/               # 3D models (.glb/.gltf)
   fonts/                # Self-hosted web fonts
 src/
-  main.js               # Entry: imports CSS, boots the 3D scene, Lenis, and GSAP
+  main.js               # Entry: imports CSS, starts Lenis, waits for fonts, inits sections
   styles/main.css       # Global styles + design tokens
-  three/scene.js        # Three.js scene (all WebGL code lives under src/three/)
-  sections/             # One JS module per page section
+  three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)
+  sections/             # One JS module per page section (intro.js)
   utils/                # Small shared helpers (e.g. motion.js)
 ```
 
 ## Architecture
 
-- `main.js` is the only entry point. It creates the scene, wires Lenis into `gsap.ticker` (`lenis.raf(time * 1000)`, `lagSmoothing(0)`), and forwards scroll position to the scene via `world.setScroll()`.
-- The WebGL canvas (`#webgl`) is fixed, full-screen, and behind the content (`z-index: 0`, `pointer-events: none`). `<main>` sits above it.
-- The Three.js scene caps pixel ratio at 2, handles resize, and exposes a small API (`setScroll`, `dispose`). Keep that boundary: the rest of the app talks to the scene only through its returned API.
+- `main.js` is the only entry point. It wires Lenis into `gsap.ticker` (`lenis.raf(time * 1000)`, `lagSmoothing(0)`), waits for fonts (max 1.5s), then calls each section's `init`.
+- The intro (`src/sections/intro.js`) is one GSAP timeline; any click or key press skips to the end. An inline script in `<head>` adds `html.js` so CSS can hide end-state pieces until the timeline runs; without JS (or with reduced motion) the end state shows directly.
+- The Three.js scene isn't mounted on the landing page. If it's used again: fixed full-screen `#webgl` canvas behind `<main>`, pixel ratio capped at 2, and the rest of the app talks to it only through its returned API (`setScroll`, `dispose`).
 
 ## Conventions
 

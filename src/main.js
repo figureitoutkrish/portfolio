@@ -1,32 +1,18 @@
 import './styles/main.css';
 import Lenis from 'lenis';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { createScene } from './three/scene.js';
+import { initIntro } from './sections/intro.js';
 import { prefersReducedMotion } from './utils/motion.js';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const reducedMotion = prefersReducedMotion();
-const world = createScene(document.getElementById('webgl'), { reducedMotion });
 
-// Reduced motion: keep native scrolling and skip the reveal animations entirely.
+// Reduced motion: keep native scrolling.
 if (!reducedMotion) {
   const lenis = new Lenis();
-  lenis.on('scroll', ({ scroll }) => {
-    ScrollTrigger.update();
-    world.setScroll(scroll);
-  });
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
-
-  gsap.utils.toArray('.reveal').forEach((el) => {
-    gsap.from(el, {
-      y: 60,
-      opacity: 0,
-      duration: 1.1,
-      ease: 'power3.out',
-      scrollTrigger: { trigger: el, start: 'top 85%' },
-    });
-  });
 }
+
+// Wait for Nohemi (max 1.5s) so intro text doesn't swap fonts mid-animation.
+const fontsReady = Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1500))]);
+fontsReady.then(() => initIntro({ reducedMotion }));

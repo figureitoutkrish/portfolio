@@ -14,14 +14,20 @@
 
 /* Design tokens: all colours, type, and spacing go through these variables. */
 :root {
-  color-scheme: dark;
-  --bg: #0a0a0a;
-  --fg: #f2f2f2;
-  --muted: #8a8a8a;
+  color-scheme: light;
+  --bg: #f7f7f7;
+  --fg: #111111;
+  --muted: #6b6b6b;
+  --paper: #ffffff;
   --font: "Nohemi", system-ui, -apple-system, "Segoe UI", sans-serif;
   --tracking: 0.02em; /* Nohemi at 2% letter spacing */
   --weight-heading: 600; /* Nohemi Semi Bold */
   --gutter: 1.5rem;
+
+  --polaroid-w: clamp(150px, 42vw, 260px);
+  --polaroid-pad: 0.6rem 0.6rem 2.1rem;
+  --polaroid-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  --underline-thickness: 0.07em;
 }
 
 html.lenis, html.lenis body { height: auto; }
@@ -31,30 +37,104 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font);
+  font-weight: var(--weight-heading);
+  text-transform: lowercase;
   -webkit-font-smoothing: antialiased;
 }
 
-#webgl { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+main { position: relative; }
 
-main { position: relative; z-index: 1; }
+/* ---------- Intro ---------- */
 
-/* Mobile-first: base styles target small screens, media queries scale up. */
-.section {
-  min-height: 100vh;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.intro {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
   padding: 0 var(--gutter);
+  text-align: center;
 }
 
-h1 { font-size: clamp(3rem, 12vw, 10rem); line-height: 0.9; font-weight: var(--weight-heading); }
-h2 { font-size: clamp(2rem, 6vw, 5rem); font-weight: var(--weight-heading); }
-p  { color: var(--muted); font-size: 1.125rem; margin-top: 1rem; }
+/* Greeting and headline share the centre of the screen; one replaces the other. */
+.intro__hello,
+.intro__headline { grid-area: 1 / 1; }
+
+.intro__hello {
+  font-size: clamp(1.75rem, 6vw, 3.5rem);
+  line-height: 1.1;
+  visibility: hidden; /* only shown by the intro animation */
+}
+
+.intro__headline {
+  font-size: clamp(2.25rem, 7vw, 5rem);
+  font-weight: var(--weight-heading);
+  line-height: 1.05;
+  max-width: 16ch;
+}
+
+.intro__headline .word { display: inline-block; }
+
+.underline {
+  position: relative;
+  display: inline-block;
+}
+.underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.02em;
+  height: var(--underline-thickness);
+  background: currentColor;
+  transform: scaleX(var(--underline-progress, 1));
+  transform-origin: left center;
+}
+
+/* Polaroid stack. End state (no JS / reduced motion): small, resting on the bottom edge. */
+.intro__stack {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -62%) scale(0.42);
+}
+
+.polaroid {
+  grid-area: 1 / 1;
+  width: var(--polaroid-w);
+  padding: var(--polaroid-pad);
+  background: var(--paper);
+  box-shadow: var(--polaroid-shadow);
+}
+.polaroid--1 { transform: translate(-18%, -4%) rotate(-7deg); }
+.polaroid--2 { width: calc(var(--polaroid-w) * 1.18); transform: translate(20%, -8%) rotate(8deg); }
+.polaroid--3 { transform: rotate(-2deg); }
+
+.polaroid__photo {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1.05;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.polaroid--1 .polaroid__photo { background: #d8d2c8; }
+.polaroid--2 .polaroid__photo { background: #c8ced6; aspect-ratio: 3 / 2; }
+.polaroid--3 .polaroid__photo { background: #d4cbc0; }
+
+/* With JS, the animation owns transforms and visibility; hide end-state pieces to avoid a flash. */
+.js .intro__stack { top: 50%; transform: none; }
+.js .intro.is-done .intro__stack { top: 100%; }
+.js .polaroid { transform: none; visibility: hidden; }
+.js .intro__headline { visibility: hidden; }
 
 @media (min-width: 768px) {
-  :root { --gutter: 8vw; }
-  p { font-size: 1.25rem; }
+  :root {
+    --gutter: 8vw;
+    --polaroid-w: clamp(200px, 22vw, 280px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
