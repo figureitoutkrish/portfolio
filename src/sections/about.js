@@ -5,13 +5,16 @@ import { splitWords } from '../utils/split.js';
 gsap.registerPlugin(ScrollTrigger);
 
 // About (pamidordesign.co-inspired):
-//   - the intro paragraph brightens word by word as it scrolls through the screen
-//   - the tilted photo drifts a little slower than the page
+//   - the intro pins: the page holds still while the paragraph reveals word by word — each word
+//     lights up in the accent blue and settles to ink, so a blue wave runs through the text —
+//     then scrolling carries on
+//   - the tilted photo drifts gently while pinned
 //   - the blue card cycles through highlights (paused while the tab is hidden)
 export function initAbout({ reducedMotion }) {
   const root = document.querySelector('.about');
   if (!root) return () => {};
 
+  const intro = root.querySelector('.about__intro');
   const text = root.querySelector('.about__text');
   const photo = root.querySelector('.about__float');
   const stats = [...root.querySelectorAll('.stat')];
@@ -19,23 +22,30 @@ export function initAbout({ reducedMotion }) {
 
   if (!reducedMotion) {
     const words = splitWords(text);
-    // Opacity rather than colour: compositor-friendly, and reads as grey → black on the light page.
-    const reveal = gsap.fromTo(
+    const css = getComputedStyle(document.documentElement);
+    const accent = css.getPropertyValue('--accent').trim();
+    const ink = css.getPropertyValue('--fg').trim();
+    gsap.set(words, { opacity: 0.16 });
+
+    const tl = gsap.timeline({
+      defaults: { ease: 'none' }, // scrubbed: the scroll itself is the easing
+      scrollTrigger: {
+        trigger: intro,
+        start: 'top top',
+        end: () => `+=${Math.round(window.innerHeight * 1.6)}`, // ~1.6 screens of scrolling to read it
+        pin: true,
+        scrub: 0.8, // a little lag so the reveal glides instead of stepping with the wheel
+        invalidateOnRefresh: true,
+      },
+    });
+    tl.to(words, { opacity: 1, color: accent, duration: 0.4, stagger: 0.12 }, 0).to(
       words,
-      { opacity: 0.16 },
-      {
-        opacity: 1,
-        ease: 'none',
-        stagger: 0.1,
-        scrollTrigger: { trigger: text, start: 'top 80%', end: 'bottom 50%', scrub: 0.6 },
-      }
+      { color: ink, duration: 0.6, stagger: 0.12 },
+      0.35
     );
-    const drift = gsap.fromTo(
-      photo,
-      { yPercent: 14 },
-      { yPercent: -14, ease: 'none', scrollTrigger: { trigger: root, start: 'top bottom', end: 'bottom top', scrub: true } }
-    );
-    triggers.push(reveal.scrollTrigger, drift.scrollTrigger);
+    tl.fromTo(photo, { yPercent: 10 }, { yPercent: -10, duration: tl.duration() }, 0);
+    tl.to({}, { duration: 0.8 }); // rest on the finished paragraph before letting go
+    triggers.push(tl.scrollTrigger);
   }
 
   // Highlights card.

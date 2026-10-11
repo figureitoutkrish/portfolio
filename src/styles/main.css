@@ -198,6 +198,7 @@ img { display: block; max-width: 100%; }
   font-size: clamp(3.5rem, 15.5vw, 8.5rem);
   font-weight: var(--weight-body); /* lighter than headings: cleaner at this size */
   line-height: 0.84;
+  text-transform: none; /* the name keeps its capitals; everything else stays lowercase */
 }
 
 /* Each line is a mask the text rises through. */
@@ -266,26 +267,50 @@ img { display: block; max-width: 100%; }
 
 /* ---------- Home: about (pamidordesign.co-inspired) ---------- */
 
-.about {
-  padding: clamp(4rem, 10vw, 8rem) var(--gutter) clamp(3rem, 6vw, 5rem);
+/* Thin rules between sections, inside the gutters. */
+.divider {
+  height: 1px;
+  margin: 0 var(--gutter);
+  border: 0;
+  background: var(--line);
 }
+
+.about {
+  padding: 0 var(--gutter) clamp(3rem, 6vw, 5rem);
+}
+/* A full screen tall so it can pin while the paragraph reveals (about.js). */
 .about__intro {
   display: grid;
-  gap: 2.5rem;
+  gap: 1.5rem;
+  align-content: center;
   align-items: start;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-block: 5rem;
 }
 /* Words brighten from faint to full as the paragraph scrolls through (about.js). */
 .about__text {
   --tracking: var(--tracking-heading);
-  max-width: 30ch;
-  font-size: clamp(1.6rem, 3.3vw, 2.8rem);
+  max-width: 34ch;
+  font-size: clamp(1.35rem, 2.9vw, 2.6rem);
   font-weight: var(--weight-body);
   line-height: 1.18;
+  text-transform: none; /* written in sentence case */
   text-wrap: pretty;
 }
+.about__text a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.14em;
+}
+@media (hover: hover) and (pointer: fine) {
+  .about__text a:hover { color: var(--accent); }
+}
 .about__float {
+  order: -1;
   justify-self: end;
-  width: clamp(150px, 17vw, 240px);
+  width: clamp(110px, 17vw, 240px);
   aspect-ratio: 1;
   overflow: hidden;
   rotate: -6deg;
@@ -707,8 +732,8 @@ html:not(.js) .intro { display: none; }
     width: 100%;
     max-height: calc(100svh - 8.5rem);
   }
-  .about__intro { grid-template-columns: 1fr auto; gap: 4vw; }
-  .about__float { margin-top: 0.5rem; }
+  .about__intro { grid-template-columns: 1fr auto; gap: 4vw; align-items: center; }
+  .about__float { order: 0; }
   .about__proof {
     grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
     gap: 3vw;
