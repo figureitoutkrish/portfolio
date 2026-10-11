@@ -10,6 +10,7 @@ Personal portfolio for Krish Viramgama (B.Tech + Diploma, Data Science), titled 
 - Tracking is size-specific: set `--tracking` per component (display −0.035em, heading −0.02em, body 0, small +0.01em).
 - Animate only transform/opacity/clip-path; UI tweens must be interruptible; instant `:active` press feedback.
 - Original photos go in `content/` (git-ignored); optimised JPEG copies live in `public/assets/images/`.
+- Every page's `<head>` has an inline guard (`body{visibility:hidden}`, undone by main.css) so the dev server never flashes unstyled HTML; give inline SVGs explicit `width`/`height`.
 
 ## Stack
 
