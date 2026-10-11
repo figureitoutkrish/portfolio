@@ -121,7 +121,11 @@ export function initIntro({ reducedMotion, home, lenis }) {
     .add(home.reveal(), `wipe+=${WIPE_HALF + 0.15}`);
 
   // Any click (or key press, for keyboard users) goes straight to the home page.
-  const skip = () => tl.progress(1);
+  // (K is the theme switch, so it doesn't count as "skip".)
+  const skip = (e) => {
+    if (e?.type === 'keydown' && e.key?.toLowerCase() === 'k') return;
+    tl.progress(1);
+  };
   function removeSkip() {
     window.removeEventListener('pointerdown', skip);
     window.removeEventListener('keydown', skip);

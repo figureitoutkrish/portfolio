@@ -11,12 +11,16 @@
     <link rel="preload" href="/assets/fonts/Nohemi-VF.ttf" as="font" type="font/ttf" crossorigin />
     <!-- Until the stylesheet applies (in dev, Vite injects CSS from JS), show nothing rather than
          an unstyled flash; mid page-change, hold the wipe's blue so the sweep looks continuous. -->
-    <style>body{visibility:hidden}html.is-wiping{background:#0a1a6b}</style>
-    <!-- Before first paint: flag JS, and if we arrived through a page-change wipe, start covered. -->
+    <style>body{visibility:hidden}html[data-theme=dark]{background:#0b0c10;color-scheme:dark}html.is-wiping{background:#0a1a6b}</style>
+    <!-- Before first paint: flag JS, pick the theme, and if we arrived through a page-change wipe, start covered. -->
     <script>
       (function () {
         var d = document.documentElement;
         d.classList.add('js');
+        var t;
+        try { t = localStorage.getItem('krish:theme'); } catch (e) {}
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        d.dataset.theme = t;
         try {
           var dir = sessionStorage.getItem('krish:wipe');
           if (dir) {
@@ -42,6 +46,7 @@
               <li><a href="https://www.behance.net/theinvrangers" target="_blank" rel="noopener">behance <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
               <li><a href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener">koach studio <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
             </ul>
+            <button class="menu__theme" type="button" data-theme-toggle aria-pressed="false"><span data-theme-label>dark mode</span><kbd>k</kbd></button>
           </nav>
         </header>
 

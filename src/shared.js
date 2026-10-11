@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { initMenu } from './sections/menu.js';
 import { initTabbar } from './sections/tabbar.js';
+import { initTheme } from './utils/theme.js';
 import { initPageTransitions, navigate } from './utils/transition.js';
 import { prefersReducedMotion } from './utils/motion.js';
 
@@ -20,6 +21,7 @@ export function initShared() {
     gsap.ticker.lagSmoothing(0);
   }
 
+  initTheme({ reducedMotion });
   initMenu({ reducedMotion });
   initPageTransitions({ reducedMotion, lenis });
   initTabbar({ reducedMotion, navigate: (url) => navigate(url, { reducedMotion, lenis }) });

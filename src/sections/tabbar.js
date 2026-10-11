@@ -159,6 +159,7 @@ export function initTabbar({ reducedMotion, navigate }) {
   const onRevealed = () => glass.updateTone();
   window.addEventListener('wipe:cover', onCover);
   window.addEventListener('wipe:revealed', onRevealed);
+  window.addEventListener('theme:change', () => requestAnimationFrame(onRevealed)); // instant switches (no sweep)
   if (arrivedViaWipe()) glass.setTone('dark');
 
   // ---------- show / hide ----------

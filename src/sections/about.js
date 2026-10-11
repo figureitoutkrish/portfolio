@@ -22,10 +22,9 @@ export function initAbout({ reducedMotion }) {
 
   if (!reducedMotion) {
     const words = splitWords(text);
-    const css = getComputedStyle(document.documentElement);
-    const accent = css.getPropertyValue('--accent').trim();
-    const ink = css.getPropertyValue('--fg').trim();
-    gsap.set(words, { opacity: 0.16 });
+    // --blue (0 → 1 → 0) mixes the accent into the text colour in CSS, so the wave follows
+    // whichever theme is active instead of baking in fixed colours.
+    gsap.set(words, { opacity: 0.16, '--blue': 0 });
 
     const tl = gsap.timeline({
       defaults: { ease: 'none' }, // scrubbed: the scroll itself is the easing
@@ -38,9 +37,9 @@ export function initAbout({ reducedMotion }) {
         invalidateOnRefresh: true,
       },
     });
-    tl.to(words, { opacity: 1, color: accent, duration: 0.4, stagger: 0.12 }, 0).to(
+    tl.to(words, { opacity: 1, '--blue': 1, duration: 0.4, stagger: 0.12 }, 0).to(
       words,
-      { color: ink, duration: 0.6, stagger: 0.12 },
+      { '--blue': 0, duration: 0.6, stagger: 0.12 },
       0.35
     );
     tl.fromTo(photo, { yPercent: 10 }, { yPercent: -10, duration: tl.duration() }, 0);

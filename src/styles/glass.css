@@ -109,16 +109,29 @@
 }
 .glass--dim { --glass-tint: rgba(0, 0, 0, 0.35); --glass-ink: #ffffff; }
 
+/* Regular glass on the dark theme: a dark, thicker material with light ink. */
+[data-theme="dark"] .glass--regular {
+  --glass-tint: rgba(22, 24, 32, 0.72);
+  --glass-ink: #ececf1;
+  --glass-edge-top: rgba(255, 255, 255, 0.16);
+  --glass-edge-bottom: rgba(255, 255, 255, 0.06);
+  --glass-glow: rgba(255, 255, 255, 0.03);
+  --glass-hairline: rgba(255, 255, 255, 0.08);
+  --glass-rim-a: rgba(255, 255, 255, 0.3);
+  --glass-rim-b: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 /* Adaptive tone: liquid-glass.js flips this based on what's underneath. */
 .glass[data-tone="dark"] {
-  --glass-tint: rgba(255, 255, 255, 0.04);
+  --glass-tint: rgba(255, 255, 255, 0.05);
   --glass-brightness: 1.12;
-  --glass-edge-top: rgba(255, 255, 255, 0.32);
-  --glass-edge-bottom: rgba(255, 255, 255, 0.12);
-  --glass-glow: rgba(255, 255, 255, 0.05);
-  --glass-hairline: rgba(255, 255, 255, 0.06);
-  --glass-rim-a: rgba(255, 255, 255, 0.5);
-  --glass-rim-b: rgba(255, 255, 255, 0.28);
+  --glass-edge-top: rgba(255, 255, 255, 0.4);
+  --glass-edge-bottom: rgba(255, 255, 255, 0.14);
+  --glass-glow: rgba(255, 255, 255, 0.06);
+  --glass-hairline: rgba(255, 255, 255, 0.1);
+  --glass-rim-a: rgba(255, 255, 255, 0.6);
+  --glass-rim-b: rgba(255, 255, 255, 0.3);
   --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.18);
   --glass-ink: #ffffff;
 }
@@ -135,7 +148,8 @@
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .glass[data-tone="dark"] { --glass-tint: #1c1c1e; }
+  .glass[data-tone="dark"],
+  [data-theme="dark"] .glass--regular { --glass-tint: #1c1c1e; }
   .glass__shine { display: none; }
 }
 
@@ -147,6 +161,7 @@
     backdrop-filter: none;
     outline: 1.5px solid currentColor;
   }
-  .glass[data-tone="dark"] { --glass-tint: #000; --glass-ink: #fff; }
+  .glass[data-tone="dark"],
+  [data-theme="dark"] .glass--regular { --glass-tint: #000; --glass-ink: #fff; }
   .glass__shine { display: none; }
 }

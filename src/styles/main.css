@@ -24,6 +24,13 @@
   --line: rgba(17, 17, 17, 0.3);
   --paper: #ffffff;
   --accent: #1f4fff;
+  --brand: #1f4fff; /* fixed brand blue (wipe, stat card) — same in both themes */
+  --photo-bg: #dedede; /* behind photos while they load */
+  --marquee: #a6a6a6;
+  /* light page → blue world hand-off (journey fades) */
+  --fade-a: #dbe5ff;
+  --fade-b: #7a95ff;
+  --fade-c: var(--brand);
   /* The blue "techy" world (wipe + journey section). */
   --deep: #050b24;
   --deep-2: #0a1a6b;
@@ -50,6 +57,30 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --press-scale: 0.96;
+}
+
+/* Dark theme: same structure, re-tuned tokens. Picked before first paint (inline head script);
+   K or the menu button switches it (theme.js). */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0c10;
+  --fg: #ececf1;
+  --muted: #9a9ca6; /* 7.1:1 on --bg */
+  --line: rgba(236, 236, 241, 0.18);
+  --accent: #4c74ff; /* lifted so blue text/links stay readable on dark (4.9:1) */
+  --photo-bg: #1a1c22;
+  --marquee: #5c5f6b;
+  --fade-a: #0e1530;
+  --fade-b: #16288a;
+  --fade-c: #1d3bd1;
+  --polaroid-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* While the theme flips under the wipe, nothing should transition. */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
 }
 
 html.lenis, html.lenis body { height: auto; }
@@ -188,6 +219,39 @@ img { display: block; max-width: 100%; }
   border-radius: 14px;
 }
 .menu a:active { background: rgba(31, 79, 255, 0.08); }
+.menu__theme {
+  --tracking: var(--tracking-small);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.4rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: var(--weight-body);
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+.menu__theme kbd {
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.75rem;
+}
+.menu__theme:active { transform: scale(var(--press-scale)); }
+@media (hover: hover) and (pointer: fine) {
+  .menu__theme:hover { color: var(--fg); }
+}
 
 .home__grid {
   flex: 1;
@@ -246,7 +310,7 @@ img { display: block; max-width: 100%; }
   position: relative;
   overflow: hidden;
   aspect-ratio: 1216 / 1294;
-  background: #dedede;
+  background: var(--photo-bg);
 }
 .home__photo img {
   width: 100%;
@@ -304,6 +368,9 @@ img { display: block; max-width: 100%; }
   text-transform: none; /* written in sentence case */
   text-wrap: pretty;
 }
+.about__text .word {
+  color: color-mix(in srgb, var(--accent) calc(var(--blue, 0) * 100%), var(--fg));
+}
 .about__text a {
   color: inherit;
   text-decoration: underline;
@@ -341,7 +408,7 @@ img { display: block; max-width: 100%; }
   position: relative;
   min-height: 9.5rem;
   overflow: hidden;
-  background: var(--accent);
+  background: var(--brand); /* white text keeps 5.8:1 on the fixed brand blue */
   color: #fff;
 }
 .stat {
@@ -394,7 +461,7 @@ img { display: block; max-width: 100%; }
 }
 .marquee__item {
   --tracking: -0.01em;
-  color: #a6a6a6;
+  color: var(--marquee);
   font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   font-weight: var(--weight-heading);
   white-space: nowrap;
@@ -434,10 +501,10 @@ img { display: block; max-width: 100%; }
 /* Seamless, static hand-off from the light page into the blue world (and back out). */
 .journey__fade {
   height: 70vh;
-  background: linear-gradient(to bottom, var(--bg) 0%, #dbe5ff 20%, #7a95ff 42%, var(--accent) 58%, var(--deep-2) 80%, transparent 100%);
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--fade-a) 20%, var(--fade-b) 42%, var(--fade-c) 58%, var(--deep-2) 80%, transparent 100%);
 }
 .journey__fade--out {
-  background: linear-gradient(to top, var(--bg) 0%, #dbe5ff 20%, #7a95ff 42%, var(--accent) 58%, var(--deep-2) 80%, transparent 100%);
+  background: linear-gradient(to top, var(--bg) 0%, var(--fade-a) 20%, var(--fade-b) 42%, var(--fade-c) 58%, var(--deep-2) 80%, transparent 100%);
 }
 
 .journey__stage {
@@ -727,7 +794,7 @@ img { display: block; max-width: 100%; }
   background:
     radial-gradient(45% 60% at 25% 30%, rgba(160, 190, 255, 0.9), transparent 70%),
     radial-gradient(40% 55% at 80% 70%, rgba(120, 90, 255, 0.7), transparent 70%),
-    linear-gradient(135deg, #dbe5ff, var(--accent) 50%, var(--deep-2));
+    linear-gradient(135deg, #dbe5ff, var(--brand) 50%, var(--deep-2));
 }
 .tl__card-art::after {
   content: "";
@@ -999,7 +1066,7 @@ html:not(.js) .intro { display: none; }
 .polaroid__photo {
   overflow: hidden;
   aspect-ratio: 1.05;
-  background: #dedede;
+  background: var(--photo-bg);
 }
 .polaroid--2 .polaroid__photo { aspect-ratio: 3 / 2; }
 .polaroid__photo img {
@@ -1027,7 +1094,7 @@ html:not(.js) .intro { display: none; }
     radial-gradient(40% 16% at 78% 42%, rgba(120, 90, 255, 0.85), transparent 70%),
     radial-gradient(60% 20% at 50% 62%, rgba(10, 30, 140, 0.9), transparent 70%),
     radial-gradient(35% 14% at 30% 76%, rgba(90, 200, 255, 0.8), transparent 70%),
-    linear-gradient(to top, #dbe5ff, var(--accent) 24%, #0a1a6b 50%, var(--accent) 76%, #dbe5ff);
+    linear-gradient(to top, #dbe5ff, var(--brand) 24%, #0a1a6b 50%, var(--brand) 76%, #dbe5ff);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
 }
@@ -1040,7 +1107,7 @@ html:not(.js) .intro { display: none; }
     radial-gradient(16% 40% at 42% 78%, rgba(120, 90, 255, 0.85), transparent 70%),
     radial-gradient(20% 60% at 62% 50%, rgba(10, 30, 140, 0.9), transparent 70%),
     radial-gradient(14% 35% at 76% 30%, rgba(90, 200, 255, 0.8), transparent 70%),
-    linear-gradient(to left, #dbe5ff, var(--accent) 24%, #0a1a6b 50%, var(--accent) 76%, #dbe5ff);
+    linear-gradient(to left, #dbe5ff, var(--brand) 24%, #0a1a6b 50%, var(--brand) 76%, #dbe5ff);
   -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
 }
@@ -1102,6 +1169,7 @@ html:not(.js) .intro { display: none; }
 
 @media (prefers-contrast: more) {
   :root { --muted: #3d3d3d; --line: var(--fg); }
+  [data-theme="dark"] { --muted: #c9cbd3; }
   .menu { background: var(--paper); border-color: var(--fg); }
 }
 
