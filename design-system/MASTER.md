@@ -21,6 +21,8 @@ Tokens live in `:root` in `src/styles/main.css`; this file explains them.
 | Paper (polaroids, solid surfaces) | `--paper` | `#ffffff` |
 | **Accent** | `--accent` | `#1f4fff` (5.41:1 on bg) |
 
+**Dark theme** (`[data-theme="dark"]`): bg `#0b0c10`, text `#ececf1` (16.6:1), muted `#9a9ca6` (7.1:1), line `rgba(236,236,241,.18)`, accent lifted to `#4c74ff` (4.9:1). `--brand #1f4fff` is fixed in both themes (wipe, stat card — white on it is 5.8:1). Other theme tokens: `--photo-bg`, `--marquee` (light `#878787`, 3.2:1), `--fade-a/b/c` (journey hand-off). Never hard-code a colour that should change with the theme.
+
 Blue is the only accent. Use it sparingly: underlines, the "/" in the title, hover states, focus rings, the wipe.
 
 ## Typography
@@ -87,6 +89,12 @@ Reusable material: `.glass` in `src/styles/glass.css` + behaviour in `src/utils/
 - The capsule runs on springs (`src/utils/spring.js`, Apple's response/damping model): moves on press, can be dragged 1:1 with rubber-banding, is thrown to the projected icon on release, stretches like a droplet with velocity.
 - Home: hidden at the top, appears after scrolling 20% of a screen, hides again near the top. Other pages: always visible (HIG: keep the tab bar visible inside a section).
 - Tapping the current page's icon scrolls to the top instead of reloading.
+
+## Theme (light / dark)
+
+- `src/utils/theme.js`. The inline head script picks the theme before first paint: saved choice (`localStorage['krish:theme']`), else the device setting. Every page has it.
+- **K** (ignored while typing / with modifiers / on repeat) or the menu's "dark mode · k" button switches it: the blue wipe sweeps **up** (0.45s cover), the theme flips under it with transitions disabled (`html.theme-switching`), then the wipe reveals (0.55s). Instant under reduced motion or while the intro / a page wipe is running. K never skips the intro.
+- Synced: other open tabs follow live (`storage` event); with no saved choice it follows device changes. `theme:change` event for anything that needs to react (tab bar re-samples its tone).
 
 ## Page transitions
 

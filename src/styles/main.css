@@ -26,7 +26,7 @@
   --accent: #1f4fff;
   --brand: #1f4fff; /* fixed brand blue (wipe, stat card) — same in both themes */
   --photo-bg: #dedede; /* behind photos while they load */
-  --marquee: #a6a6a6;
+  --marquee: #878787; /* 3.2:1 — the client names are large text, so they need 3:1 */
   /* light page → blue world hand-off (journey fades) */
   --fade-a: #dbe5ff;
   --fade-b: #7a95ff;
@@ -479,7 +479,7 @@ img { display: block; max-width: 100%; }
 
 .journey {
   --year-w: 190px;
-  --lane-h: 44px;
+  --lane-h: 54px; /* bars are lane-h − 10px: keeps tap targets ≥ 44px */
   position: relative;
   isolation: isolate;
   color: var(--ink-dark);
@@ -711,6 +711,7 @@ img { display: block; max-width: 100%; }
   transition: background-color 200ms ease, border-color 200ms ease, transform 160ms var(--ease-out);
 }
 .tl__bar:active { transform: scale(0.98); }
+.journey :focus-visible { outline-color: var(--accent-soft); } /* 8.6:1 on the navy, vs 3.4:1 for the brand blue */
 .tl__bar.is-active { background: rgba(233, 238, 255, 0.12); border-color: rgba(233, 238, 255, 0.26); }
 @media (hover: hover) and (pointer: fine) {
   .tl__bar:hover { background: rgba(233, 238, 255, 0.12); border-color: rgba(233, 238, 255, 0.26); }
@@ -1136,7 +1137,7 @@ html:not(.js) .intro { display: none; }
     --polaroid-w: clamp(200px, 22vw, 280px);
   }
   .home { padding-top: 2rem; }
-  .journey { --year-w: 250px; --lane-h: 52px; }
+  .journey { --year-w: 250px; --lane-h: 56px; }
   .term__prompt { display: inline; }
   .tl__bar { font-size: 0.875rem; }
 }
@@ -1164,6 +1165,7 @@ html:not(.js) .intro { display: none; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  .tl__card { background: #0d1a5c; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .menu { background: var(--paper); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 

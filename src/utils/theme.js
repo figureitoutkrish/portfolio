@@ -34,6 +34,10 @@ function save(theme) {
 }
 
 export function initTheme({ reducedMotion }) {
+  // The head script set data-theme; match the browser chrome to it right away.
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS[currentTheme()]);
+  document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', currentTheme());
+
   status = document.createElement('p');
   status.className = 'visually-hidden';
   status.setAttribute('aria-live', 'polite');

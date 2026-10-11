@@ -11,6 +11,10 @@ export function initTrail({ reducedMotion }) {
   if (!layer || reducedMotion || !matchMedia('(hover: hover) and (pointer: fine)').matches) return () => {};
 
   const images = [...layer.querySelectorAll('img')];
+  // The images are only fetched here — touch devices and reduced motion never download them.
+  const load = () => images.forEach((img) => img.dataset.src && (img.src = img.dataset.src));
+  if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 2000 });
+  else setTimeout(load, 1200);
   let next = 0;
   let z = 1;
   let last = null;
