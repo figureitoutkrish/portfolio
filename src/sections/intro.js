@@ -99,7 +99,7 @@ export function initIntro({ reducedMotion, home, lenis }) {
     document.documentElement.style.overflow = '';
   };
 
-  const tl = gsap.timeline({ delay: 0.2, onComplete: finish });
+  const tl = gsap.timeline({ delay: 0.8, onComplete: finish }); // a beat of empty screen before the greeting
 
   // "skip intro" fades in once the greeting has landed.
   tl.fromTo(skipButton, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, ease: 'power2.out' }, 1);

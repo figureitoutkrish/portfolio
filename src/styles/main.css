@@ -281,7 +281,7 @@ html:not(.js) .intro { display: none; }
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0.02em;
+  top: calc(100% + 0.04em); /* below the descenders (g), never through them */
   height: var(--underline-thickness);
   background: var(--accent);
   transform: scaleX(var(--underline-progress, 1));
