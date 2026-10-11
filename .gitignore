@@ -6,3 +6,7 @@ dist/
 *.log
 .vscode/*
 !.vscode/extensions.json
+
+# Local-only
+inspiration/
+.claude/
