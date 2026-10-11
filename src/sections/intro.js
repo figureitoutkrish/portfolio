@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { WIPE_HALF, wipeCover, wipeReveal } from '../utils/transition.js';
+import { splitWords } from '../utils/split.js';
 
 // Resting pose of each polaroid in the stack (back to front).
 const POSES = [
@@ -30,34 +31,6 @@ function markSeen() {
   } catch {
     /* storage unavailable: the intro just plays again next time */
   }
-}
-
-// Wraps each word of the headline in a span so words can rise in one by one.
-// Child elements (the underlined "alter egos") are kept whole and animate as one word.
-function splitWords(el) {
-  const words = [];
-  [...el.childNodes].forEach((node) => {
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      node.classList.add('word');
-      words.push(node);
-      return;
-    }
-    const frag = document.createDocumentFragment();
-    node.textContent.split(/(\s+)/).forEach((token) => {
-      if (!token) return;
-      if (/^\s+$/.test(token)) {
-        frag.append(token);
-        return;
-      }
-      const span = document.createElement('span');
-      span.className = 'word';
-      span.textContent = token;
-      frag.append(span);
-      words.push(span);
-    });
-    node.replaceWith(frag);
-  });
-  return words;
 }
 
 // Plays the intro over the home page, then wipes to it. `home` is the object from initHome();

@@ -61,6 +61,15 @@ body {
 
 img { display: block; max-width: 100%; }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
@@ -187,28 +196,22 @@ img { display: block; max-width: 100%; }
   --tracking: var(--tracking-display);
   /* "viramgama" is ~5.14em wide; 15.5vw keeps it inside the gutters at every single-column width. */
   font-size: clamp(3.5rem, 15.5vw, 8.5rem);
-  font-weight: var(--weight-heading);
-  line-height: 0.92;
+  font-weight: var(--weight-body); /* lighter than headings: cleaner at this size */
+  line-height: 0.84;
 }
 
 /* Each line is a mask the text rises through. */
 .home__name .line {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.08em; /* room for descenders (g, y) */
 }
+.home__name .line:last-child { padding-bottom: 0.2em; margin-bottom: -0.2em; } /* room for the g's descender */
 .home__name .line > span { display: block; }
-
-.home__title {
-  --tracking: -0.01em;
-  margin-top: 1rem;
-  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
-}
 
 .accent { color: var(--accent); }
 
 .home__bio {
-  margin-top: 0.5rem;
+  margin-top: 1.25rem;
   max-width: 34ch;
   color: var(--muted);
   font-size: clamp(1rem, 1.6vw, 1.2rem);
@@ -233,6 +236,7 @@ img { display: block; max-width: 100%; }
 }
 
 .home__photo {
+  position: relative;
   overflow: hidden;
   aspect-ratio: 1216 / 1294;
   background: #dedede;
@@ -241,6 +245,136 @@ img { display: block; max-width: 100%; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Cursor trail over the portrait (pointer devices only; see trail.js). */
+.trail {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.trail img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 76px;
+  height: 76px;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* ---------- Home: about (pamidordesign.co-inspired) ---------- */
+
+.about {
+  padding: clamp(4rem, 10vw, 8rem) var(--gutter) clamp(3rem, 6vw, 5rem);
+}
+.about__intro {
+  display: grid;
+  gap: 2.5rem;
+  align-items: start;
+}
+/* Words brighten from faint to full as the paragraph scrolls through (about.js). */
+.about__text {
+  --tracking: var(--tracking-heading);
+  max-width: 30ch;
+  font-size: clamp(1.6rem, 3.3vw, 2.8rem);
+  font-weight: var(--weight-body);
+  line-height: 1.18;
+  text-wrap: pretty;
+}
+.about__float {
+  justify-self: end;
+  width: clamp(150px, 17vw, 240px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  rotate: -6deg;
+  box-shadow: 0 18px 40px -12px rgba(10, 10, 10, 0.28);
+}
+.about__float img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about__proof {
+  display: grid;
+  gap: 1.75rem;
+  margin-top: clamp(3rem, 6vw, 5rem);
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+.about__proof > *,
+.about__intro > * { min-width: 0; } /* the marquee's wide track must not stretch the grid */
+.about__card {
+  position: relative;
+  min-height: 9.5rem;
+  overflow: hidden;
+  background: var(--accent);
+  color: #fff;
+}
+.stat {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  padding: 1.25rem;
+}
+.stat__value {
+  --tracking: var(--tracking-display);
+  font-size: clamp(2.4rem, 4.5vw, 3.4rem);
+  font-weight: var(--weight-heading);
+  line-height: 1;
+}
+.stat__label {
+  --tracking: var(--tracking-small);
+  font-size: 0.875rem;
+  font-weight: var(--weight-body);
+  opacity: 0.85;
+}
+
+.about__label {
+  --tracking: var(--tracking-small);
+  margin-bottom: 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: var(--weight-body);
+}
+.marquee {
+  display: grid;
+  gap: 0.9rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee 48s linear infinite; /* constant motion: linear */
+}
+.marquee__track--reverse { animation-direction: reverse; animation-duration: 56s; }
+.marquee__group {
+  display: flex;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  padding-right: clamp(2rem, 4vw, 3.5rem);
+  list-style: none;
+}
+.marquee__item {
+  --tracking: -0.01em;
+  color: #a6a6a6;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  font-weight: var(--weight-heading);
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .marquee:hover .marquee__track { animation-play-state: paused; }
+  .marquee__item:hover { color: var(--fg); }
 }
 
 /* ---------- Home: next section (placeholder until it's designed) ---------- */
@@ -573,6 +707,13 @@ html:not(.js) .intro { display: none; }
     width: 100%;
     max-height: calc(100svh - 8.5rem);
   }
+  .about__intro { grid-template-columns: 1fr auto; gap: 4vw; }
+  .about__float { margin-top: 0.5rem; }
+  .about__proof {
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+    gap: 3vw;
+    align-items: center;
+  }
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -586,6 +727,9 @@ html:not(.js) .intro { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .intro { display: none; }
+  .marquee__track { animation: none; }
+  .marquee__group[aria-hidden], .marquee__track > .marquee__group + .marquee__group { display: none; }
+  .marquee__group { flex-wrap: wrap; row-gap: 0.5rem; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
