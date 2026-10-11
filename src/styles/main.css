@@ -1,12 +1,26 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Set on every element so the em-based tracking scales with each element's own font size
+   (inherited letter-spacing is fixed at the parent's size). */
+* { letter-spacing: var(--tracking); }
+
+/* Nohemi by Rajesh Rajput (freeware; files must not be modified, so served as the original TTF). */
+@font-face {
+  font-family: "Nohemi";
+  src: url("/assets/fonts/Nohemi-VF.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* Design tokens: all colours, type, and spacing go through these variables. */
 :root {
   color-scheme: dark;
   --bg: #0a0a0a;
   --fg: #f2f2f2;
   --muted: #8a8a8a;
-  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Nohemi", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --tracking: 0.02em; /* Nohemi at 2% letter spacing */
+  --weight-heading: 600; /* Nohemi Semi Bold */
   --gutter: 1.5rem;
 }
 
@@ -34,8 +48,8 @@ main { position: relative; z-index: 1; }
   padding: 0 var(--gutter);
 }
 
-h1 { font-size: clamp(3rem, 12vw, 10rem); line-height: 0.9; letter-spacing: -0.04em; }
-h2 { font-size: clamp(2rem, 6vw, 5rem); letter-spacing: -0.03em; }
+h1 { font-size: clamp(3rem, 12vw, 10rem); line-height: 0.9; font-weight: var(--weight-heading); }
+h2 { font-size: clamp(2rem, 6vw, 5rem); font-weight: var(--weight-heading); }
 p  { color: var(--muted); font-size: 1.125rem; margin-top: 1rem; }
 
 @media (min-width: 768px) {
