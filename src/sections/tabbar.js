@@ -213,6 +213,10 @@ export function initTabbar({ reducedMotion, navigate }) {
   if (bar.dataset.visibility === 'scroll') {
     gsap.set(bar, { autoAlpha: 0 });
     onScroll = () => {
+      if (document.documentElement.classList.contains('is-intro')) {
+        setShown(false, { instant: true }); // never over the intro
+        return;
+      }
       const y = window.scrollY;
       // Hysteresis: appear after 20% of a screen, disappear again near the top.
       if (!shown && y > window.innerHeight * 0.2) setShown(true);
@@ -227,6 +231,8 @@ export function initTabbar({ reducedMotion, navigate }) {
       onScroll();
     }
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('intro:start', onScroll);
+    window.addEventListener('intro:done', onScroll);
   } else {
     // Persist across a page change; materialise on a fresh landing.
     if (arrivedViaWipe()) setShown(true, { instant: true });

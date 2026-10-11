@@ -62,12 +62,22 @@ export function initIntro({ reducedMotion, home, lenis }) {
   gsap.set(words, { autoAlpha: 0, yPercent: 60 });
   gsap.set(underline, { '--underline-progress': 0 });
 
+  // The intro reveals the top of the page, so start there (no restored mid-page scroll),
+  // and flag it so other UI (the tab bar) stays out of the way until it's done.
+  history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+  document.documentElement.classList.add('is-intro');
+  window.dispatchEvent(new CustomEvent('intro:start'));
   lenis?.stop();
   document.documentElement.style.overflow = 'hidden';
   const finish = () => {
     removeSkip();
     lenis?.start();
     document.documentElement.style.overflow = '';
+    if (document.documentElement.classList.contains('is-intro')) {
+      document.documentElement.classList.remove('is-intro');
+      window.dispatchEvent(new CustomEvent('intro:done'));
+    }
   };
 
   const tl = gsap.timeline({ delay: 0.8, onComplete: finish }); // a beat of empty screen before the greeting

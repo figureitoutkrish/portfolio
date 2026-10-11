@@ -49,7 +49,7 @@ src/
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)
-  sections/             # One JS module per page section (home, intro, menu, tabbar)
+  sections/             # One JS module per page section (home, intro, menu, tabbar, trail, about, journey)
   utils/                # motion.js, spring.js, liquid-glass.js, transition.js (page wipe)
 ```
 

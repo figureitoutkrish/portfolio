@@ -24,6 +24,12 @@
   --line: rgba(17, 17, 17, 0.3);
   --paper: #ffffff;
   --accent: #1f4fff;
+  /* The blue "techy" world (wipe + journey section). */
+  --deep: #050b24;
+  --deep-2: #0a1a6b;
+  --accent-soft: #8fa9ff;
+  --ink-dark: #e9eeff;
+  --muted-dark: rgba(233, 238, 255, 0.55);
 
   --font: "Nohemi", system-ui, -apple-system, "Segoe UI", sans-serif;
   --tracking: 0em; /* body */
@@ -402,6 +408,352 @@ img { display: block; max-width: 100%; }
   .marquee__item:hover { color: var(--fg); }
 }
 
+/* ---------- Journey: terminal → timeline on the blue "techy" background ---------- */
+
+.journey {
+  --year-w: 190px;
+  --lane-h: 44px;
+  position: relative;
+  isolation: isolate;
+  color: var(--ink-dark);
+  background-color: var(--deep);
+  background-image:
+    radial-gradient(60% 40% at 12% 35%, rgba(31, 79, 255, 0.35), transparent 70%),
+    radial-gradient(45% 35% at 88% 62%, rgba(120, 90, 255, 0.22), transparent 70%),
+    radial-gradient(70% 45% at 50% 100%, rgba(10, 30, 140, 0.65), transparent 70%);
+}
+/* The wipe's vertical light streaks, as a static texture. */
+.journey::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 11px);
+  pointer-events: none;
+}
+/* Seamless, static hand-off from the light page into the blue world (and back out). */
+.journey__fade {
+  height: 70vh;
+  background: linear-gradient(to bottom, var(--bg) 0%, #dbe5ff 20%, #7a95ff 42%, var(--accent) 58%, var(--deep-2) 80%, transparent 100%);
+}
+.journey__fade--out {
+  background: linear-gradient(to top, var(--bg) 0%, #dbe5ff 20%, #7a95ff 42%, var(--accent) 58%, var(--deep-2) 80%, transparent 100%);
+}
+
+.journey__stage {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+.journey__pixels {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 55%;
+  pointer-events: none;
+}
+
+/* Terminal */
+.term {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: start;
+  gap: 1.1rem;
+  padding: 0 var(--gutter);
+}
+.term__line {
+  --tracking: -0.01em;
+  font-size: clamp(1.15rem, 3.6vw, 2.6rem);
+  line-height: 1.25;
+}
+.term__prompt { display: block; color: var(--muted-dark); }
+.term__cmd { color: var(--ink-dark); }
+.term__caret {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1em;
+  margin-left: 0.12ch;
+  vertical-align: -0.14em;
+  background: var(--accent-soft);
+  animation: caret-blink 1.1s step-end infinite;
+}
+@keyframes caret-blink { 50% { opacity: 0; } }
+.term__status {
+  --tracking: 0.04em;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  color: var(--muted-dark);
+  font-size: 0.8125rem;
+  font-weight: var(--weight-body);
+  font-variant-numeric: tabular-nums;
+  transition: color 200ms ease;
+}
+.term.is-loading .term__status { color: var(--accent-soft); }
+.term__bar {
+  display: flex;
+  gap: 2px;
+  width: min(300px, 64vw);
+  height: 14px;
+}
+.term__cell {
+  flex: 1;
+  border-radius: 1px;
+  background: rgba(233, 238, 255, 0.14);
+  transition: background-color 100ms linear, box-shadow 100ms linear;
+}
+.term__cell.is-on {
+  background: var(--accent-soft);
+  box-shadow: 0 0 8px rgba(143, 169, 255, 0.65);
+}
+
+/* Timeline */
+.tl {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(4.5rem, 10vh, 6.5rem) 0 6.5rem;
+}
+.js .tl { opacity: 0; pointer-events: none; } /* revealed by the terminal (journey.js) */
+.tl__hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 0 var(--gutter);
+}
+.tl__kicker {
+  --tracking: var(--tracking-small);
+  color: var(--muted-dark);
+  font-size: 0.75rem;
+  font-weight: var(--weight-body);
+}
+.tl__title {
+  --tracking: var(--tracking-heading);
+  margin-top: 0.4rem;
+  font-size: clamp(1.7rem, 4vw, 3.4rem);
+  font-weight: var(--weight-body);
+  line-height: 1;
+}
+.tl__year {
+  --tracking: var(--tracking-display);
+  color: rgba(233, 238, 255, 0.16);
+  font-size: clamp(2.6rem, 8vw, 6.5rem);
+  font-weight: var(--weight-body);
+  line-height: 0.82;
+  font-variant-numeric: tabular-nums;
+}
+.tl__viewport {
+  position: relative;
+  flex: 1;
+  margin-top: clamp(1.25rem, 4vh, 3rem);
+  overflow: hidden;
+}
+.tl__track {
+  position: relative;
+  width: calc(var(--years) * var(--year-w) + 2 * var(--gutter));
+  height: 100%;
+  padding: 0 var(--gutter);
+  /* year lines + faint quarter lines */
+  background-image:
+    repeating-linear-gradient(to right, rgba(233, 238, 255, 0.1) 0 1px, transparent 1px var(--year-w)),
+    repeating-linear-gradient(to right, rgba(233, 238, 255, 0.035) 0 1px, transparent 1px calc(var(--year-w) / 4));
+  background-origin: content-box;
+  background-clip: content-box;
+  will-change: transform;
+}
+.tl__axis {
+  position: relative;
+  height: 1.75rem;
+  list-style: none;
+}
+.tl__axis li {
+  position: absolute;
+  left: calc(var(--i) * var(--year-w));
+  translate: 6px 0;
+  color: var(--muted-dark);
+  font-size: 0.8rem;
+  font-weight: var(--weight-body);
+  font-variant-numeric: tabular-nums;
+}
+.tl__now {
+  position: absolute;
+  top: 1.75rem;
+  bottom: 1.5rem;
+  left: calc(var(--gutter) + var(--now, 8.78) * var(--year-w));
+  width: 1px;
+  background: linear-gradient(to bottom, var(--accent-soft), rgba(143, 169, 255, 0.12));
+  box-shadow: 0 0 12px rgba(143, 169, 255, 0.7);
+}
+.tl__now::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: 0 0 10px var(--accent-soft);
+}
+.tl__now span {
+  --tracking: var(--tracking-small);
+  position: absolute;
+  bottom: -1.4rem;
+  left: 0;
+  translate: -50% 0;
+  color: var(--accent-soft);
+  font-size: 0.7rem;
+  font-weight: var(--weight-body);
+}
+.tl__items {
+  position: relative;
+  height: calc(8 * var(--lane-h));
+  margin-top: 0.75rem;
+  list-style: none;
+}
+.tl__item {
+  position: absolute;
+  left: calc(var(--start) * var(--year-w));
+  top: calc(var(--lane) * var(--lane-h));
+  display: flex;
+  height: calc(var(--lane-h) - 10px);
+  min-width: calc(var(--span) * var(--year-w));
+}
+.tl__bar {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: max-content;
+  padding: 0 0.9rem 0 0.45rem;
+  border: 1px solid rgba(233, 238, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(233, 238, 255, 0.06);
+  color: var(--ink-dark);
+  font: inherit;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 200ms ease, border-color 200ms ease, transform 160ms var(--ease-out);
+}
+.tl__bar:active { transform: scale(0.98); }
+.tl__bar.is-active { background: rgba(233, 238, 255, 0.12); border-color: rgba(233, 238, 255, 0.26); }
+@media (hover: hover) and (pointer: fine) {
+  .tl__bar:hover { background: rgba(233, 238, 255, 0.12); border-color: rgba(233, 238, 255, 0.26); }
+}
+.tl__logo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ink-dark);
+  color: var(--deep);
+  font-size: 0.75rem;
+  font-weight: var(--weight-heading);
+}
+.tl__org { font-weight: var(--weight-heading); }
+.tl__role { color: var(--muted-dark); font-weight: var(--weight-body); }
+
+/* Where I am now: a glowing blue bar that runs off past the "now" line. */
+.tl__item--current .tl__bar,
+.tl__item--current .tl__bar.is-active {
+  border-color: rgba(143, 169, 255, 0.55);
+  border-right-color: transparent;
+  background: linear-gradient(90deg, rgba(31, 79, 255, 0.95), rgba(31, 79, 255, 0.55) 45%, rgba(31, 79, 255, 0.12) 85%, transparent);
+  box-shadow: 0 0 28px rgba(31, 79, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.tl__item--current .tl__role { color: rgba(233, 238, 255, 0.78); }
+
+/* Long-running background threads: hatched, quieter. */
+.tl__item--bg .tl__bar {
+  padding-left: 0.9rem;
+  border-color: rgba(233, 238, 255, 0.07);
+  background: repeating-linear-gradient(135deg, rgba(233, 238, 255, 0.06) 0 6px, transparent 6px 12px);
+  color: rgba(233, 238, 255, 0.62);
+}
+.tl__item--bg .tl__org { font-weight: var(--weight-body); }
+.tl__item--clip .tl__bar {
+  padding-left: 2.25rem;
+  border-left-color: transparent;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 56px);
+  mask-image: linear-gradient(to right, transparent, #000 56px);
+}
+
+.tl__hint-pointer { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .tl__hint-pointer { display: inline; }
+  .tl__hint-touch { display: none; }
+}
+.tl__hint {
+  --tracking: var(--tracking-small);
+  padding: 0 var(--gutter);
+  color: var(--muted-dark);
+  font-size: 0.75rem;
+  font-weight: var(--weight-body);
+}
+
+/* Hover card: blue glass with an image area, roles, dates and the story. */
+.tl__card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  width: min(300px, calc(100vw - 2rem));
+  overflow: hidden;
+  border: 1px solid rgba(143, 169, 255, 0.35);
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(31, 79, 255, 0.38), rgba(10, 26, 107, 0.82));
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+  visibility: hidden;
+}
+.tl__card-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background:
+    radial-gradient(45% 60% at 25% 30%, rgba(160, 190, 255, 0.9), transparent 70%),
+    radial-gradient(40% 55% at 80% 70%, rgba(120, 90, 255, 0.7), transparent 70%),
+    linear-gradient(135deg, #dbe5ff, var(--accent) 50%, var(--deep-2));
+}
+.tl__card-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 9px);
+}
+.tl__card-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tl__card-mono {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 3.6rem;
+  font-weight: var(--weight-heading);
+  line-height: 1;
+}
+.tl__card-body { display: grid; gap: 0.35rem; padding: 1rem 1.1rem 1.15rem; }
+.tl__d-org { font-size: 1.1rem; font-weight: var(--weight-heading); }
+.tl__d-dates { --tracking: var(--tracking-small); color: var(--accent-soft); font-size: 0.75rem; font-weight: var(--weight-body); }
+.tl__d-roles { display: grid; gap: 0.1rem; color: var(--muted-dark); font-size: 0.8rem; font-weight: var(--weight-body); list-style: none; }
+.tl__d-desc { margin-top: 0.3rem; color: rgba(233, 238, 255, 0.86); font-size: 0.85rem; font-weight: var(--weight-body); line-height: 1.4; }
+
+/* No JS: no terminal, just a timeline you can swipe sideways. */
+html:not(.js) .term { display: none; }
+html:not(.js) .tl__viewport { overflow-x: auto; }
+
 /* ---------- Home: next section (placeholder until it's designed) ---------- */
 
 .next {
@@ -717,6 +1069,9 @@ html:not(.js) .intro { display: none; }
     --polaroid-w: clamp(200px, 22vw, 280px);
   }
   .home { padding-top: 2rem; }
+  .journey { --year-w: 250px; --lane-h: 52px; }
+  .term__prompt { display: inline; }
+  .tl__bar { font-size: 0.875rem; }
 }
 
 @media (min-width: 960px) {
@@ -752,6 +1107,9 @@ html:not(.js) .intro { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .intro { display: none; }
+  .term { display: none; }
+  .tl__viewport { overflow-x: auto; }
+  .term__caret { animation: none; }
   .marquee__track { animation: none; }
   .marquee__group[aria-hidden], .marquee__track > .marquee__group + .marquee__group { display: none; }
   .marquee__group { flex-wrap: wrap; row-gap: 0.5rem; }

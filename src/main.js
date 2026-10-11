@@ -5,6 +5,7 @@ import { initHome } from './sections/home.js';
 import { initIntro } from './sections/intro.js';
 import { initAbout } from './sections/about.js';
 import { initTrail } from './sections/trail.js';
+import { initJourney } from './sections/journey.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
 
 // Home page.
@@ -12,6 +13,7 @@ const { reducedMotion, lenis, fontsReady } = initShared();
 const home = initHome();
 initTrail({ reducedMotion });
 initAbout({ reducedMotion });
+initJourney({ reducedMotion, lenis });
 
 if (arrivedViaWipe()) {
   // Coming back from another page: no intro, just uncover home and play its entrance.
