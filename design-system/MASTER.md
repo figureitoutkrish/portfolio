@@ -56,14 +56,37 @@ Blue is the only accent. Use it sparingly: underlines, the "/" in the title, hov
 ## Components
 
 - **Header:** "krish." logo (left) + two-line burger (right) that morphs to an X.
-- **Menu:** light translucent material (`blur(20px) saturate(180%)`, white 72%), soft two-layer shadow, social links with ↗ icon. Solid under `prefers-reduced-transparency` / `prefers-contrast`.
+- **Menu:** `.glass.glass--regular`, 22px radius, social links with ↗ icon.
 - **Tags:** 1px `--line` border, square corners, 0.875rem, non-interactive.
 - **Polaroids:** white paper, padding `0.6rem 0.6rem 2.1rem`, shadow `0 24px 60px rgba(0,0,0,.2)`, slight rotations.
 - **Focus ring:** 2px `--accent` outline, 4px offset, on `:focus-visible` only.
 
+## Liquid Glass (functional layer only)
+
+Reusable material: `.glass` in `src/styles/glass.css` + behaviour in `src/utils/liquid-glass.js`. Following Apple's HIG:
+- **Only for navigation and controls** (tab bar, menu) — never content, and sparingly.
+- **Variants:** base `.glass` (tab bar: light 5px blur, content stays recognisable); `.glass--regular` (menu/popovers with text: thicker, 22px blur); `.glass--clear` (+ `.glass--dim`) for controls over photos/video.
+- **Layers:** refraction at the rim (SVG displacement map, Chromium only) → blur + saturate + luminosity → thin tint → inner glow + top specular / bottom bounce edges → 1px gradient rim → pointer-following specular shine (desktop).
+- **Adaptive tone:** samples what's underneath (image pixels included) and flips to dark glass with white icons; active icon becomes `#8fa9ff` on dark.
+- Solid fallbacks for no backdrop-filter, reduced transparency and increased contrast.
+- Never stack glass on glass.
+
+## Navigation
+
+- **Tab bar** (`src/sections/tabbar.js`): floating pill, bottom centre — code `</>` (data), house (home), fountain pen (creative). The page's icon is accent blue with a white circle behind it.
+- The circle runs on springs (`src/utils/spring.js`, Apple's response/damping model): moves on press, can be dragged 1:1 with rubber-banding, is thrown to the projected icon on release, stretches like a droplet with velocity.
+- Home: hidden at the top, appears after scrolling 20% of a screen, hides again near the top. Other pages: always visible (HIG: keep the tab bar visible inside a section).
+- Tapping the current page's icon scrolls to the top instead of reloading.
+
+## Page transitions
+
+- **Every page change uses the blue wipe** (`src/utils/transition.js`): cover (bottom → covering) → navigate → the new page paints already covered (`html.is-wiping`, set by the inline head script) → reveal (covering → top). The intro uses the same two halves.
+- Internal links go through it automatically; external links (`target="_blank"`) don't. Back/forward-cache restores uncover themselves.
+- Arriving on home from another page skips the intro.
+
 ## 3D/Depth
 
-- Flat with faked depth (polaroid shadows, translucent menu). Three.js is installed but unused on the landing page.
+- Flat with faked depth (polaroid shadows) plus the liquid-glass functional layer. Three.js is installed but unused.
 
 ## Anti-patterns to avoid
 

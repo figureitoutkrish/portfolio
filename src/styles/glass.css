@@ -1,0 +1,146 @@
+/* ==========================================================================
+   Liquid Glass — material for the functional layer only (navigation, menus).
+   Never use it for content. Layers, back to front:
+     1. backdrop: refraction (Chromium, via JS-injected SVG filter) + light blur,
+        saturation and luminosity lift so the background stays recognisable
+     2. tint: a thin contextual fill (light or dark, see [data-tone])
+     3. thickness: inner glow + top specular edge + bottom bounce light
+     4. rim: a 1px gradient edge that catches light top-left / bottom-right
+     5. shine: a soft specular highlight that drifts toward the pointer
+   ========================================================================== */
+
+.glass {
+  --glass-radius: 999px;
+  --glass-tint: rgba(255, 255, 255, 0.24);
+  --glass-blur: 5px;
+  --glass-saturate: 1.8;
+  --glass-brightness: 1.06;
+  --glass-edge-top: rgba(255, 255, 255, 0.8);
+  --glass-edge-bottom: rgba(255, 255, 255, 0.28);
+  --glass-glow: rgba(255, 255, 255, 0.14);
+  --glass-rim-a: rgba(255, 255, 255, 0.85);
+  --glass-rim-b: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --glass-ink: #111111;
+
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--glass-radius);
+  color: var(--glass-ink);
+  background: var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+  backdrop-filter: var(--glass-refraction, ) blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+  box-shadow:
+    inset 0 1px 0.5px var(--glass-edge-top),
+    inset 0 -1px 0.5px var(--glass-edge-bottom),
+    inset 0 0 20px var(--glass-glow),
+    var(--glass-shadow);
+  transition:
+    background-color 300ms ease,
+    color 300ms ease,
+    box-shadow 300ms ease;
+}
+
+/* Rim light: a hairline gradient border, brightest where light hits. */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    var(--glass-rim-a) 0%,
+    rgba(255, 255, 255, 0) 32%,
+    rgba(255, 255, 255, 0) 68%,
+    var(--glass-rim-b) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+/* Specular highlight; nav.js / liquid-glass.js move it with transform. */
+.glass__shine {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.glass__shine::before {
+  content: "";
+  position: absolute;
+  left: -80px;
+  top: -80px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  transform: translate(var(--shine-x, 30%), var(--shine-y, 0px));
+  opacity: var(--shine-opacity, 0.55);
+  mix-blend-mode: soft-light;
+  transition: opacity 300ms ease;
+}
+
+/* Variants serve different purposes, not just different opacities. */
+
+/* Regular: legibility first — popovers and anything with text. Thicker, blurrier. */
+.glass--regular {
+  --glass-tint: rgba(255, 255, 255, 0.62);
+  --glass-blur: 22px;
+  --glass-saturate: 1.8;
+  --glass-brightness: 1.04;
+}
+
+/* Clear: lets rich backgrounds (photos) stay prominent. Pair with .glass--dim over bright media. */
+.glass--clear {
+  --glass-tint: rgba(255, 255, 255, 0.06);
+  --glass-blur: 1.5px;
+  --glass-saturate: 1.5;
+  --glass-brightness: 1.1;
+}
+.glass--dim { --glass-tint: rgba(0, 0, 0, 0.35); --glass-ink: #ffffff; }
+
+/* Adaptive tone: liquid-glass.js flips this based on what's underneath. */
+.glass[data-tone="dark"] {
+  --glass-tint: rgba(20, 20, 24, 0.32);
+  --glass-edge-top: rgba(255, 255, 255, 0.35);
+  --glass-edge-bottom: rgba(255, 255, 255, 0.12);
+  --glass-glow: rgba(255, 255, 255, 0.06);
+  --glass-rim-a: rgba(255, 255, 255, 0.5);
+  --glass-rim-b: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.16);
+  --glass-ink: #ffffff;
+}
+
+/* No backdrop-filter support: a solid-enough fill keeps controls legible. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { --glass-tint: rgba(255, 255, 255, 0.9); }
+  .glass[data-tone="dark"] { --glass-tint: rgba(28, 28, 30, 0.92); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    --glass-tint: var(--paper, #fff);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass[data-tone="dark"] { --glass-tint: #1c1c1e; }
+  .glass__shine { display: none; }
+}
+
+@media (prefers-contrast: more) {
+  .glass {
+    --glass-tint: var(--paper, #fff);
+    --glass-ink: #000;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    outline: 1.5px solid currentColor;
+  }
+  .glass[data-tone="dark"] { --glass-tint: #000; --glass-ink: #fff; }
+  .glass__shine { display: none; }
+}

@@ -32,6 +32,8 @@ npm run preview   # serve the production build
 
 ```
 index.html              # Home (pamidordesign.co-style hero) + intro overlay + gradient wipe
+data/index.html         # Data alter-ego page (placeholder)
+creative/index.html     # Creative alter-ego page (placeholder)
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
 vite.config.js
@@ -40,16 +42,20 @@ public/assets/
   models/               # 3D models (.glb/.gltf)
   fonts/                # Self-hosted web fonts
 src/
-  main.js               # Entry: imports CSS, starts Lenis, waits for fonts, inits sections
+  main.js               # Home entry (intro, home reveal)
+  page.js               # Entry for the alter-ego pages
+  shared.js             # Every page: Lenis, menu, tab bar, page transitions
   styles/main.css       # Global styles + design tokens
+  styles/glass.css      # Liquid glass material (.glass, variants)
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)
-  sections/             # One JS module per page section (home.js, intro.js, menu.js)
-  utils/                # Small shared helpers (e.g. motion.js)
+  sections/             # One JS module per page section (home, intro, menu, tabbar)
+  utils/                # motion.js, spring.js, liquid-glass.js, transition.js (page wipe)
 ```
 
 ## Architecture
 
-- `main.js` is the only entry point. It wires Lenis into `gsap.ticker` (`lenis.raf(time * 1000)`, `lagSmoothing(0)`), waits for fonts (max 1.5s), then calls each section's `init`.
+- Multi-page Vite build (inputs in `vite.config.js`). Every page loads `shared.js`; each new page needs the inline head script (JS flag + `is-wiping`), the header, the tab bar and the `.wipe` element. Internal links automatically go through the wipe.
+- `shared.js` wires Lenis into `gsap.ticker` (`lenis.raf(time * 1000)`, `lagSmoothing(0)`), waits for fonts (max 1.5s), then calls each section's `init`.
 - The intro (`src/sections/intro.js`) is a fixed overlay above home, driven by one GSAP timeline: greeting → polaroids stack → headline → blue gradient wipe (bottom → top, bryangarage.dev-inspired) → `home.reveal()`. The intro is hidden while the wipe fully covers the screen (its midpoint). Any click or key press skips to the end; in production it plays once per session (sessionStorage). Without JS or with reduced motion, CSS hides the intro and home shows directly.
 - The Three.js scene isn't mounted on the landing page. If it's used again: fixed full-screen `#webgl` canvas behind `<main>`, pixel ratio capped at 2, and the rest of the app talks to it only through its returned API (`setScroll`, `dispose`).
 

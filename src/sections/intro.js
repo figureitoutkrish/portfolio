@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { WIPE_HALF, wipeCover, wipeReveal } from '../utils/transition.js';
 
 // Resting pose of each polaroid in the stack (back to front).
 const POSES = [
@@ -11,9 +12,6 @@ const POSES = [
 const STACK_CENTER = { xPercent: -50, yPercent: -50, scale: 1 };
 const STACK_END = { xPercent: -50, yPercent: -62, scale: 0.42 };
 
-// The wipe travels from just below the screen to just above it. With a symmetric ease it
-// sits at -60vh — fully covering the screen — exactly halfway through.
-const WIPE_DURATION = 1.6;
 
 // In production the intro plays once per browser session; reloads and return visits go straight
 // home. It always plays in dev so it can be reviewed.
@@ -66,7 +64,6 @@ function splitWords(el) {
 // `lenis` (optional) is paused so the page underneath can't scroll during the intro.
 export function initIntro({ reducedMotion, home, lenis }) {
   const root = document.querySelector('.intro');
-  const wipe = document.querySelector('.wipe');
 
   // Reduced motion: CSS already hides the intro; home shows as-is.
   if (!root || reducedMotion) return () => {};
@@ -132,17 +129,12 @@ export function initIntro({ reducedMotion, home, lenis }) {
     .to(underline, { '--underline-progress': 1, duration: 0.6, ease: 'power2.inOut' }, '-=0.15');
 
   // 5. Gradient wipe bottom → top; swap intro for home while it covers the screen.
+  // (The same wipe every page change uses: cover, swap underneath, reveal.)
   tl.addLabel('wipe', '+=1')
-    .set(wipe, { autoAlpha: 1 }, 'wipe')
-    .fromTo(
-      wipe,
-      { y: () => window.innerHeight },
-      { y: () => -2.2 * window.innerHeight, duration: WIPE_DURATION, ease: 'power2.inOut' },
-      'wipe'
-    )
-    .set(root, { autoAlpha: 0 }, `wipe+=${WIPE_DURATION / 2}`)
-    .add(home.reveal(), `wipe+=${WIPE_DURATION / 2 + 0.15}`)
-    .set(wipe, { autoAlpha: 0 }, `wipe+=${WIPE_DURATION}`);
+    .add(wipeCover(), 'wipe')
+    .set(root, { autoAlpha: 0 }, `wipe+=${WIPE_HALF}`)
+    .add(wipeReveal(), `wipe+=${WIPE_HALF}`)
+    .add(home.reveal(), `wipe+=${WIPE_HALF + 0.15}`);
 
   // Any click (or key press, for keyboard users) goes straight to the home page.
   const skip = () => tl.progress(1);

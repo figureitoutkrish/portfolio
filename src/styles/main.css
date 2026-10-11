@@ -1,3 +1,5 @@
+@import './glass.css';
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* Set on every element so the em-based tracking scales with each element's own font size
@@ -117,18 +119,15 @@ img { display: block; max-width: 100%; }
 .menu-btn[aria-expanded="true"] span:first-child { transform: translateY(3px) rotate(45deg); }
 .menu-btn[aria-expanded="true"] span:last-child { width: 34px; transform: translateY(-3px) rotate(-45deg); }
 
-/* Menu: a light material panel that grows out of the button that opened it. */
+/* Menu: regular liquid glass (it holds text), growing out of the button that opened it. */
 .menu {
+  --glass-radius: 22px;
+  --glass-shadow: 0 24px 60px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
   min-width: min(20rem, calc(100vw - 2 * var(--gutter)));
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.72);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
   transform-origin: top right;
   visibility: hidden;
 }
@@ -161,6 +160,9 @@ img { display: block; max-width: 100%; }
 }
 .menu a:hover { color: var(--accent); }
 .menu a:hover svg { transform: translate(2px, -2px); }
+.menu a {
+  border-radius: 14px;
+}
 .menu a:active { background: rgba(31, 79, 255, 0.08); }
 
 .home__grid {
@@ -232,6 +234,159 @@ img { display: block; max-width: 100%; }
   object-fit: cover;
 }
 
+/* ---------- Home: next section (placeholder until it's designed) ---------- */
+
+.next {
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 6rem var(--gutter) 8rem;
+}
+.next__eyebrow,
+.page-hero__eyebrow {
+  --tracking: var(--tracking-small);
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: var(--weight-body);
+}
+.next__title {
+  --tracking: var(--tracking-heading);
+  max-width: 14ch;
+  font-size: clamp(2.25rem, 7vw, 5.5rem);
+  font-weight: var(--weight-heading);
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.next__body,
+.page-hero__note {
+  max-width: 40ch;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-weight: var(--weight-body);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.next__cta {
+  justify-self: start;
+  min-height: 48px;
+  margin-top: 1rem;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), background-color 200ms ease;
+}
+.next__cta:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .next__cta:hover { background: var(--accent); }
+}
+
+/* ---------- Alter-ego pages (placeholders) ---------- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 1.25rem var(--gutter) 7rem;
+}
+.page-hero {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+}
+.page-hero__title {
+  --tracking: var(--tracking-display);
+  font-size: clamp(4.5rem, 22vw, 16rem);
+  font-weight: var(--weight-heading);
+  line-height: 0.9;
+}
+.page-hero__title .line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+.page-hero__title .line > span { display: block; }
+
+/* ---------- Tab bar (liquid glass) ---------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  z-index: 15;
+  display: flex;
+  width: fit-content;
+  margin-inline: auto;
+  padding: 6px;
+  transform-origin: 50% 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.js .tabbar[data-visibility="scroll"] { visibility: hidden; }
+
+.tabbar__item {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 52px;
+  border-radius: 999px;
+  color: inherit;
+  -webkit-user-drag: none;
+  transition: color 250ms ease;
+}
+.tabbar__item svg {
+  width: 26px;
+  height: 26px;
+  opacity: 0.72;
+  transition: opacity 200ms ease, transform 160ms var(--ease-out);
+}
+.tabbar__item:active svg { transform: scale(0.9); }
+.tabbar__item[aria-current="page"] { color: var(--accent); }
+.tabbar__item[aria-current="page"] svg { opacity: 1; }
+.tabbar__item:focus-visible { outline-offset: -4px; }
+@media (hover: hover) and (pointer: fine) {
+  .tabbar__item:hover svg { opacity: 1; }
+}
+
+/* The circle marking the open page. Its transform is driven by springs in tabbar.js. */
+.tabbar__indicator {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.04),
+    0 2px 10px rgba(0, 0, 0, 0.08),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+  will-change: transform;
+  transition: background-color 300ms ease, box-shadow 300ms ease;
+}
+.tabbar[data-tone="dark"] .tabbar__indicator {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.35), 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.tabbar[data-tone="dark"] .tabbar__item[aria-current="page"] { color: #8fa9ff; }
+
 /* ---------- Intro (fixed overlay above home) ---------- */
 
 .intro {
@@ -248,6 +403,7 @@ img { display: block; max-width: 100%; }
 
 /* No JS: skip the intro and show home straight away (reduced motion: see bottom). */
 html:not(.js) .intro { display: none; }
+.is-wiping .intro { display: none; }
 
 /* Greeting and headline share the centre of the screen; one replaces the other. */
 .intro__hello,
@@ -343,6 +499,13 @@ html:not(.js) .intro { display: none; }
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, #000 22%, #000 78%, transparent 100%);
 }
+/* Arriving from another page: start covered (matches wipeReveal's start), no flash. */
+.is-wiping .wipe {
+  visibility: visible;
+  transform: translateY(-60vh);
+  transform: translateY(-60dvh);
+}
+
 /* Vertical light streaks. */
 .wipe::after {
   content: "";
