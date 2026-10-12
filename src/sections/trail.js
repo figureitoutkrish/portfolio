@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 
 // Cursor trail over the portrait (inspired by pamidordesign.co): every SPACING px of pointer
-// travel, the next of Krish's 24 sketch illustrations drops where the pointer is, pops in, then
+// travel, the next of Krish's 8 blue illustrations drops where the pointer is, pops in, then
 // fades. Decorative only — pointer devices only, nothing for touch or reduced motion.
 const SPACING = 90;
 
