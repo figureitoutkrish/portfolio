@@ -57,6 +57,12 @@ export const TOPICS = [
     link: { label: 'data side →', href: '/data/' },
   },
   {
+    id: 'fuel',
+    chip: 'what keeps you going?',
+    keys: ['red bull', 'redbull', 'drink', 'coffee', 'tea', 'caffeine', 'energy', 'fuel', 'keeps you going', 'awake', 'favourite', 'favorite', 'late night'],
+    answer: "Red Bull. Not coffee, never coffee. Most of this page was built on it. There are cans in RACER.DSK if you want some too: grab one and you'll fly.",
+  },
+  {
     id: 'secret',
     chip: 'any secrets?',
     keys: ['secret', 'hidden', 'easter egg', 'surprise', 'message'],

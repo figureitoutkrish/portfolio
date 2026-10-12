@@ -65,11 +65,34 @@ export function initProjectWindow({ reducedMotion, lenis }) {
     be.hidden = !p.behance;
     if (p.behance) be.href = p.behance;
     const gallery = $('.pw__gallery');
-    gallery.innerHTML = p.gallery?.length
+    const doc = p.doc
+      ? `<figure class="pw__doc">
+          <figcaption class="pw__docbar"><span class="pw__docname"></span><span class="pw__dochint">scroll the page ↓</span><i class="pw__docprog" aria-hidden="true"></i></figcaption>
+          <div class="pw__docview" tabindex="0" role="region" aria-label="${p.title}: full portfolio, scrollable" data-lenis-prevent>
+            ${p.doc.parts.map((g, j) => `<img src="${g.src}" width="${g.w}" height="${g.h}" alt="${j ? '' : `${p.title}: the full portfolio sheet`}" loading="${j ? 'lazy' : 'eager'}" decoding="async"${g.lqip ? ` style="background-image:url(${g.lqip})"` : ''} />`).join('')}
+          </div>
+        </figure>`
+      : '';
+    gallery.innerHTML = doc + (p.gallery?.length
       ? p.gallery
-          .map((g, j) => `<figure class="pw__shot${g.h > g.w * 1.4 ? ' pw__shot--tall' : ''}"${g.lqip ? ` style="background-image:url(${g.lqip})"` : ''}><img src="${g.src}" width="${g.w}" height="${g.h}" alt="${p.title}, image ${j + 1}" loading="${j < 2 ? 'eager' : 'lazy'}" decoding="async" /></figure>`)
+          .map((g, j) => `<figure class="pw__shot${g.h > g.w * 1.4 ? ' pw__shot--tall' : g.w > g.h * 1.2 ? ' pw__shot--wide' : ''}"${g.lqip ? ` style="background-image:url(${g.lqip})"` : ''}><img src="${g.src}" width="${g.w}" height="${g.h}" alt="${p.title}, image ${j + 1}" loading="${j < 2 ? 'eager' : 'lazy'}" decoding="async" /></figure>`)
           .join('') + (p.galleryNote ? `<p class="pw__note note">${p.galleryNote}</p>` : '')
-      : `<div class="ph ph--wide"><span>Placeholder · ${p.placeholder || 'visuals coming soon'}</span></div>`;
+      : doc ? '' : `<div class="ph ph--wide"><span>Placeholder · ${p.placeholder || 'visuals coming soon'}</span></div>`);
+    if (p.doc) {
+      gallery.querySelector('.pw__docname').textContent = p.doc.name;
+      const view = gallery.querySelector('.pw__docview');
+      const prog = gallery.querySelector('.pw__docprog');
+      const hint = gallery.querySelector('.pw__dochint');
+      view.addEventListener(
+        'scroll',
+        () => {
+          const t = view.scrollTop / Math.max(1, view.scrollHeight - view.clientHeight);
+          prog.style.transform = `scaleX(${t})`;
+          hint.textContent = t > 0.98 ? 'the end ✓' : `${Math.round(t * 100)}%`;
+        },
+        { passive: true }
+      );
+    }
     gallery.querySelectorAll('img').forEach((im) => {
       const done = () => im.classList.add('is-loaded');
       if (im.complete && im.naturalWidth) done();

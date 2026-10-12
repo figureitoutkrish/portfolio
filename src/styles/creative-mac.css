@@ -565,32 +565,166 @@ kbd { font-family: var(--f-mono); font-size: 0.75em; opacity: 0.7; }
 .pw__about { font-size: 1rem; line-height: 1.55; }
 .pw__result { padding: 0.6rem 0.8rem; border-left: 3px solid var(--c-green); background: #e5f2ea; font-weight: 600; }
 .pw__behance { justify-self: start; margin-top: 0.4rem; }
-.pw__gallery { display: grid; gap: 0.75rem; margin-top: 1.5rem; }
+.pw__gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1.5rem; }
+.pw__gallery > .pw__shot--wide, .pw__gallery > .pw__shot--tall, .pw__gallery > .ph, .pw__note { grid-column: 1 / -1; }
 .pw__shot { overflow: hidden; border-radius: 8px; background: var(--c-paper-2); }
 .pw__shot img { width: 100%; height: auto; }
 .pw__shot--tall { max-height: 85svh; overflow: auto; }
 .pw__note { color: #0e6b42; font-size: 1.4rem; }
+.pw__doc { grid-column: 1 / -1; overflow: hidden; border: 1px solid var(--c-hair); border-radius: 10px; background: #0b1a3a; }
+.pw__docbar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.55rem 0.85rem; background: var(--c-paper-2); font-family: var(--f-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: var(--c-ink-2); }
+.pw__docname { font-weight: 600; color: var(--c-ink); }
+.pw__docname::before { content: "PDF"; margin-right: 0.5rem; padding: 0.1rem 0.3rem; border-radius: 3px; background: #d93a2b; color: #fff; font-size: 0.5625rem; }
+.pw__dochint { font-variant-numeric: tabular-nums; }
+.pw__docprog { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--c-green); transform: scaleX(0); transform-origin: left; }
+.pw__docview { height: min(78svh, 900px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.pw__docview:focus-visible { outline: 3px solid var(--c-lime); outline-offset: -3px; }
+.pw__docview img { display: block; width: 100%; height: auto; background-size: cover; }
 
-/* ---------- Koach ---------- */
+/* ---------- Koach: the pit crew ---------- */
 .koach { padding-top: 3rem; }
-.koach__body { display: grid; gap: 1.5rem; padding: 1.5rem 1.25rem 1.75rem; }
+.koach__win { overflow: hidden; }
+.koach__body { display: grid; gap: 1.75rem; padding: 1.5rem 1.25rem 1.5rem; }
 .koach__label { color: var(--c-ink-2); }
-.koach__title { --tracking: -0.04em; margin-top: 0.5rem; font-size: clamp(3.5rem, 12vw, 6.5rem); font-weight: 800; line-height: 0.9; }
-.koach__sub { margin-top: 0.4rem; color: var(--c-ink-2); font-size: 1.0625rem; font-weight: 600; }
-.koach__text { max-width: 30rem; margin: 1rem 0 1.25rem; line-height: 1.55; }
-.koach__steps { list-style: none; align-self: center; color: var(--c-ink); font-size: clamp(1.6rem, 5vw, 2.2rem); line-height: 1.15; }
-.koach__steps li:nth-child(odd) { transform: rotate(-2deg); }
+/* Wordmark until Krish's logo file lands (swap the spans for an <img> in index.html) */
+.koach__logo { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin-top: 0.6rem; }
+.koach__word {
+  --tracking: -0.02em;
+  padding: 0.05em 0.22em 0;
+  border: 3px solid var(--c-ink);
+  border-radius: 14px;
+  background: var(--c-lime);
+  box-shadow: 5px 5px 0 var(--c-ink);
+  font-family: var(--f-display);
+  font-size: clamp(3.75rem, 13vw, 7rem);
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+.koach__tag { margin-bottom: 0.5rem; font-family: var(--f-mono); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-ink-2); }
+.koach__lead { margin-top: 1.25rem; font-family: var(--f-note); font-size: clamp(1.9rem, 5vw, 2.5rem); font-weight: 700; line-height: 1; color: #0e6b42; }
+.koach__text { max-width: 30rem; margin: 0.6rem 0 1.25rem; line-height: 1.55; }
+.koach__cta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.koach__est { color: var(--c-ink-2); font-size: 1.35rem; transform: rotate(-3deg); }
 
-.signoff { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem 1.5rem; padding: 2rem 0 0; color: var(--c-white); }
+.koach__crew { display: grid; gap: 0.75rem; list-style: none; align-content: center; }
+.crew {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.85rem;
+  align-items: center;
+  padding: 0.9rem 4.25rem 0.9rem 0.95rem;
+  border: 2px solid var(--c-ink);
+  border-radius: 12px;
+  background: var(--c-white);
+  box-shadow: 3px 3px 0 var(--c-ink);
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+.crew:nth-child(2) { margin-left: 1.25rem; }
+.crew:nth-child(3) { margin-left: 2.5rem; }
+.crew__no { grid-row: 1 / 3; display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--c-ink); color: var(--c-lime); font-family: var(--f-mono); font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.crew__role { --tracking: -0.02em; font-size: 1.25rem; font-weight: 800; line-height: 1.1; }
+.crew__what { font-family: var(--f-note); font-size: 1.3rem; line-height: 1; color: var(--c-ink-2); }
+.crew__icon { position: absolute; right: 0.9rem; top: 50%; width: 40px; height: 40px; translate: 0 -50%; background: center / contain no-repeat; image-rendering: pixelated; }
+/* pixel icons: a race-plan clipboard, a fuel can, a spray can */
+.crew--plan .crew__icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath fill='%2320221f' d='M3 0h4v1H3zM1 1h8v9H1z'/%3E%3Cpath fill='%23f5f4ef' d='M2 2h6v7H2z'/%3E%3Cpath fill='%2320221f' d='M3 3h1v1H3zM5 3h2v1H5zM3 5h1v1H3zM5 5h2v1H5zM3 7h1v1H3zM5 7h2v1H5z'/%3E%3Cpath fill='%230b6440' d='M3 3h1v1H3zM3 5h1v1H3z'/%3E%3C/svg%3E"); }
+.crew--fuel .crew__icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath fill='%2320221f' d='M2 1h6v9H2z'/%3E%3Cpath fill='%23d7dae0' d='M3 2h4v7H3z'/%3E%3Cpath fill='%232c5cff' d='M3 2h4v1H3zM3 8h4v1H3z'/%3E%3Cpath fill='%23ffd23a' d='M5 3h1v1H5zM4 4h2v1H4zM4 5h1v1H4zM5 5h1v1H5zM4 6h1v1H4z'/%3E%3C/svg%3E"); }
+.crew--paint .crew__icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath fill='%2320221f' d='M4 0h2v1H4zM3 1h4v1H3zM2 2h6v8H2z'/%3E%3Cpath fill='%23e4241b' d='M3 3h4v6H3z'/%3E%3Cpath fill='%23ff8a7a' d='M3 3h1v5H3z'/%3E%3Cpath fill='%23b6ed68' d='M7 0h1v1H7zM8 1h1v1H8zM9 0h1v1H9z'/%3E%3C/svg%3E"); }
+@media (hover: hover) and (pointer: fine) {
+  .crew:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--c-ink); }
+}
+
+.koach__garage { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--c-hair); }
+.koach__garage-label { margin-right: 0.25rem; font-family: var(--f-mono); font-size: 0.625rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-ink-2); }
+.koach__chip { min-height: 36px; padding: 0.35rem 0.9rem; border: 1.5px solid var(--c-ink); border-radius: 999px; background: var(--c-paper); color: var(--c-ink); font: 600 0.875rem/1 var(--f-body); cursor: pointer; transition: transform 160ms var(--ease-out), background-color 160ms ease; }
+.koach__chip::after { content: " ↗"; font-size: 0.75em; }
+.koach__chip:active { transform: scale(0.96); }
+.koach__chip--static { display: inline-flex; align-items: center; border-style: dashed; cursor: default; }
+.koach__chip--static::after { content: ""; }
+@media (hover: hover) and (pointer: fine) { .koach__chip:not(.koach__chip--static):hover { background: var(--c-lime); } }
+
+.koach__ticker { overflow: hidden; border-top: 2px solid var(--c-ink); background: var(--c-ink); color: var(--c-lime); }
+.koach__track { display: flex; width: max-content; animation: koach-ticker 22s linear infinite; }
+.koach__track span { padding: 0.55rem 1.1rem; font-family: var(--f-display); font-size: 1.1rem; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.koach__track span::after { content: "✦"; margin-left: 2.2rem; color: var(--c-white); font-size: 0.75em; }
+@keyframes koach-ticker { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .koach__track { animation: none; } }
+
+/* ---------- Finish: the racing licence + sign-off ---------- */
+.podium { position: relative; display: grid; gap: 2.5rem; justify-items: center; padding: 3rem 0 11rem; } /* phones: room for the cat under the sign-off */
+.licence {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 360px);
+  overflow: hidden;
+  border: 2px solid var(--c-ink);
+  border-radius: 14px;
+  background: var(--c-paper);
+  box-shadow: 0 24px 40px -22px rgba(0, 0, 0, 0.6), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+  color: var(--c-ink);
+  transform: rotate(-3deg);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.licence.is-held { cursor: grabbing; }
+.licence__head { display: flex; justify-content: space-between; padding: 0.55rem 0.85rem; background: #e4241b; color: var(--c-white); font-family: var(--f-mono); font-size: 0.625rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.licence__body { display: grid; grid-template-columns: 42% 1fr; gap: 0.85rem; padding: 0.85rem; }
+.licence__photo { overflow: hidden; aspect-ratio: 4 / 5; border: 2px solid var(--c-ink); border-radius: 8px; background: var(--c-paper-2); }
+.licence__photo img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.licence__facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem 0.6rem; align-content: start; }
+.licence__facts dt { font-family: var(--f-mono); font-size: 0.5625rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-ink-2); }
+.licence__facts dd { display: flex; align-items: center; gap: 0.3rem; font-size: 0.9375rem; font-weight: 800; line-height: 1.15; }
+.licence__wide { grid-column: 1 / -1; }
+.licence__can { flex: none; width: 12px; height: auto; transform: rotate(8deg); }
+.licence__foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 0.85rem 0.7rem; }
+.licence__sign { padding: 0 0.4rem; border-bottom: 1px solid var(--c-ink-2); font-size: 1.9rem; line-height: 1; color: #24548c; transform: rotate(-4deg); }
+.licence__chk { width: 76px; height: 16px; border-radius: 3px; background: repeating-conic-gradient(#20221f 0 25%, #f5f4ef 0 50%) 0 0 / 8px 8px; }
+.podium__end { display: grid; gap: 0.75rem; justify-items: center; text-align: center; color: var(--c-white); }
+.podium__title { font-size: clamp(2.25rem, 7vw, 3.5rem); line-height: 0.95; }
 .signoff__meta { font-family: var(--f-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* The cat sticker (src/creative/cat.js): starts at the finish, lives wherever it's dropped */
+.page--creative { position: relative; }
+.catpet {
+  position: absolute;
+  z-index: 30;
+  width: clamp(110px, 12vw, 170px);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 8px 10px rgba(0, 20, 10, 0.35));
+}
+.catpet.is-held { cursor: grabbing; filter: drop-shadow(0 18px 18px rgba(0, 20, 10, 0.4)); }
+.catpet img { display: block; width: 100%; height: auto; pointer-events: none; }
+.catpet img[hidden] { display: none; }
+.catpet:focus-visible { outline: 3px solid var(--c-lime); outline-offset: 4px; border-radius: 12px; }
+.catpet__hint { position: absolute; left: 50%; top: 100%; width: max-content; margin-top: 0.35rem; color: var(--c-lime); font-size: 1.2rem; line-height: 1; translate: -50% 0; rotate: 6deg; pointer-events: none; transition: opacity 200ms ease; }
+.catpet__hint.is-gone { opacity: 0; }
+
+/* The kid on the back of the flip note */
+.sticky--flip[aria-pressed="true"] .sticky__back { display: grid; justify-items: center; }
+.sticky__kid { display: block; width: calc(var(--mw) * 0.16); height: auto; aspect-ratio: 1; margin: 0 0 0.3em; object-fit: cover; border: 3px solid #fff; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3); transform: rotate(-5deg); }
+.sticky--flip[aria-pressed="true"] { font-size: calc(var(--mw) * 0.038); }
 
 /* ---------- Larger screens ---------- */
 @media (min-width: 1024px) {
   .csec__note { display: block; }
-  .koach__body { grid-template-columns: 1.4fr 1fr; padding: 2.5rem 2.5rem 2.75rem; }
+  .koach__body { grid-template-columns: 1.25fr 1fr; padding: 2.5rem 2.5rem 2rem; column-gap: 3rem; }
+  .koach__garage { grid-column: 1 / -1; }
+  .podium { grid-template-columns: 380px 1fr; justify-items: start; align-items: center; gap: 4rem; padding: 4rem 3rem 2rem; }
+  .podium__end { justify-items: start; text-align: left; }
   .pw__scroll { padding: 2.25rem 2.5rem 2.75rem; }
-  .pw__gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pw__shot:first-child, .pw__shot--tall { grid-column: 1 / -1; }
+  /* posts and squares three to a row; wide boards and tall sheets full width */
+  .pw__gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pw__shot--wide, .pw__shot--tall { grid-column: 1 / -1; }
 }
 
 /* Phones: fewer visitor notes, the ghost note tucks in */

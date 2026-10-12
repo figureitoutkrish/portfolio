@@ -9,7 +9,7 @@ import { scoreCircle, CIRCLE_MAX_SCORE } from '../src/creative/mac/apps/circle-s
 // One row per name per game (your best counts). Circle scores are re-computed from the drawn
 // points, racer distances must be possible for the run's duration.
 const GAMES = ['circle', 'racer'];
-const RACER_MAX_MPS = 70; // fastest the car can go, metres per second (with headroom)
+const RACER_MAX_MPS = 150; // fastest the score can climb, metres per second: top speed + bonuses (with headroom)
 
 export function createScoresHandler(redisFactory = getRedis) {
   return async function handler(req, res) {

@@ -2,21 +2,28 @@ import { saveScore } from './scores.js';
 import { sfx } from '../../sound.js';
 import { TOP, TOP_COLORS } from '../../car.js';
 
-// RACER.DSK: top-down pixel racer. Dodge traffic, your speed climbs, score = distance.
+// RACER.DSK: top-down pixel racer. Dodge traffic, your speed climbs, score = distance + bonuses.
 // Until you touch a key it drives itself (demo); ← → steer, ↑ faster, ↓ slower.
-// 1-bit look: paper verge, black road, paper cars. Low-res canvas, scaled up pixelated.
+// It gets hard fast: the road speeds up every lap (30s), traffic comes in walls with one gap,
+// slow trucks rush at you, some cars change lanes (they blink first) and cones sit dead still.
+// Bonuses: shave past a car for "close!" (+10), grab an energy can (+25 and a few seconds
+// airborne, flying over everything; Krish runs on the stuff).
+// 1-bit look: paper verge, black road, paper cars; only you and the cans are in colour.
 const W = 200;
 const H = 140;
 const ROAD_L = 50;
 const ROAD_R = 150;
 const LANES = [66, 100, 134];
 const PX_PER_M = 4;
+const PY = H - 26; // your car's y
+const LAP = 30; // seconds per lap
 const BEST = 'krish:racer-best';
 
 const PAPER = '#f4f4ee';
 const INK = '#111';
+const AMBER = '#ffd23a';
 
-// 9×15 car sprites (1 = body, 2 = glass/detail)
+// sprites: 1 = body, 2 = glass/detail
 const CAR = [
   '..11111..',
   '.1111111.',
@@ -34,6 +41,38 @@ const CAR = [
   '.1111111.',
   '..1...1..',
 ];
+const TRUCK = [
+  '.1111111.',
+  '111222111',
+  '112222211',
+  '111111111',
+  '.1.....1.',
+  '111111111',
+  '121212121',
+  '111111111',
+  '121212121',
+  '111111111',
+  '121212121',
+  '111111111',
+  '121212121',
+  '111111111',
+  '121212121',
+  '111111111',
+  '121212121',
+  '111111111',
+  '121212121',
+  '111111111',
+  '111111111',
+  '1.1...1.1',
+  '.1.....1.',
+];
+// cone: P paper stripe, I ink
+const CONE = ['..P..', '.PIP.', '.IPI.', 'PPIPP', 'IIIII'];
+// energy can (a nod, no brand): S silver, B blue, Y bolt, K rim
+const CAN = ['.KKK.', 'KBBBK', 'KSYSK', 'KSYYK', 'KYYSK', 'KSYSK', 'KBBBK', '.KKK.'];
+const CAN_COLORS = { K: '#3a3f4a', S: '#d7dae0', B: '#2c5cff', Y: AMBER };
+
+const HALF = { car: 7, truck: 11, cone: 2, can: 4 };
 
 export function mountRacer(body, { os, reducedMotion }) {
   body.classList.add('os__body--game');
@@ -62,125 +101,265 @@ export function mountRacer(body, { os, reducedMotion }) {
   const keys = new Set();
   let mode = 'demo'; // demo | play | over
   let g;
-  const fresh = () => ({ x: LANES[1], speed: 70, t: 0, dist: 0, spawnIn: 0.6, cars: [], scroll: 0, shake: 0, flash: 0, sparks: [], startedAt: performance.now() });
+  const fresh = () => ({
+    x: LANES[1],
+    speed: 80,
+    t: 0,
+    dist: 0,
+    bonus: 0,
+    spawnIn: 0.5,
+    canIn: 4 + Math.random() * 2,
+    things: [],
+    scroll: 0,
+    shake: 0,
+    flash: 0,
+    sparks: [],
+    pops: [],
+    air: 0,
+    lap: 1,
+    banner: 0,
+    startedAt: performance.now(),
+  });
+  const score = () => Math.round(g.dist + g.bonus);
 
   function start(newMode) {
     if (newMode === 'play') sfx('start');
     mode = newMode;
     g = fresh();
     actions.hidden = true;
-    msg.textContent = mode === 'demo' ? 'demo · press ↑ or A to drive · esc / eject to quit' : 'go! · esc / eject to quit';
+    msg.textContent = mode === 'demo' ? 'demo · press ↑ or A to drive · esc / eject to quit' : 'go! · shave past cars, grab the cans · esc to quit';
   }
+
+  const pop = (text, x, y = PY - 12) => g.pops.push({ text, x, y, life: 0.9 });
 
   function crash() {
     g.shake = reducedMotion ? 0 : 0.35;
     g.flash = 0.12;
     for (let i = 0; i < 16; i += 1) {
       const a = Math.random() * Math.PI * 2;
-      g.sparks.push({ x: g.x, y: H - 26, vx: Math.cos(a) * 60, vy: Math.sin(a) * 60, life: 0.5 });
+      g.sparks.push({ x: g.x, y: PY, vx: Math.cos(a) * 60, vy: Math.sin(a) * 60, life: 0.5 });
     }
     if (mode === 'demo') {
-      setTimeout(() => mode === 'demo' && start('demo'), 900);
+      setTimeout(() => mode === 'demo-crash' && start('demo'), 900);
       mode = 'demo-crash';
       return;
     }
     mode = 'over';
     sfx('crash');
-    const m = Math.round(g.dist);
-    msg.textContent = `crashed · ${m}m`;
-    if (m > best) {
-      best = m;
+    const s = score();
+    msg.textContent = `crashed · lap ${g.lap} · ${s}m`;
+    if (s > best) {
+      best = s;
       try {
         localStorage.setItem(BEST, String(best));
       } catch {
         /* ignore */
       }
       showBest();
-      msg.textContent = `crashed · ${m}m · new best!`;
+      msg.textContent = `crashed · lap ${g.lap} · ${s}m · new best!`;
     }
     actions.hidden = false;
   }
 
-  // Demo driver: head for the lane whose nearest car ahead is furthest away.
+  // Demo driver: head for the lane whose nearest obstacle ahead is furthest away (cans count double).
   function autopilot() {
     let bestLane = LANES[1];
-    let bestGap = -1;
+    let bestGap = -Infinity;
     for (const lx of LANES) {
-      const ahead = g.cars.filter((c) => Math.abs(c.x - lx) < 14 && c.y < H - 20).map((c) => H - 20 - c.y);
+      const near = g.things.filter((c) => Math.abs(c.x - lx) < 14 && c.y < PY + 6);
+      const ahead = near.filter((c) => c.kind !== 'can').map((c) => PY - c.y);
       const gap = ahead.length ? Math.min(...ahead) : 999;
-      const score = gap - Math.abs(lx - g.x) * 0.2;
-      if (score > bestGap) {
-        bestGap = score;
+      const s = gap - Math.abs(lx - g.x) * 0.25 + (near.some((c) => c.kind === 'can') ? 40 : 0);
+      if (s > bestGap) {
+        bestGap = s;
         bestLane = lx;
       }
     }
     return Math.sign(bestLane - g.x) * (Math.abs(bestLane - g.x) > 2 ? 1 : 0);
   }
 
+  // A lane is open at the top if nothing in it is still near the spawn line.
+  const openAtTop = (lx, band = 52) => !g.things.some((c) => c.kind !== 'can' && Math.abs(c.x - lx) < 18 && c.y - HALF[c.kind] < band);
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  function spawnRow() {
+    const open = LANES.filter((lx) => openAtTop(lx));
+    // always leave at least one lane clear across the top band
+    if (open.length < 2) return;
+    const wall = g.t > 12 && open.length === 3 && Math.random() < Math.min(0.5, 0.2 + g.t * 0.006);
+    const lanes = wall ? open.sort(() => Math.random() - 0.5).slice(0, 2) : [pick(open)];
+    const v = 18 + Math.random() * 38; // a wall moves together, so its gap stays a gap
+    for (const x of lanes) {
+      let kind = 'car';
+      const r = Math.random();
+      if (g.t > 25 && r < 0.16) kind = 'cone';
+      else if (g.t > 8 && r < 0.36) kind = 'truck';
+      const thing = { kind, x, y: -HALF[kind] - 2, v: kind === 'cone' ? 0 : kind === 'truck' ? 6 + Math.random() * 10 : v, passed: false };
+      // lane changers: only loose cars, and they signal first
+      if (!wall && kind === 'car' && g.t > 16 && Math.random() < Math.min(0.45, 0.15 + g.t * 0.006)) {
+        const i = LANES.indexOf(x);
+        thing.shiftTo = pick([LANES[i - 1], LANES[i + 1]].filter(Boolean));
+      }
+      g.things.push(thing);
+    }
+  }
+
+  function spawnCan() {
+    const open = LANES.filter((lx) => !g.things.some((c) => Math.abs(c.x - lx) < 18 && c.y < 40));
+    if (open.length) g.things.push({ kind: 'can', x: pick(open), y: -6, v: 0 });
+  }
+
   function update(dt) {
     if (!g) return;
     g.shake = Math.max(0, g.shake - dt);
     g.flash = Math.max(0, g.flash - dt);
+    g.banner = Math.max(0, g.banner - dt);
     g.sparks = g.sparks.filter((s) => ((s.x += s.vx * dt), (s.y += s.vy * dt), (s.life -= dt)) > 0);
+    g.pops = g.pops.filter((p) => ((p.y -= 18 * dt), (p.life -= dt)) > 0);
     if (mode === 'over' || mode === 'demo-crash') return;
 
     g.t += dt;
-    const base = Math.min(185, 70 + g.t * 4.2); // the road gets faster the longer you last
+    const lap = 1 + Math.floor(g.t / LAP);
+    if (lap > g.lap) {
+      g.lap = lap;
+      g.banner = 1.4;
+      if (mode === 'play') sfx('honk');
+    }
+    // the road gets faster the longer you last, with a kick each lap
+    const base = Math.min(280, 80 + g.t * 3.6 + (g.lap - 1) * 14);
     let steer = 0;
     let boost = 1;
     if (mode === 'demo') steer = autopilot();
     else {
       steer = (keys.has('ArrowRight') || keys.has('d') ? 1 : 0) - (keys.has('ArrowLeft') || keys.has('a') ? 1 : 0);
-      if (keys.has('ArrowUp') || keys.has('w')) boost = 1.35;
-      if (keys.has('ArrowDown') || keys.has('s')) boost = 0.7;
+      if (keys.has('ArrowUp') || keys.has('w')) boost = 1.25;
+      if (keys.has('ArrowDown') || keys.has('s')) boost = 0.75;
     }
+    if (g.air > 0) boost = Math.max(boost, 1.2);
     g.speed += (base * boost - g.speed) * Math.min(1, dt * 3);
-    g.x = Math.max(ROAD_L + 8, Math.min(ROAD_R - 8, g.x + steer * 95 * dt));
+    g.x = Math.max(ROAD_L + 8, Math.min(ROAD_R - 8, g.x + steer * (100 + g.speed * 0.15) * dt));
     g.scroll = (g.scroll + g.speed * dt) % 20;
     g.dist += (g.speed * dt) / PX_PER_M;
+    g.air = Math.max(0, g.air - dt);
 
     g.spawnIn -= dt;
     if (g.spawnIn <= 0) {
-      g.spawnIn = Math.max(0.42, 1.15 - g.t * 0.018) * (0.7 + Math.random() * 0.6);
-      // never block all three lanes: skip lanes that already have a car near the top
-      const free = LANES.filter((lx) => !g.cars.some((c) => c.x === lx && c.y < 30));
-      if (free.length > 1) g.cars.push({ x: free[Math.floor(Math.random() * free.length)], y: -16, v: 25 + Math.random() * 30 });
+      g.spawnIn = Math.max(0.3, 1.0 - g.t * 0.017) * (0.75 + Math.random() * 0.5);
+      spawnRow();
     }
-    for (const c of g.cars) c.y += (g.speed - c.v) * dt;
-    g.cars = g.cars.filter((c) => c.y < H + 20);
+    g.canIn -= dt;
+    if (g.canIn <= 0) {
+      g.canIn = 6 + Math.random() * 4;
+      spawnCan();
+    }
 
-    const py = H - 26;
-    if (g.cars.some((c) => Math.abs(c.x - g.x) < 8 && Math.abs(c.y - py) < 13)) crash();
-  }
-
-  // You: a solid paper car. Traffic: hatched (reads as grey on the 1-bit screen).
-  function sprite(x, y, hatched) {
-    const ox = Math.round(x - 4);
-    const oy = Math.round(y - 7);
-    CAR.forEach((row, j) => {
-      for (let i = 0; i < 9; i += 1) {
-        const c = row[i];
-        if (c === '.' || c === undefined) continue;
-        if (c === '2') ctx.fillStyle = INK;
-        else if (hatched && (i + j) % 2) continue;
-        else ctx.fillStyle = PAPER;
-        ctx.fillRect(ox + i, oy + j, 1, 1);
+    for (const c of g.things) {
+      c.y += (g.speed - c.v) * dt;
+      if (c.shiftTo !== undefined && c.y > 18) {
+        // swerve only if the other lane is clear around it, else give up
+        const clear = !g.things.some((o) => o !== c && o.kind !== 'can' && Math.abs(o.x - c.shiftTo) < 12 && Math.abs(o.y - c.y) < 30);
+        if (!clear && c.x === Math.round(c.x) && LANES.includes(c.x)) c.shiftTo = undefined;
+        else {
+          const d = c.shiftTo - c.x;
+          c.x += Math.sign(d) * Math.min(Math.abs(d), 46 * dt);
+          if (Math.abs(c.shiftTo - c.x) < 0.5) {
+            c.x = c.shiftTo;
+            c.shiftTo = undefined;
+          }
+        }
       }
-    });
+    }
+
+    // collisions, pickups, close calls
+    for (const c of g.things) {
+      const dx = Math.abs(c.x - g.x);
+      const dy = Math.abs(c.y - PY);
+      if (c.kind === 'can') {
+        if (!c.got && dx < 9 && dy < 10) {
+          c.got = true;
+          g.bonus += 25;
+          g.air = 2.6;
+          pop('+25 fuelled!', g.x);
+          sfx('score');
+        }
+        continue;
+      }
+      if (g.air > 0) continue; // flying over it
+      const reach = c.kind === 'cone' ? 6 : 8;
+      if (dx < reach && dy < HALF[c.kind] + 6) return crash();
+      if (!c.passed && c.y - HALF[c.kind] > PY + 7) {
+        c.passed = true;
+        if (c.kind !== 'cone' && dx < 15) {
+          g.bonus += 10;
+          pop('close! +10', g.x);
+          sfx('key');
+        }
+      }
+    }
+    g.things = g.things.filter((c) => c.y < H + 30 && !c.got);
   }
 
-  // You: the red race car (the mascot, from above), in full colour on the 1-bit road.
-  function player(x, y) {
-    const ox = Math.round(x - 5);
-    const oy = Math.round(y - 7);
-    TOP.forEach((row, j) => {
+  function drawRows(rows, x, y, color) {
+    const ox = Math.round(x - Math.floor(rows[0].length / 2));
+    const oy = Math.round(y - Math.floor(rows.length / 2));
+    rows.forEach((row, j) => {
       for (let i = 0; i < row.length; i += 1) {
         const c = row[i];
         if (c === '.') continue;
-        ctx.fillStyle = TOP_COLORS[c];
+        const fill = color(c, i, j);
+        if (!fill) continue;
+        ctx.fillStyle = fill;
         ctx.fillRect(ox + i, oy + j, 1, 1);
       }
     });
+  }
+  // traffic is hatched paper (reads as grey on the 1-bit screen)
+  const hatched = (c, i, j) => (c === '2' ? INK : (i + j) % 2 ? null : PAPER);
+
+  function drawThing(c) {
+    if (c.kind === 'can') {
+      const bob = Math.round(Math.sin(performance.now() / 160) * 1);
+      drawRows(CAN, c.x, c.y + bob, (k) => CAN_COLORS[k]);
+      return;
+    }
+    if (c.kind === 'cone') return drawRows(CONE, c.x, c.y, (k) => (k === 'P' ? PAPER : AMBER));
+    drawRows(c.kind === 'truck' ? TRUCK : CAR, c.x, c.y, hatched);
+    // indicator: blinks on the side it's about to move to
+    if (c.shiftTo !== undefined && Math.floor(performance.now() / 160) % 2) {
+      const side = c.shiftTo > c.x ? 5 : -6;
+      ctx.fillStyle = AMBER;
+      ctx.fillRect(Math.round(c.x + side), Math.round(c.y - 6), 1, 2);
+      ctx.fillRect(Math.round(c.x + side), Math.round(c.y + 4), 1, 2);
+    }
+  }
+
+  // You: the red race car (the mascot, from above), in full colour on the 1-bit road.
+  function player() {
+    const flying = g.air > 0;
+    const lift = flying ? 3 : 0;
+    if (flying) {
+      // shadow, then wings that flap; blink in the last half-second as a warning
+      if (g.air < 0.6 && Math.floor(performance.now() / 80) % 2) return;
+      ctx.fillStyle = 'rgba(0,0,0,.55)';
+      ctx.fillRect(Math.round(g.x - 4), PY - 5, 9, 13);
+      const flap = Math.floor(performance.now() / 90) % 2;
+      ctx.fillStyle = PAPER;
+      for (const s of [-1, 1]) {
+        const wx = Math.round(g.x + s * 7) - (s < 0 ? 3 : 0);
+        ctx.fillRect(wx, PY - lift - 3 + flap, 4, 1);
+        ctx.fillRect(wx + (s < 0 ? 1 : 0), PY - lift - 2 + flap, 3, 1);
+        ctx.fillRect(wx + (s < 0 ? 2 : 0), PY - lift - 1 + flap, 2, 1);
+      }
+    }
+    drawRows(TOP, g.x, PY - lift, (k) => TOP_COLORS[k]);
+  }
+
+  function text(str, x, y, fg = PAPER, bg = INK) {
+    const w = Math.ceil(ctx.measureText(str).width) + 6;
+    ctx.fillStyle = bg;
+    ctx.fillRect(Math.round(x - w / 2), y - 1, w, 11);
+    ctx.fillStyle = fg;
+    ctx.fillText(str, Math.round(x - w / 2) + 3, y + 1);
   }
 
   function draw() {
@@ -211,23 +390,23 @@ export function mountRacer(body, { os, reducedMotion }) {
       ctx.fillRect(ROAD_L - 8, Math.round(y), 3, 7);
       ctx.fillRect(ROAD_R + 5, Math.round(y + 20), 3, 7);
     }
-    for (const c of g.cars) sprite(c.x, c.y, true);
-    player(g.x, H - 26);
+    for (const c of g.things) drawThing(c);
+    player();
     ctx.fillStyle = PAPER;
     for (const s of g.sparks) ctx.fillRect(Math.round(s.x), Math.round(s.y), 2, 2);
-    // HUD
-    ctx.fillStyle = INK;
-    ctx.fillRect(0, 0, 44, 11);
-    ctx.fillStyle = PAPER;
+
     ctx.font = '8px "Pixelify Sans", monospace';
     ctx.textBaseline = 'top';
-    ctx.fillText(`${Math.round(g.dist)}m`, 3, 2);
-    if (mode === 'demo' && Math.floor(performance.now() / 500) % 2) {
-      ctx.fillStyle = INK;
-      ctx.fillRect(W / 2 - 34, H / 2 - 9, 68, 18);
-      ctx.fillStyle = PAPER;
-      ctx.fillText('PRESS ↑ / A', W / 2 - 26, H / 2 - 4);
-    }
+    for (const p of g.pops) text(p.text, Math.max(30, Math.min(W - 30, p.x)), Math.round(p.y), INK, AMBER);
+    // HUD: score left, lap + speed right
+    ctx.fillStyle = INK;
+    ctx.fillRect(0, 0, 46, 11);
+    ctx.fillRect(W - 50, 0, 50, 11);
+    ctx.fillStyle = PAPER;
+    ctx.fillText(`${score()}m`, 3, 2);
+    ctx.fillText(`L${g.lap} ${Math.round(g.speed * 0.9)}kmh`, W - 47, 2);
+    if (g.banner) text(`LAP ${g.lap} · FASTER`, W / 2, H / 2 - 24);
+    if (mode === 'demo' && Math.floor(performance.now() / 500) % 2) text('PRESS ↑ / A', W / 2, H / 2 - 4);
     if (g.flash) {
       ctx.fillStyle = 'rgba(244,244,238,.8)';
       ctx.fillRect(0, 0, W, H);
@@ -251,10 +430,10 @@ export function mountRacer(body, { os, reducedMotion }) {
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (act === 'again') start('play');
     else if (act === 'save' && mode === 'over') {
-      saveScore(os, 'racer', Math.round(g.dist), { duration: Math.round(performance.now() - g.startedAt), dist: Math.round(g.dist) });
+      saveScore(os, 'racer', score(), { duration: Math.round(performance.now() - g.startedAt), dist: Math.round(g.dist), bonus: g.bonus });
     }
   });
-  // Tap the screen to take over on touch devices; swipe-free steering via the keys below.
+  // Tap the screen to take over on touch devices; steer with the keys below.
   canvas.addEventListener('pointerdown', () => mode === 'demo' && start('play'));
 
   start('demo');

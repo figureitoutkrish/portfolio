@@ -18,6 +18,8 @@ import { initWork } from './creative/work.js';
 import { initPeek } from './creative/peek.js';
 import { initMascot } from './creative/mascot.js';
 import { initSpeedo } from './creative/speedo.js';
+import { initCat } from './creative/cat.js';
+import { makeDraggable, sessionSpot } from './creative/drag.js';
 import { registerCommands } from './sections/palette.js';
 import { PROJECTS } from './creative/data/projects.js';
 import { openProject } from './creative/project-window.js';
@@ -47,6 +49,12 @@ initWork({ reducedMotion, lenis });
 initPeek({ reducedMotion });
 initMascot({ os, reducedMotion });
 initSpeedo();
+initCat({ reducedMotion, lenis });
+// The racing licence at the finish can be picked up and moved around its podium.
+const licence = document.querySelector('[data-licence]');
+if (licence) makeDraggable(licence, { reducedMotion, store: sessionSpot('licence'), bounds: () => licence.parentElement });
+// Koach's "out of the garage" chips open those projects.
+document.querySelectorAll('.koach__chip[data-project]').forEach((b) => b.addEventListener('click', () => openProject(b.dataset.project, { from: b })));
 
 // ⌘K extras on this page: the projects, the Mac's apps and games, sound.
 const toMac = (fn) => () => {

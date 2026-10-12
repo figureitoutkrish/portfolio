@@ -13,6 +13,8 @@ const img = (slug, n, w, h) => {
   const nn = String(n).padStart(2, '0');
   return { src: `/assets/work/${slug}/${nn}.webp`, sm: `/assets/work/${slug}/${nn}-sm.webp`, w, h, lqip: PLACEHOLDERS[`${slug}/${nn}`] };
 };
+// Any other named image in the folder (Krish's posts p1…, the PDF's sheet-1…).
+const part = (slug, name, w, h) => ({ src: `/assets/work/${slug}/${name}.webp`, sm: `/assets/work/${slug}/${name}-sm.webp`, w, h, lqip: PLACEHOLDERS[`${slug}/${name}`] });
 // Krish's own cover thumbnails (cover.webp / cover-sm.webp in each project folder).
 const cover = (slug, w, h) => ({ src: `/assets/work/${slug}/cover.webp`, sm: `/assets/work/${slug}/cover-sm.webp`, w, h, lqip: PLACEHOLDERS[`${slug}/cover`] });
 
@@ -39,8 +41,9 @@ export const PROJECTS = [
       'A curated collection of high-performing YouTube thumbnails for sports and creator-led content: my work with @rochakforsports, plus self-directed concepts for my personal channel.',
     tools: ['Photoshop', 'Figma'],
     behance: 'https://www.behance.net/gallery/246815241/YouTube-Thumbnail-Portfolio-Sports-Storytelling',
-    gallery: [img('rochak-thumbnails', 1, 1400, 600), img('rochak-thumbnails', 3, 1400, 995), img('rochak-thumbnails', 4, 1400, 600), img('rochak-thumbnails', 5, 1400, 600), img('rochak-thumbnails', 6, 1400, 600)],
-    galleryNote: 'raw frame → final thumbnail',
+    // the full portfolio PDF, shown as a scrollable document (one long page, cut in 4 for loading)
+    doc: { name: 'thumbnailportfolio.pdf', w: 1400, parts: [1, 2, 3, 4].map((n) => part('rochak-thumbnails', `sheet-${n}`, 1400, n === 4 ? 1148 : 1149)) },
+    hover: [img('rochak-thumbnails', 1, 1400, 600), img('rochak-thumbnails', 3, 1400, 995), img('rochak-thumbnails', 4, 1400, 600), img('rochak-thumbnails', 5, 1400, 600), img('rochak-thumbnails', 6, 1400, 600)],
   },
   {
     slug: 'peeyo',
@@ -53,7 +56,9 @@ export const PROJECTS = [
     cover: cover('peeyo', 1600, 2000),
     tools: ['Photoshop', 'Figma'],
     behance: 'https://www.behance.net/gallery/240572435/PEEYO-BRANDING',
-    gallery: [img('peeyo', 1, 1400, 600), img('peeyo', 2, 1400, 876), img('peeyo', 5, 1400, 600), img('peeyo', 4, 1400, 600)],
+    // Krish's eight feed posts (4:5), then the Behance boards
+    gallery: [...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => part('peeyo', `p${n}`, 1200, 1500)), img('peeyo', 1, 1400, 600), img('peeyo', 2, 1400, 876)],
+    hover: [1, 3, 4, 5, 6, 7].map((n) => part('peeyo', `p${n}`, 1200, 1500)),
   },
   {
     slug: 'endura',

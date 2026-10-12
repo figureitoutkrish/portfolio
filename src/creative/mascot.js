@@ -19,6 +19,7 @@ const HINTS = [
   '⌘K takes you anywhere.',
   'the pink note flips over. tap it.',
   'leave a note on the Mac. everyone sees it!',
+  'grab the cans in RACER.DSK. krish runs on the stuff.',
 ];
 const SCALE = 1.6; // css px per sprite px (scaled again on small screens)
 

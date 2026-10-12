@@ -145,7 +145,7 @@
           <div class="sticky sticky--canary" tabindex="0" role="note" data-drag-id="welcome">welcome to the creative side!</div>
           <div class="sticky sticky--rose sticky--flip" tabindex="0" role="button" aria-pressed="false" aria-label="Flip note: how it started" data-drag-id="story">
             <span class="sticky__front">6th grade.<br />&#8377;50 a thumbnail,<br />for friends.</span>
-            <span class="sticky__back">now &#8377;1,000.<br />same kid.</span>
+            <span class="sticky__back"><img class="sticky__kid" src="/assets/creative/kid-6th.webp" width="280" height="280" alt="Krish as a kid in sunglasses, hands behind his head" loading="lazy" decoding="async" />now &#8377;1,000.<br />same kid.</span>
           </div>
           <div class="sticky sticky--tang" tabindex="0" role="note" data-drag-id="floppy">drag a floppy<br />into the slot &#8600;</div>
           <button class="sticky sticky--ghost" type="button" aria-label="Leave a note on the Mac">+<span>leave a note</span></button>
@@ -180,22 +180,55 @@
         <div class="koach__win win">
           <div class="win__bar"><span class="win__lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="win__title">koach.studio</span></div>
           <div class="koach__body">
-            <div>
+            <div class="koach__intro">
               <p class="clabel koach__label"><span>02</span> [ the studio ]</p>
-              <h2 id="koach-title" class="koach__title">Koach</h2>
-              <p class="koach__sub">Creative Studio · co-founded Feb 2025</p>
-              <p class="koach__text">A content and creative agency that helps brands meet their content needs and scale further. The Peeyo, Endura and Atovio work above came through Koach.</p>
-              <a class="pill pill--lime" href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener">@koach.studio <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+              <h2 id="koach-title" class="koach__logo" data-koach-logo><span class="koach__word">Koach</span><span class="koach__tag">creative studio</span></h2>
+              <p class="koach__lead">every brand needs a pit crew.</p>
+              <p class="koach__text">Koach is the content and creative agency I co-founded in February 2025. Brands bring the car; we plan the race, fuel it with content and give it a paint job people stop for.</p>
+              <div class="koach__cta">
+                <a class="pill pill--lime" href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener">@koach.studio <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
+                <span class="note koach__est">est. feb 2025</span>
+              </div>
             </div>
-            <ul class="koach__steps note" aria-label="How Koach works">
-              <li>&rarr; strategy</li><li>&rarr; content</li><li>&rarr; design</li><li>&rarr; more.</li>
-            </ul>
+            <ol class="koach__crew" aria-label="What Koach does">
+              <li class="crew crew--plan"><span class="crew__no">01</span><b class="crew__role">strategy</b><span class="crew__what">the race plan</span><span class="crew__icon" aria-hidden="true"></span></li>
+              <li class="crew crew--fuel"><span class="crew__no">02</span><b class="crew__role">content</b><span class="crew__what">the fuel</span><span class="crew__icon" aria-hidden="true"></span></li>
+              <li class="crew crew--paint"><span class="crew__no">03</span><b class="crew__role">design</b><span class="crew__what">the paint job</span><span class="crew__icon" aria-hidden="true"></span></li>
+            </ol>
+            <div class="koach__garage">
+              <span class="koach__garage-label">out of the garage</span>
+              <button class="koach__chip" type="button" data-project="peeyo">Peeyo</button>
+              <button class="koach__chip" type="button" data-project="endura">Endura</button>
+              <span class="koach__chip koach__chip--static">Atovio</span>
+            </div>
           </div>
+          <div class="koach__ticker" aria-hidden="true"><div class="koach__track"><span>strategy</span><span>content</span><span>design</span><span>thumbnails</span><span>shoots</span><span>social</span><span>strategy</span><span>content</span><span>design</span><span>thumbnails</span><span>shoots</span><span>social</span></div></div>
         </div>
       </section>
 
       <div class="checker checker--finish" aria-hidden="true"><span class="checker__tag">finish</span></div>
-      <p class="signoff"><span class="note">lap complete. thanks for the ride.</span> <span class="signoff__meta">alter ego 02 · built with curiosity, fuelled by red bull.</span></p>
+
+      <section class="podium" aria-label="The driver">
+        <article class="licence" data-licence aria-label="Racing licence: Krish">
+          <header class="licence__head"><span>racing licence</span><span>alter ego 02</span></header>
+          <div class="licence__body">
+            <figure class="licence__photo"><img src="/assets/creative/driver.webp" width="560" height="700" alt="Krish in a rain jacket, holding a red helmet, next to a go-kart" loading="lazy" decoding="async" /></figure>
+            <dl class="licence__facts">
+              <div><dt>driver</dt><dd>krish v.</dd></div>
+              <div><dt>no.</dt><dd title="₹50: my first price per thumbnail">50</dd></div>
+              <div><dt>team</dt><dd>koach</dd></div>
+              <div><dt>fuel</dt><dd>red bull <svg class="licence__can" viewBox="0 0 20 34" width="20" height="34" aria-hidden="true"><rect x="2" y="3" width="16" height="29" rx="3" fill="#d7dae0" stroke="#20221f" stroke-width="1.6"/><rect x="2" y="3" width="16" height="6" rx="2" fill="#2c5cff" stroke="#20221f" stroke-width="1.6"/><rect x="2" y="26" width="16" height="6" rx="2" fill="#2c5cff" stroke="#20221f" stroke-width="1.6"/><path d="M11 11 6.5 18.5h3.5L8.5 24 14 15.8h-3.6z" fill="#ffd23a" stroke="#20221f" stroke-width="1"/></svg></dd></div>
+              <div class="licence__wide"><dt>class</dt><dd>thumbnails, since 6th grade</dd></div>
+              <div class="licence__wide"><dt>top speed</dt><dd>deadline mode</dd></div>
+            </dl>
+          </div>
+          <footer class="licence__foot"><span class="licence__sign note">Krish</span><span class="licence__chk" aria-hidden="true"></span></footer>
+        </article>
+        <div class="podium__end">
+          <p class="podium__title note">lap complete.<br />thanks for the ride.</p>
+          <p class="signoff__meta">alter ego 02 · built with curiosity, fuelled by red bull.</p>
+        </div>
+      </section>
     </main>
 
     <!-- Liquid glass tab bar: the main way between pages (src/sections/tabbar.js). -->
