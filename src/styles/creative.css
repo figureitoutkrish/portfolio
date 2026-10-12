@@ -77,6 +77,10 @@ html.creative body {
 }
 
 .page--creative {
+  /* Stickers, disks and the Mac's 3D top may hang off the desk into the margins, never off the
+     page. On this wrapper, not on body: body's overflow is handed to the viewport, where phones
+     ignore it and zoom out instead. */
+  overflow-x: clip;
   width: 100%;
   max-width: 1440px;
   margin-inline: auto;
@@ -288,7 +292,6 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
   gap: 2.5rem;
   padding: 2rem 0 4rem;
   scroll-margin-top: 1rem;
-  overflow-x: clip; /* stickers and disks may hang off the desk, never off the page */
 }
 .chero .tick--tl { top: 0.5rem; left: -7px; }
 .chero .tick--br { right: -7px; bottom: 1rem; }
@@ -604,47 +607,6 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
 .os__glyph--chat { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M1 2h14v9H7l-3 3v-3H1z' fill='%23fff' stroke='%23111'/%3E%3Cpath d='M4 5h8M4 8h5' stroke='%23111'/%3E%3C/svg%3E"); }
 .os__glyph--scores { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M4 2h8v4a4 4 0 0 1-8 0z' fill='%23fff' stroke='%23111'/%3E%3Cpath d='M8 10v3M5 14h6M4 3H2v2l2 1M12 3h2v2l-2 1' stroke='%23111' fill='none'/%3E%3C/svg%3E"); }
 
-/* Classic window */
-.os__win {
-  position: absolute;
-  left: 4cqw;
-  top: 4cqw;
-  width: 62cqw;
-  border: 1px solid var(--os-ink);
-  background: var(--os-paper);
-  box-shadow: 1px 1px 0 var(--os-ink);
-}
-.os__bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 5.5cqw;
-  border-bottom: 1px solid var(--os-ink);
-  /* the striped title bar */
-  background: linear-gradient(var(--os-paper), var(--os-paper)) center / 100% 100% no-repeat;
-  background-image: repeating-linear-gradient(to bottom, var(--os-ink) 0 1px, transparent 1px 2px);
-  background-clip: content-box;
-  padding: 1cqw 0.8cqw;
-}
-.os__close {
-  position: absolute;
-  left: 2cqw;
-  width: 3.2cqw;
-  height: 3.2cqw;
-  border: 1px solid var(--os-ink);
-  background: var(--os-paper);
-  box-shadow: 0 0 0 1cqw var(--os-paper);
-}
-.os__title {
-  padding: 0 1.6cqw;
-  background: var(--os-paper);
-  font-size: 3cqw;
-}
-.os__body { position: relative; }
-.os__body--slides { aspect-ratio: 16 / 10; display: grid; place-items: center; }
-.os__ph { font-family: var(--f-term); font-size: 4cqw; color: #555; }
-
 /* ---------- Stickers (src/creative/stickers.js makes them draggable) ---------- */
 .sticker {
   position: absolute;
@@ -793,7 +755,7 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
   position: absolute;
   z-index: 5;
   left: 0;
-  bottom: 18%;
+  bottom: 25%;
   width: calc(var(--mw) * 0.42);
   transform: rotate(-6deg);
   overflow: visible;
@@ -893,7 +855,7 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
     grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
     align-items: center;
     gap: 2rem;
-    min-height: calc(100svh - 5rem);
+    min-height: min(calc(100svh - 5rem), 58rem);
     padding: 1rem 0 3rem;
   }
   .chero__title { font-size: clamp(6.5rem, 9.6vw, 10rem); }

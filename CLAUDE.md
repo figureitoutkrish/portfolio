@@ -38,14 +38,17 @@ creative/index.html     # Creative alter-ego page: green grid, Mac windows, bent
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
 vite.config.js
+api/                    # Vercel functions: scores.js (leaderboard), notes.js (visitor sticky notes); Upstash Redis. Setup: docs-backend.md
 public/assets/
   images/               # Static images, served as-is at /assets/images/...
+  work/<slug>/          # Creative-page project images (from Behance; originals in content/behance/)
   models/               # 3D models (.glb/.gltf)
   fonts/                # Self-hosted web fonts
 src/
   main.js               # Home entry (intro, home reveal)
   page.js               # Entry for the data page (placeholder)
-  creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css)
+  creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
+  creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
   shared.js             # Every page: Lenis, menu, tab bar, page transitions
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)

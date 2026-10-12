@@ -1,5 +1,6 @@
 import './styles/main.css';
 import './styles/creative.css';
+import './styles/creative-mac.css';
 import '@fontsource/anton/latin-400.css';
 import '@fontsource-variable/manrope/wght.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
@@ -9,13 +10,21 @@ import '@fontsource/vt323/latin-400.css';
 import gsap from 'gsap';
 import { initShared } from './shared.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
-import { initMac } from './creative/mac/os.js';
+import { createOS } from './creative/mac/os.js';
+import { initCabinet } from './creative/mac/cabinet.js';
+import { initDesk } from './creative/desk.js';
+import { initHeaderLights } from './creative/header-lights.js';
+import { initWork } from './creative/work.js';
 
 // Creative page (alter ego 02): the vintage Mac, then the work.
-const { reducedMotion, fontsReady } = initShared();
+const { reducedMotion, lenis, fontsReady } = initShared();
 const viaWipe = arrivedViaWipe();
 
-initMac({ reducedMotion });
+const os = createOS({ reducedMotion, lenis });
+initCabinet({ os, reducedMotion });
+initDesk({ reducedMotion });
+initHeaderLights({ lenis, reducedMotion });
+initWork({ reducedMotion, lenis });
 
 // Hero entrance: the headline rises line by line, the desk settles in after it.
 const lines = document.querySelectorAll('.chero__title .line > span');

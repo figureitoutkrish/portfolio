@@ -47,5 +47,17 @@ A platinum-beige vintage Macintosh, built in CSS. The front face sits at z = 0, 
 ## Hero
 "alter ego 02:" (Caveat) over "THE CREATIVE." (Anton), plus a one-line lede. The desk with the Mac is on the right from 1100px, and below the headline on smaller screens.
 
+
+## Interactions (src/creative/)
+- **Mac OS** (`mac/os.js`): one classic window at a time. Desktop icons select on click and open on double-click, Enter, or a single tap on touch. Menus (File / Edit / Special / Help) have real items and links. Classic alert and prompt dialogs. Power off collapses the tube to a line; power on plays a short happy-Mac boot. The idle app is **Work.slideshow**, which cycles project covers; "Open" goes to the project's window.
+- **Games need their floppy.** Drag CIRCLE.DSK or RACER.DSK into the slot (or click / Enter a disk): it lines up, slides in, the LED blinks and the game opens. Opening a game icon without its disk shows an alert and nudges the disk. **Game mode** holds the page still (Lenis stopped, arrows / space / page keys captured with preventDefault) and scrolls the Mac to the centre first. **Eject**, **power**, **Esc** or the close box end it; the disk springs back to the desk.
+- **Perfect Circle**: low-res pixel canvas (240×168, letterbox-aware pointer mapping), scored around the dot (`circle-score.js`, shared with the server). **Racer**: 200×140 1-bit top-down road; autopilot demo until you press ↑ / A; speed climbs; score = metres.
+- **High Scores** (top 10 per game) and **Talk to Krish** (scripted, keywords from about.md; "6th grade" tells the origin story).
+- **Gamepad keys** under the Mac drive the games; real arrow keys press them visually too.
+- **Desk** (`desk.js`, `drag.js`): stickers and house notes drag (tap opens a sticker's link, a drag never does; positions kept for the session); the rose note flips. **Visitors' notes**: "+ leave a note" opens a pad (5 paper colours, 3 pens: pen / marker / label maker) and the note is stuck on the Mac for everyone (`api/notes.js`), or for this browser only until the backend is connected.
+- **Header lights** (`header-lights.js`): red opens the "Quit Creative?" alert (glossy pills), which goes home through the wipe; yellow glides to Work; green makes the Mac full screen (Esc or the exit pill to leave).
+- **Work** (`work.js`, `data/projects.js`): 12 projects (11 from Behance + an Atovio placeholder). Bento on 12 columns with sizes feature / tall / wide / square / small and fixed row heights from 640px; filters with counts, animated with GSAP Flip. **Project window** (`project-window.js`): grows from the card and shrinks back, `#project/<slug>`, ← → step, Esc / backdrop / red dot close, focus trapped and restored.
+- **Backend**: see `docs-backend.md`.
+
 ## Motion
 Name lines rise (ui-out, 70ms stagger), the rest fades up after. Same eases/durations as MASTER. Reduced motion: no entrance.
