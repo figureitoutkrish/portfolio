@@ -17,6 +17,7 @@ import { initHeaderLights } from './creative/header-lights.js';
 import { initWork } from './creative/work.js';
 import { initPeek } from './creative/peek.js';
 import { initMascot } from './creative/mascot.js';
+import { initSpeedo } from './creative/speedo.js';
 import { registerCommands } from './sections/palette.js';
 import { PROJECTS } from './creative/data/projects.js';
 import { openProject } from './creative/project-window.js';
@@ -45,6 +46,7 @@ os?.on((type, on) => {
 initWork({ reducedMotion, lenis });
 initPeek({ reducedMotion });
 initMascot({ os, reducedMotion });
+initSpeedo();
 
 // ⌘K extras on this page: the projects, the Mac's apps and games, sound.
 const toMac = (fn) => () => {
@@ -71,6 +73,11 @@ registerCommands([
 ]);
 
 // Hero entrance: the headline rises line by line, the desk settles in after it.
+// Start lights: five reds come on one by one, then lights out → green. Go.
+const startLights = [...document.querySelectorAll('.startlights i')];
+const goGreen = () => startLights.forEach((l) => (l.className = 'is-green'));
+if (reducedMotion) goGreen();
+
 const lines = document.querySelectorAll('.chero__title .line > span');
 const fades = document.querySelectorAll('.chero [data-fade]');
 if (!reducedMotion) {
@@ -81,6 +88,9 @@ if (!reducedMotion) {
 fontsReady.then(() => {
   if (viaWipe) revealArrival();
   if (reducedMotion) return;
+  const lightsTl = gsap.timeline({ delay: viaWipe ? 0.2 : 0.1 });
+  startLights.forEach((l, i) => lightsTl.call(() => (l.className = 'is-red'), null, i * 0.22));
+  lightsTl.call(goGreen, null, startLights.length * 0.22 + 0.35);
   gsap
     .timeline({ delay: viaWipe ? 0.1 : 0 })
     .to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.07 })

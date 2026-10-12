@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" class="creative">
+<html lang="en" class="creative" data-theme-lock="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#128556" data-light="#128556" data-dark="#014625" />
+    <meta name="theme-color" content="#0b6440" data-light="#0b6440" data-dark="#0b6440" />
     <title>Creative — Krish Viramgama</title>
     <meta name="description" content="Branding, thumbnails, video and Koach: the creative side of Krish Viramgama." />
     <!-- Share previews (WhatsApp, LinkedIn, iMessage, X). __SITE_URL__ is filled in at build time (vite.config.js). -->
@@ -21,7 +21,7 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <!-- Until the stylesheet applies (in dev, Vite injects CSS from JS), show nothing rather than
          an unstyled flash; mid page-change, hold the wipe's blue so the sweep looks continuous. -->
-    <style>body{visibility:hidden}html{background:#128556}html[data-theme=dark]{background:#014625;color-scheme:dark}html.is-wiping{background:#0a1a6b}</style>
+    <style>body{visibility:hidden}html{background:#0b6440}html.is-wiping{background:#0a1a6b}</style>
     <!-- Before first paint: flag JS, pick the theme, and if we arrived through a page-change wipe, start covered. -->
     <script>
       (function () {
@@ -30,7 +30,7 @@
         var t;
         try { t = localStorage.getItem('krish:theme'); } catch (e) {}
         if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        d.dataset.theme = t;
+        d.dataset.theme = d.dataset.themeLock || t;
         try {
           var dir = sessionStorage.getItem('krish:wipe');
           if (dir) {
@@ -74,6 +74,7 @@
         <p class="coord coord--hero" aria-hidden="true">x 024 · y 096</p>
 
         <div class="chero__head">
+          <div class="startlights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
           <p class="chero__kicker note" data-fade>alter ego 02:</p>
           <h1 id="chero-title" class="chero__title"><span class="visually-hidden">Alter ego 02: </span><span class="line"><span>The</span></span><span class="line"><span>Creative.</span></span></h1>
           <p class="chero__lede" data-fade>Thumbnails, brands, campaigns and video. Have a play on the Mac, then scroll for the work.</p>
@@ -127,6 +128,8 @@
             <span class="sticker sticker--star" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><path d="M24 3l6.2 13.4 14.6 1.6-10.9 9.9 3 14.4L24 35l-12.9 7.3 3-14.4L3.2 18l14.6-1.6z" fill="#ffd23f" stroke="#20221f" stroke-width="2.4" stroke-linejoin="round"/></svg></span>
             <span class="sticker sticker--smile" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="#ffe14a" stroke="#20221f" stroke-width="2.4"/><circle cx="17" cy="20" r="2.6" fill="#20221f"/><circle cx="31" cy="20" r="2.6" fill="#20221f"/><path d="M15 28c2.5 4 5.5 6 9 6s6.5-2 9-6" fill="none" stroke="#20221f" stroke-width="2.6" stroke-linecap="round"/></svg></span>
             <a class="sticker sticker--yt" href="https://www.youtube.com/@figureitoutwithkrish" target="_blank" rel="noopener" aria-label="Figure it out with Krish on YouTube" draggable="false"><svg viewBox="0 0 28 20" width="28" height="20" aria-hidden="true"><rect width="28" height="20" rx="6" fill="#ff2a2a"/><path d="M11 5.5v9l8-4.5z" fill="#fff"/></svg><span>figure it out</span></a>
+            <span class="sticker sticker--cone" aria-hidden="true"><svg viewBox="0 0 40 48" width="40" height="48" aria-hidden="true"><path d="M20 3l12 36H8z" fill="#ff7a1a" stroke="#20221f" stroke-width="2.2" stroke-linejoin="round"/><path d="M15 18h10l2 7H13zM11 30h18l2 6H9z" fill="#fff"/><rect x="3" y="38" width="34" height="7" rx="2" fill="#ff7a1a" stroke="#20221f" stroke-width="2.2"/></svg></span>
+            <span class="sticker sticker--flag" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><path d="M8 4v42" stroke="#20221f" stroke-width="3" stroke-linecap="round"/><path d="M9 6h30l-5 9 5 9H9z" fill="#fff" stroke="#20221f" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 6h7.5v6H9zM24 6h7.5v6H24zM16.5 12H24v6h-7.5zM31.5 12h5l-2.5 6h-2.5zM9 18h7.5v6H9zM24 18h7.5v6H24z" fill="#20221f"/></svg></span>
             <a class="sticker sticker--be" href="https://www.behance.net/theinvrangers" target="_blank" rel="noopener" aria-label="Krish on Behance" draggable="false">B&#275;</a>
           </div>
 
@@ -163,6 +166,7 @@
       </section>
 
       <section class="csec work" id="work" aria-labelledby="work-title">
+        <div class="checker" aria-hidden="true"><span class="checker__tag">start</span></div>
         <div class="csec__head">
           <p class="clabel"><span>01</span> [ selected work ]</p>
           <h2 id="work-title" class="csec__title">Work</h2>
@@ -190,7 +194,8 @@
         </div>
       </section>
 
-      <p class="signoff"><span class="note">same guy, more ideas.</span> <span class="signoff__meta">alter ego 02 · built with curiosity, designed with coffee.</span></p>
+      <div class="checker checker--finish" aria-hidden="true"><span class="checker__tag">finish</span></div>
+      <p class="signoff"><span class="note">lap complete. thanks for the ride.</span> <span class="signoff__meta">alter ego 02 · built with curiosity, designed with coffee.</span></p>
     </main>
 
     <!-- Liquid glass tab bar: the main way between pages (src/sections/tabbar.js). -->

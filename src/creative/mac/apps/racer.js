@@ -1,5 +1,6 @@
 import { saveScore } from './scores.js';
 import { sfx } from '../../sound.js';
+import { TOP, TOP_COLORS } from '../../car.js';
 
 // RACER.DSK: top-down pixel racer. Dodge traffic, your speed climbs, score = distance.
 // Until you touch a key it drives itself (demo); ← → steer, ↑ faster, ↓ slower.
@@ -168,6 +169,20 @@ export function mountRacer(body, { os, reducedMotion }) {
     });
   }
 
+  // You: the red race car (the mascot, from above), in full colour on the 1-bit road.
+  function player(x, y) {
+    const ox = Math.round(x - 5);
+    const oy = Math.round(y - 7);
+    TOP.forEach((row, j) => {
+      for (let i = 0; i < row.length; i += 1) {
+        const c = row[i];
+        if (c === '.') continue;
+        ctx.fillStyle = TOP_COLORS[c];
+        ctx.fillRect(ox + i, oy + j, 1, 1);
+      }
+    });
+  }
+
   function draw() {
     if (!g) return;
     ctx.save();
@@ -197,7 +212,7 @@ export function mountRacer(body, { os, reducedMotion }) {
       ctx.fillRect(ROAD_R + 5, Math.round(y + 20), 3, 7);
     }
     for (const c of g.cars) sprite(c.x, c.y, true);
-    sprite(g.x, H - 26, false);
+    player(g.x, H - 26);
     ctx.fillStyle = PAPER;
     for (const s of g.sparks) ctx.fillRect(Math.round(s.x), Math.round(s.y), 2, 2);
     // HUD

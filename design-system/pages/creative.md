@@ -6,13 +6,13 @@ Overrides MASTER.md for this page only. The design/creative section of the site:
 Three parts only: the hero Mac, Work, and a small Koach block. Nothing that home already says (name, bio, About, stats, clients, timeline) is repeated here. The thumbnail origin story (₹50 for friends in 6th grade → ₹1,000 today) lives only in hidden details: the flip note, the floppy label, the chat bot.
 
 ## Global chrome
-The `krish.` menu, the liquid-glass tab bar and the page wipe stay as on every page. **The header on this page only** gets three working traffic lights before `krish.`: red = "Quit Creative?" alert → home; yellow = skip to Work; green = Mac full screen. No extra toolbar. The menu panel gets ink tokens in light mode (light glass over green).
+**Light only:** `<html data-theme-lock="light">`. K, the menu's theme button and the ⌘K theme command are off here, and the saved theme is untouched for other pages. The `krish.` menu, the liquid-glass tab bar and the page wipe stay as on every page. **The header on this page only** gets three working traffic lights before `krish.`: red = "Quit Creative?" alert → home; yellow = skip to Work; green = Mac full screen. No extra toolbar. The menu panel gets ink tokens in light mode (light glass over green).
 
 ## Colour (tokens on `html.creative`, src/styles/creative.css)
-| Role | Light | Dark |
+| Role | Light (the only mode) | Dark |
 |---|---|---|
-| Page green `--c-green` | `#128556` (Insta green #158B58, deepened: white = 4.6:1) | `#014625` (mockup racing green) |
-| Grid minor / major | white .07 / .22 | white .05 / .13 |
+| Page green `--c-green` | `#0b6440` (deeper than the Insta green, which read as faded; white = 7.2:1, lime = 5.3:1) | n/a |
+| Grid minor / major | white .08 / .24 | n/a |
 | Paper (windows, cards) `--c-paper` | `#f5f4ef` | `#ecebe4` |
 | Ink / ink-2 on paper | `#20221f` / `#5a5e56` (6.1:1) | same |
 | Lime `--c-lime` | `#b6ed68`: CTAs (ink text), handwritten notes. 3.4:1 on green → large text only | same |
@@ -56,7 +56,9 @@ A platinum-beige vintage Macintosh, built in CSS. The front face sits at z = 0, 
 - **Gamepad keys** under the Mac drive the games; real arrow keys press them visually too.
 - **Desk** (`desk.js`, `drag.js`): stickers and house notes drag (tap opens a sticker's link, a drag never does; positions kept for the session); the rose note flips. **Visitors' notes**: "+ leave a note" opens a pad (5 paper colours, 3 pens: pen / marker / label maker) and the note is stuck on the Mac for everyone (`api/notes.js`), or for this browser only until the backend is connected.
 - **Header lights** (`header-lights.js`): red opens the "Quit Creative?" alert (glossy pills), which goes home through the wipe; yellow glides to Work; green makes the Mac full screen (Esc or the exit pill to leave).
-- **Work** (`work.js`, `data/projects.js`): 12 projects (11 from Behance + an Atovio placeholder). Bento on 12 columns with sizes feature / tall / wide / square / small and fixed row heights from 640px; filters with counts, animated with GSAP Flip. **Project window** (`project-window.js`): grows from the card and shrinks back, `#project/<slug>`, ← → step, Esc / backdrop / red dot close, focus trapped and restored.
+- **Work** (`work.js`, `data/projects.js`): four projects for now: YouTube Thumbnails (feature), Peeyo (tall), Endura and Gourmet Greens (half). **Three card shapes only:** feature 16:10 (cover 2400×1500), tall 4:5 (1600×2000), half 16:9 (2400×1350).
+  - **Layout:** phones show one column at each card's own ratio; tablets show the feature on top with the tall card beside the two halves; desktop shows feature (8) + tall (4), then half (6) + half (6).
+  - **Filters:** a classic Mac segmented control on a paper strip (Pixelify, ink borders, the selected one inverted), animated with GSAP Flip. **Project window** (`project-window.js`): grows from the card and shrinks back, `#project/<slug>`, ← → step, Esc / backdrop / red dot close, focus trapped and restored.
 - **Backend**: see `docs-backend.md`.
 
 
@@ -64,9 +66,20 @@ A platinum-beige vintage Macintosh, built in CSS. The front face sits at z = 0, 
 - **⌘K palette** (`src/sections/palette.js`, site-wide; also "jump to… ⌘K" in the menu). It opens instantly from the keyboard and animates only from a click. Base commands: pages, theme, email, socials. This page adds projects, Play Racer / Circle (scrolls to the Mac and inserts the disk), High Scores, Talk to Krish, Sound and Mac full screen. Styled as a paper Mac window here, plain elsewhere.
 - **Link previews** (`peek.js`): on hover or keyboard focus over outside links (Koach, Instagram, YouTube, LinkedIn, Behance, project pages, email), a mini Mac window appears above the link. The first waits 320ms, the next ones open instantly; it grows from the link.
 - **Pixel cursors** (mouse / trackpad only): classic arrow, pointing hand on clickables, open hand on draggables (stickers, notes, disks, knob), fist while holding. Defined as `--cur-*` tokens in creative-mac.css.
-- **Rev, the mascot** (`mascot.js`): an original chibi red pixel race car (headlight eye, "K" door). Not a copy of any film character. It sits on the Mac's top, blinks, drives back and forth every ~11s and honks when tapped. Its hint bubble cycles tips, including one about the secret disk. It reacts to disks, games and power (sleeps when the Mac is off).
+- **The race-car mascot** (`mascot.js`, sprites in `car.js`): a Cars-inspired tribute (red, windshield eyes, bumper grin, lightning-bolt decal), with no names, race numbers or logos. Poses: **front** (eyes follow the cursor), **side** (driving, bolt, spinning wheels, flips with direction), **wink**; plus a top-down sprite used as the player car in RACER.DSK.
+  - **Mouse:** it follows the cursor around the whole page on separate X/Y springs, sitting behind it. It goes side-on above about 140px/s and faces you when slow, leaves fading tyre marks on fast moves, and gives an idle hint at most every 30s. It hides during games, project windows, ⌘K and full screen.
+  - **Touch / reduced motion:** it parks on top of the Mac and gives a hint when tapped.
 - **Secret disk**: MESSAGE.MOV is hidden under the welcome note (under the story note on phones). It plays `public/assets/secret/message.mp4` (+ optional `message.jpg` poster) and shows "coming soon" until the file exists.
 - **Sound** (`sound.js`): Web Audio, synthesised, **off by default**. Toggle with the speaker in the Mac's menu bar or ⌘K. Sounds play only on causal moments: disk in/out, power, boot, alerts, keys, game start / crash / score, the mascot's horn.
+- **Cars details:**
+  - start lights in the hero (five reds, then green, on load);
+  - section numbers as race-number plates;
+  - checkered bands ("start" above Work, "finish" before the sign-off, "lap complete");
+  - cone and checkered-flag stickers;
+  - a speedometer in the bottom-left that shows scroll progress (desktop pointers only);
+  - tyre marks from the mascot.
+
+  All original drawings; no film stills or logos.
 - **Hover cycling**: a work card cycles through its own project's images on hover (`hover: [...]` in projects.js if set, otherwise the gallery).
 - **Blurry placeholders**: every work image has a 20px blurred preview (`data/placeholders.json`) that shows until the real one fades in. After adding images, regenerate the placeholders (the 20px WebP data URIs keyed `slug/NN`).
 - **Share previews**: `public/og/{home,data,creative}.jpg` (1200×630) plus og/twitter tags on every page. `__SITE_URL__` is filled at build from `SITE_URL` or Vercel's production URL.

@@ -20,7 +20,7 @@ export function initPalette({ reducedMotion, navigate, toggleTheme }) {
     { group: 'Pages', label: 'Home', hint: 'page', keys: 'home main index start', run: () => go('/') },
     { group: 'Pages', label: 'Data · alter ego 01', hint: 'page', keys: 'data science engineering', run: () => go('/data/') },
     { group: 'Pages', label: 'Creative · alter ego 02', hint: 'page', keys: 'creative design work mac', run: () => go('/creative/') },
-    { group: 'Actions', label: 'Toggle dark mode', hint: 'K', keys: 'theme dark light mode', run: () => toggleTheme?.() },
+    ...(document.documentElement.dataset.themeLock ? [] : [{ group: 'Actions', label: 'Toggle dark mode', hint: 'K', keys: 'theme dark light mode', run: () => toggleTheme?.() }]),
     { group: 'Actions', label: 'Copy email', hint: EMAIL, keys: 'email mail contact copy', run: copyEmail },
     { group: 'Actions', label: 'Email Krish', hint: 'mail app', keys: 'email write contact hire', run: () => (location.href = `mailto:${EMAIL}`) },
     { group: 'Elsewhere', label: 'Koach Studio', hint: 'instagram ↗', keys: 'koach agency studio', run: () => out('https://www.instagram.com/koach.studio/') },

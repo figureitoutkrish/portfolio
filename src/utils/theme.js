@@ -37,6 +37,16 @@ function save(theme) {
 }
 
 export function initTheme({ reducedMotion }) {
+  // A page can lock its theme (<html data-theme-lock="light">): the creative page is light only.
+  // There, K and the theme button do nothing and the saved choice is left alone for other pages.
+  const locked = root.dataset.themeLock;
+  if (locked) {
+    root.dataset.theme = locked;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS[locked]);
+    document.querySelectorAll('[data-theme-toggle]').forEach((b) => (b.hidden = true));
+    return { toggle() {}, locked: true };
+  }
+
   // The head script set data-theme; match the browser chrome to it right away.
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS[currentTheme()]);
   document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', currentTheme());

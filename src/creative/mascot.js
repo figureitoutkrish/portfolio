@@ -1,221 +1,70 @@
 import gsap from 'gsap';
+import { createSpring } from '../utils/spring.js';
+import { SPRITE, drawCar } from './car.js';
 import { sfx } from './sound.js';
 
-// Rev, the desk mascot: an original little red pixel race car (headlight eye, "K" on the door),
-// living on top of the Mac. It idles, blinks, now and then drives along the Mac's top, and when
-// you tap it, it honks and gives a hint. It reacts to the Mac too (disks, games, power).
-// Drawn on a tiny canvas with shapes, then snapped to hard pixels and outlined, so it stays
-// crisp at any size (scaled up with image-rendering: pixelated).
-const W = 48;
-const H = 28;
-const PALETTE = { red: [227, 48, 47], shade: [165, 30, 30], white: [250, 248, 240], glass: [43, 47, 54], shine: [159, 212, 255], tyre: [24, 24, 24], rim: [170, 170, 170], ink: [20, 20, 20], blush: [255, 150, 165] };
-
+// The race-car mascot.
+//   Mouse / trackpad: it follows you around the whole page, a few car-lengths behind the cursor.
+//   Driving fast it turns side-on (bolt and spinning wheels, facing where it's going) and leaves
+//   fading tyre marks; when it slows it turns to face you, eyes on your cursor. Separate X / Y
+//   springs (Apple's rule for 2D motion), so it chases naturally and never jumps.
+//   Touch or reduced motion: it parks on top of the Mac and gives hints when tapped.
+// It speaks up at the right moments (a disk goes in, a game starts, the Mac sleeps) and, if you
+// idle, now and then drops a hint. It hides while a game, project window or ⌘K is open.
 const HINTS = [
   'drag a floppy into the slot under the screen!',
-  "i'm way faster in RACER.DSK. try it.",
+  "i'm faster in RACER.DSK. wanna race?",
   'can you draw a perfect circle? CIRCLE.DSK',
   'psst… the yellow note is hiding something.',
-  '⌘K jumps anywhere on the site.',
+  '⌘K takes you anywhere.',
   'the pink note flips over. tap it.',
   'leave a note on the Mac. everyone sees it!',
-  'talk to krish: the speech bubble on the desktop.',
 ];
+const SCALE = 1.6; // css px per sprite px (scaled again on small screens)
 
 export function initMascot({ os, reducedMotion }) {
   const mac = document.querySelector('[data-mac]');
   if (!mac) return () => {};
+  const follow = !reducedMotion && matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  const el = document.createElement('button');
-  el.type = 'button';
-  el.className = 'mascot';
-  el.setAttribute('aria-label', 'Rev the race car: tap for a hint');
-  el.innerHTML = `<canvas class="mascot__car" width="${W}" height="${H}" aria-hidden="true"></canvas><span class="mascot__bubble" role="status" aria-live="polite" hidden></span>`;
-  mac.append(el);
+  const el = document.createElement(follow ? 'div' : 'button');
+  el.className = `racer-pet${follow ? ' racer-pet--follow' : ' racer-pet--park'}`;
+  if (!follow) {
+    el.type = 'button';
+    el.setAttribute('aria-label', 'The race car: tap for a hint');
+  } else el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = '<canvas class="racer-pet__car"></canvas><span class="racer-pet__bubble" role="status" aria-live="polite" hidden></span>';
+  (follow ? document.body : mac).append(el);
   const canvas = el.querySelector('canvas');
-  const bubble = el.querySelector('.mascot__bubble');
+  const bubble = el.querySelector('.racer-pet__bubble');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
+  let pose = 'front';
   let wheel = 0;
-  let eyes = 'open'; // open | blink | sleep | happy
-  let facing = 1;
-
-  // ---------- drawing ----------
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    const c = (k) => `rgb(${PALETTE[k].join(',')})`;
-    // body: short and round (chibi)
-    ctx.fillStyle = c('red');
-    round(6, 10, 37, 12, 6);
-    ctx.fillStyle = c('shade');
-    ctx.fillRect(8, 19, 32, 3);
-    // cabin + windows (tall bubble cabin)
-    ctx.fillStyle = c('red');
-    poly([13, 12], [16, 3], [29, 3], [34, 12]);
-    ctx.fillStyle = c('glass');
-    poly([16.5, 10.5], [18.5, 5], [27.5, 5], [31, 10.5]);
-    ctx.fillStyle = c('shine');
-    poly([19, 9.5], [20.2, 6.2], [21.6, 6.2], [20.4, 9.5]);
-    // little spoiler
-    ctx.fillStyle = c('shade');
-    ctx.fillRect(4, 8, 6, 2);
-    ctx.fillRect(7, 10, 2, 2);
-    // stripe + door number
-    ctx.fillStyle = c('white');
-    ctx.fillRect(8, 13, 28, 1);
-    ctx.beginPath();
-    ctx.arc(21.5, 16.5, 3.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = c('ink');
-    [[20, 15], [20, 16], [20, 17], [20, 18], [21, 16.5], [22, 15], [22, 18]].forEach(([x, y]) => ctx.fillRect(Math.round(x), Math.round(y), 1, 1));
-    // the big headlight eye
-    if (eyes === 'open' || eyes === 'happy') {
-      ctx.fillStyle = c('white');
-      ctx.beginPath();
-      ctx.ellipse(37.5, 14, 4.2, 4.6, 0, 0, Math.PI * 2);
-      ctx.fill();
-      if (eyes === 'open') {
-        ctx.fillStyle = c('ink');
-        ctx.beginPath();
-        ctx.arc(38.6, 14.6, 2.4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = c('white'); // two sparkles
-        ctx.fillRect(39, 12, 1, 1);
-        ctx.fillRect(37, 16, 1, 1);
-      } else {
-        ctx.fillStyle = c('ink'); // ^ happy eye
-        ctx.fillRect(35, 15, 1, 1);
-        ctx.fillRect(36, 14, 1, 1);
-        ctx.fillRect(37, 13, 2, 1);
-        ctx.fillRect(39, 14, 1, 1);
-        ctx.fillRect(40, 15, 1, 1);
-      }
-    } else {
-      ctx.fillStyle = c('ink'); // closed: a line (blink) or a lower line (sleep)
-      ctx.fillRect(34, eyes === 'sleep' ? 16 : 14, 7, 1);
+  let look = [0, 0];
+  let sleeping = false;
+  let winkUntil = 0;
+  let lastKey = '';
+  const render = (force = false) => {
+    const p = performance.now() < winkUntil ? 'wink' : pose;
+    const key = `${p}|${wheel}|${look[0].toFixed(1)}|${look[1].toFixed(1)}|${sleeping}`;
+    if (!force && key === lastKey) return;
+    lastKey = key;
+    const { w, h } = SPRITE[p];
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      canvas.style.width = `${w * SCALE}px`;
     }
-    // blush + smile on the front
-    ctx.fillStyle = c('blush');
-    ctx.fillRect(34, 19, 2, 1);
-    ctx.fillStyle = c('ink');
-    ctx.fillRect(39, 20, 2, 1);
-    ctx.fillRect(41, 19, 1, 1);
-    // wheels (big and round)
-    [15, 34].forEach((x) => {
-      ctx.fillStyle = c('tyre');
-      ctx.beginPath();
-      ctx.arc(x, 21.5, 5.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = c('rim');
-      ctx.beginPath();
-      ctx.arc(x, 21.5, 2.6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = c('tyre');
-      const a = (wheel * Math.PI) / 4;
-      ctx.fillRect(Math.round(x + Math.cos(a) * 1.6), Math.round(21.5 + Math.sin(a) * 1.6), 1, 1);
-    });
-    pixelate();
-  }
-  function round(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h);
-    ctx.fill();
-  }
-  function poly(...pts) {
-    ctx.beginPath();
-    pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-    ctx.closePath();
-    ctx.fill();
-  }
-  // hard pixels: snap alpha, snap colours to the palette, then a 1px dark outline
-  function pixelate() {
-    const img = ctx.getImageData(0, 0, W, H);
-    const d = img.data;
-    const cols = Object.values(PALETTE);
-    const solid = new Uint8Array(W * H);
-    for (let i = 0; i < W * H; i += 1) {
-      const a = d[i * 4 + 3];
-      if (a < 110) {
-        d[i * 4 + 3] = 0;
-        continue;
-      }
-      solid[i] = 1;
-      let best = cols[0];
-      let bd = Infinity;
-      for (const col of cols) {
-        const dist = (col[0] - d[i * 4]) ** 2 + (col[1] - d[i * 4 + 1]) ** 2 + (col[2] - d[i * 4 + 2]) ** 2;
-        if (dist < bd) {
-          bd = dist;
-          best = col;
-        }
-      }
-      d.set([...best, 255], i * 4);
-    }
-    for (let y = 0; y < H; y += 1) {
-      for (let x = 0; x < W; x += 1) {
-        const i = y * W + x;
-        if (solid[i]) continue;
-        const near = (x > 0 && solid[i - 1]) || (x < W - 1 && solid[i + 1]) || (y > 0 && solid[i - W]) || (y < H - 1 && solid[i + W]);
-        if (near) d.set([...PALETTE.ink, 255], i * 4);
-      }
-    }
-    ctx.putImageData(img, 0, 0);
-  }
-
-  // ---------- life ----------
-  draw();
-  let driving = false;
-  let wheelTimer = 0;
-  const spin = (on) => {
-    clearInterval(wheelTimer);
-    if (on && !reducedMotion) {
-      wheelTimer = setInterval(() => {
-        wheel = (wheel + 1) % 8;
-        draw();
-      }, 70);
-    }
+    drawCar(ctx, p, { look: sleeping ? [0, 1] : look, wheel });
   };
-
-  // blink now and then
-  const blinkTimer = setInterval(() => {
-    if (eyes !== 'open' || document.hidden) return;
-    eyes = 'blink';
-    draw();
-    setTimeout(() => {
-      if (eyes === 'blink') eyes = 'open';
-      draw();
-    }, 140);
-  }, 3800);
-
-  // idle bob
-  if (!reducedMotion) gsap.to(el, { y: -1.5, duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-
-  // drive along the top every so often
-  let pos = 58; // % of the Mac's width
-  function drive() {
-    if (driving || eyes === 'sleep' || reducedMotion || document.hidden) return;
-    const target = pos > 50 ? 26 + Math.random() * 10 : 56 + Math.random() * 10;
-    const dir = Math.sign(target - pos);
-    driving = true;
-    facing = dir;
-    el.style.setProperty('--face', String(facing));
-    spin(true);
-    gsap.to(el, {
-      left: `${target}%`,
-      duration: Math.abs(target - pos) / 14,
-      ease: 'ui-in-out',
-      onComplete: () => {
-        pos = target;
-        driving = false;
-        spin(false);
-      },
-    });
-  }
-  const driveTimer = setInterval(drive, 11000);
+  render(true);
 
   // ---------- talking ----------
-  let hint = 0;
   let bubbleTimer = 0;
-  function say(text, ms = 3600) {
+  let lastSaid = 0;
+  function say(text, ms = 3200) {
+    lastSaid = performance.now();
     bubble.textContent = text;
     bubble.hidden = false;
     clearTimeout(bubbleTimer);
@@ -225,47 +74,162 @@ export function initMascot({ os, reducedMotion }) {
       else gsap.to(bubble, { autoAlpha: 0, duration: 0.18, ease: 'ui-out', onComplete: () => (bubble.hidden = true) });
     }, ms);
   }
-  function happy(ms = 900) {
-    if (eyes === 'sleep') return;
-    eyes = 'happy';
-    draw();
-    if (!reducedMotion) gsap.fromTo(canvas, { y: 0 }, { y: -6, duration: 0.16, ease: 'power2.out', yoyo: true, repeat: 1 });
-    setTimeout(() => {
-      if (eyes === 'happy') eyes = 'open';
-      draw();
-    }, ms);
-  }
+  const wink = (ms = 700) => {
+    winkUntil = performance.now() + ms;
+    render(true);
+    setTimeout(() => render(true), ms + 10);
+  };
+  let hint = 0;
+  const nextHint = () => say(HINTS[hint++ % HINTS.length]);
 
-  el.addEventListener('click', () => {
-    if (eyes === 'sleep') {
-      say('zzz… (turn the Mac on?)');
-      return;
-    }
-    sfx('honk');
-    happy();
-    say(HINTS[hint % HINTS.length]);
-    hint += 1;
-  });
-
-  const off = os?.on((type, detail) => {
+  const offOs = os?.on((type, detail) => {
     if (type === 'disk' && detail) {
-      happy();
+      wink();
       say(detail === 'secret' ? 'shh… you found it.' : 'ooh, a disk!', 2200);
-    } else if (type === 'gaming' && detail) {
-      say('vroom! let’s go.', 2000);
     } else if (type === 'power') {
-      eyes = detail ? 'open' : 'sleep';
-      draw();
+      sleeping = !detail;
+      render(true);
       if (detail) say('morning!', 1600);
     }
   });
 
-  // first hello, once the page has settled
-  const hello = setTimeout(() => say('hi! i’m rev. tap me for hints.', 3200), 2600);
+  // ---------- parked mode (touch / reduced motion) ----------
+  if (!follow) {
+    el.addEventListener('click', () => {
+      if (sleeping) return say('zzz… (turn the Mac on?)');
+      sfx('honk');
+      wink();
+      nextHint();
+    });
+    const hello = setTimeout(() => say('hi! tap me for hints.', 2800), 2400);
+    return () => {
+      clearTimeout(hello);
+      offOs?.();
+    };
+  }
+
+  // ---------- follow mode ----------
+  const marks = document.createElement('canvas'); // tyre marks, fading
+  marks.className = 'racer-pet__marks';
+  marks.setAttribute('aria-hidden', 'true');
+  document.body.append(marks);
+  const mctx = marks.getContext('2d');
+  const sizeMarks = () => {
+    marks.width = window.innerWidth;
+    marks.height = window.innerHeight;
+  };
+  sizeMarks();
+  window.addEventListener('resize', sizeMarks);
+
+  // start parked on the Mac's top, until the pointer moves
+  const start = mac.getBoundingClientRect();
+  const pos = { x: start.left + start.width * 0.6, y: start.top - 30 };
+  const target = { x: pos.x, y: pos.y };
+  const cursor = { x: pos.x, y: pos.y };
+  let facing = 1;
+  let vx = 0;
+  let vy = 0;
+  const sx = createSpring({ value: pos.x, response: 0.7, damping: 0.9, onUpdate: (v, vel) => ((pos.x = v), (vx = vel)) });
+  const sy = createSpring({ value: pos.y, response: 0.7, damping: 0.9, onUpdate: (v, vel) => ((pos.y = v), (vy = vel)) });
+
+  let moved = false;
+  let lastMove = performance.now();
+  const onMove = (e) => {
+    cursor.x = e.clientX;
+    cursor.y = e.clientY;
+    lastMove = performance.now();
+    if (!moved) {
+      moved = true;
+      say("hi! i'll follow you around.", 2600);
+    }
+    // park a little behind and below the cursor, on the side it came from
+    const side = cursor.x > pos.x ? -1 : 1;
+    target.x = cursor.x + side * 64;
+    target.y = cursor.y + 34;
+    sx.set(target.x);
+    sy.set(target.y);
+  };
+  window.addEventListener('pointermove', onMove, { passive: true });
+
+  // hide while something big is open (a game, a project, the palette)
+  const hidden = () => {
+    const d = document.documentElement;
+    return d.classList.contains('is-gaming') || d.classList.contains('is-pw-open') || d.classList.contains('is-palette-open') || d.classList.contains('is-mac-zoom');
+  };
+
+  let raf = 0;
+  let wheelAcc = 0;
+  let lastT = performance.now();
+  let lastMark = null;
+  const loop = (t) => {
+    const dt = Math.min(0.05, (t - lastT) / 1000);
+    lastT = t;
+    const speed = Math.hypot(vx, vy);
+    // pose: side-on when really driving, facing you when slow
+    if (Math.abs(vx) > 140) {
+      pose = 'side';
+      facing = Math.sign(vx);
+    } else if (speed < 60) pose = 'front';
+    if (pose === 'side') {
+      wheelAcc += Math.abs(vx) * dt * 0.08;
+      wheel = Math.floor(wheelAcc) % 8;
+    }
+    const dx = cursor.x - pos.x;
+    const dy = cursor.y - pos.y;
+    const dist = Math.max(1, Math.hypot(dx, dy));
+    look = [dx / dist, dy / dist];
+    render();
+
+    const w = canvas.offsetWidth || 90;
+    const h = canvas.offsetHeight || 60;
+    const tilt = pose === 'side' ? Math.max(-8, Math.min(8, vy * 0.01)) * facing : 0;
+    el.style.transform = `translate3d(${pos.x - w / 2}px, ${pos.y - h / 2}px, 0)`;
+    canvas.style.transform = `scaleX(${pose === 'side' ? facing : 1}) rotate(${tilt}deg)`;
+    el.style.opacity = hidden() ? '0' : '1';
+
+    // tyre marks on fast turns, fading away
+    mctx.globalCompositeOperation = 'destination-out';
+    mctx.fillStyle = 'rgba(0,0,0,0.06)';
+    mctx.fillRect(0, 0, marks.width, marks.height);
+    mctx.globalCompositeOperation = 'source-over';
+    if (speed > 260 && !hidden()) {
+      const wy = pos.y + h * 0.38;
+      const pts = [pos.x - w * 0.28, pos.x + w * 0.24];
+      mctx.strokeStyle = 'rgba(10, 30, 20, 0.28)';
+      mctx.lineWidth = 3;
+      if (lastMark) {
+        pts.forEach((px, i) => {
+          mctx.beginPath();
+          mctx.moveTo(lastMark[i], lastMark[2]);
+          mctx.lineTo(px, wy);
+          mctx.stroke();
+        });
+      }
+      lastMark = [...pts, wy];
+    } else lastMark = null;
+
+    // idle hints, sparingly
+    if (moved && !sleeping && t - lastMove > 7000 && t - lastSaid > 30000 && !hidden()) nextHint();
+    raf = requestAnimationFrame(loop);
+  };
+  raf = requestAnimationFrame(loop);
+
+  // a quick honk + wink when you click near it (it's under your cursor, so it can't be clicked)
+  const onDown = (e) => {
+    if (Math.hypot(e.clientX - pos.x, e.clientY - pos.y) < 70 && !sleeping) {
+      sfx('honk');
+      wink();
+    }
+  };
+  window.addEventListener('pointerdown', onDown, { passive: true });
 
   return () => {
-    [blinkTimer, driveTimer, wheelTimer].forEach(clearInterval);
-    clearTimeout(hello);
-    off?.();
+    cancelAnimationFrame(raf);
+    offOs?.();
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerdown', onDown);
+    window.removeEventListener('resize', sizeMarks);
+    el.remove();
+    marks.remove();
   };
 }

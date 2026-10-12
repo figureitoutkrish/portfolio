@@ -15,12 +15,12 @@ export function initWork({ reducedMotion, lenis }) {
 
   // ---------- filters ----------
   const used = CATEGORIES.filter((c) => PROJECTS.some((p) => p.category === c));
-  bar.innerHTML = ['All', ...used]
+  bar.innerHTML = `<span class="filters__label" aria-hidden="true">view</span><div class="filters__seg">${['All', ...used]
     .map((c) => {
       const n = c === 'All' ? PROJECTS.length : PROJECTS.filter((p) => p.category === c).length;
       return `<button class="filter" type="button" data-filter="${c}" aria-pressed="${c === 'All'}">${c}<span class="filter__n">${n}</span></button>`;
     })
-    .join('');
+    .join('')}</div>`;
 
   // ---------- cards ----------
   grid.innerHTML = PROJECTS.map((p, i) => card(p, i)).join('');

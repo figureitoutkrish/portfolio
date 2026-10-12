@@ -3,10 +3,11 @@
 
 /* ---------- Tokens ---------- */
 html.creative {
-  /* Light: the Instagram-post green, a touch deeper so white text clears 4.5:1 (#128556 = 4.6:1). */
-  --c-green: #128556;
-  --c-grid: rgba(255, 255, 255, 0.07);
-  --c-grid-major: rgba(255, 255, 255, 0.22);
+  /* Light only (no dark mode on this page). A deeper, richer green than the Instagram post's
+     #158B58, which read as faded; white text = 6.8:1. */
+  --c-green: #0b6440;
+  --c-grid: rgba(255, 255, 255, 0.08);
+  --c-grid-major: rgba(255, 255, 255, 0.24);
   --c-paper: #f5f4ef;
   --c-paper-2: #ebe9e1;
   --c-ink: #20221f;
@@ -50,16 +51,6 @@ html.creative {
   --gutter: 1.25rem;
 }
 
-/* Dark: the mockup's deep racing green. Panels stay paper, a shade dimmer. */
-html.creative[data-theme="dark"] {
-  --c-green: #014625;
-  --c-grid: rgba(255, 255, 255, 0.05);
-  --c-grid-major: rgba(255, 255, 255, 0.13);
-  --c-paper: #ecebe4;
-  --c-paper-2: #e0ded5;
-  --win-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 28px 56px -18px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
 /* ---------- Base ---------- */
 html.creative body {
   text-transform: none;
@@ -89,16 +80,11 @@ html.creative body {
 .page--creative .site-header { z-index: 35; } /* the menu opens over the sticky toolbar */
 
 /* The menu panel is light glass in light mode: give it ink, not the page's white. */
-html.creative:not([data-theme="dark"]) .menu {
+html.creative .menu {
   --fg: var(--c-ink);
   --muted: var(--c-ink-2);
   --line: var(--c-hair);
   --accent: #0b6b3f;
-}
-html.creative[data-theme="dark"] .menu {
-  --fg: #ececf1;
-  --muted: #a9aca4;
-  --line: rgba(236, 236, 241, 0.18);
 }
 html.creative .menu a,
 html.creative .menu__label,
