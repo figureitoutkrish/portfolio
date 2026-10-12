@@ -6,6 +6,7 @@ gsap.registerPlugin(ScrollTrigger);
 // The journey (bryangarage.dev-inspired): one pinned stage on the blue background.
 //   1. boot   — scrolling types `showcase --timeline`, then fills a 24-cell bar
 //               ("loading timeline… 42%") while pixels glow up from below. Scroll back: it un-fills.
+//               Stop scrolling mid-load and it drains back to 0 until you scroll again.
 //   2. reveal — at 100% the terminal hands over to the timeline.
 //   3. travel — scrolling moves sideways through the years; a readout shows where you are.
 // Bars open a card (hover on desktop, tap on touch, focus from the keyboard).
@@ -44,14 +45,24 @@ export function initJourney({ reducedMotion, lenis }) {
   const gutter = () => parseFloat(getComputedStyle(track).paddingLeft) || 0;
 
   // ---------- boot ----------
+  // The command types with the scroll. The bar fills with the scroll too, but it only holds
+  // while you keep going: stop half-way and it drains back to 0; scroll again and it refills
+  // to where you are. Once it reaches 100% it stays.
   let shown = { chars: -1, cells: -1, label: '' };
-  function renderBoot(p) {
-    const chars = Math.round(Math.min(1, p / 0.28) * cmd.length);
-    const fill = gsap.utils.clamp(0, 1, (p - 0.3) / 0.7);
+  const loader = { fill: 0, target: 0, mode: 'follow' }; // mode: follow | drain | refill
+  let drainTween = null;
+  let idleCall = null;
+  let refillTo = null;
+
+  function renderFill() {
+    const fill = loader.fill;
     const on = Math.round(fill * cells.length);
     const text =
-      fill <= 0 ? 'scroll to run ↓' : fill < 1 ? `loading timeline… ${Math.round(fill * 100)}%` : 'timeline ready ✓';
-    if (chars !== shown.chars) cmdEl.textContent = cmd.slice(0, (shown.chars = chars));
+      fill <= 0.001
+        ? loader.target > 0 ? 'keep scrolling ↓' : 'scroll to run ↓'
+        : fill < 1
+          ? `loading timeline… ${Math.round(fill * 100)}%`
+          : 'timeline ready ✓';
     if (on !== shown.cells) {
       cells.forEach((c, i) => c.classList.toggle(CELLS_ON_CLASS, i < on));
       shown.cells = on;
@@ -59,6 +70,45 @@ export function initJourney({ reducedMotion, lenis }) {
     if (text !== shown.label) label.textContent = shown.label = text;
     term.classList.toggle('is-loading', fill > 0);
     pixels.draw(fill);
+  }
+
+  function startDrain() {
+    // Only mid-load, and only while the terminal is the thing on screen.
+    if (loader.target <= 0 || loader.target >= 1 || loader.fill <= 0 || !inBoot()) return;
+    refillTo?.tween?.kill();
+    loader.mode = 'drain';
+    drainTween = gsap.to(loader, { fill: 0, duration: 0.4 + loader.fill * 0.9, ease: 'ui-in-out', onUpdate: renderFill });
+  }
+
+  function renderBoot(p) {
+    const chars = Math.round(Math.min(1, p / 0.28) * cmd.length);
+    if (chars !== shown.chars) cmdEl.textContent = cmd.slice(0, (shown.chars = chars));
+
+    const target = gsap.utils.clamp(0, 1, (p - 0.3) / 0.7);
+    const moved = target !== loader.target;
+    loader.target = target;
+    if (moved && loader.mode === 'drain') {
+      // Scrolling again: stop draining and fill back up to the scroll position.
+      drainTween?.kill();
+      loader.mode = 'refill';
+    }
+    if (loader.mode === 'refill') {
+      if (Math.abs(loader.fill - target) < 0.01 || target <= 0 || target >= 1) {
+        refillTo?.tween?.kill();
+        loader.mode = 'follow';
+      } else {
+        refillTo ??= gsap.quickTo(loader, 'fill', { duration: 0.35, ease: 'ui-out', onUpdate: renderFill });
+        refillTo(target);
+      }
+    }
+    if (loader.mode === 'follow') {
+      loader.fill = target;
+      renderFill();
+    }
+
+    // Each scroll tick (including the scrub settling) pushes the drain back.
+    idleCall?.kill();
+    idleCall = target > 0 && target < 1 ? gsap.delayedCall(0.25, startDrain) : null;
   }
 
   // ---------- year readout ----------
@@ -157,6 +207,7 @@ export function initJourney({ reducedMotion, lenis }) {
   let master = null;
   let geo = null;
   const travelDistance = () => Math.max(0, track.offsetWidth - viewport.clientWidth);
+  const inBoot = () => !!master?.scrollTrigger?.isActive && master.time() < geo.bootPx;
 
   function build() {
     const progress = master?.scrollTrigger?.progress ?? 0;
@@ -199,6 +250,8 @@ export function initJourney({ reducedMotion, lenis }) {
       .to({}, { duration: holdPx }); // rest at the end before the page moves on
 
     geo = { bootPx, revealPx, travelPx, dist };
+    drainTween?.kill();
+    loader.mode = 'follow';
     renderBoot(0);
     updateYear();
     if (progress) master.scrollTrigger.scroll(master.scrollTrigger.start + progress * (master.scrollTrigger.end - master.scrollTrigger.start));
