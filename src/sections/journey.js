@@ -108,10 +108,10 @@ export function initJourney({ reducedMotion, lenis }) {
   }
 
   function renderBoot(p) {
-    const chars = Math.round(Math.min(1, p / 0.28) * cmd.length);
+    const chars = Math.round(Math.min(1, p / 0.13) * cmd.length);
     if (chars !== shown.chars) cmdEl.textContent = cmd.slice(0, (shown.chars = chars));
 
-    const target = fillEase(gsap.utils.clamp(0, 1, (p - 0.3) / 0.7));
+    const target = fillEase(gsap.utils.clamp(0, 1, (p - 0.15) / 0.85));
     loader.target = target;
     if (loader.mode === 'drain' && target >= 1) loader.mode = 'refill'; // carried past the end
     if (loader.mode === 'refill') {
@@ -232,7 +232,7 @@ export function initJourney({ reducedMotion, lenis }) {
 
     const vh = window.innerHeight;
     const dist = travelDistance();
-    const bootPx = vh * 1.1;
+    const bootPx = vh * 2.4; // ~0.3 screens typing, then ~2 screens to fill the bar
     const revealPx = vh * 0.45;
     const travelPx = Math.max(dist * 1.15, vh * 0.6);
     const holdPx = vh * 0.25;
