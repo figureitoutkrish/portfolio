@@ -13,6 +13,9 @@ const img = (slug, n, w, h) => {
   const nn = String(n).padStart(2, '0');
   return { src: `/assets/work/${slug}/${nn}.webp`, sm: `/assets/work/${slug}/${nn}-sm.webp`, w, h, lqip: PLACEHOLDERS[`${slug}/${nn}`] };
 };
+// Krish's own cover thumbnails (cover.webp / cover-sm.webp in each project folder).
+const cover = (slug, w, h) => ({ src: `/assets/work/${slug}/cover.webp`, sm: `/assets/work/${slug}/cover-sm.webp`, w, h, lqip: PLACEHOLDERS[`${slug}/cover`] });
+
 // On hover, a card cycles through its own project's images: `hover` if set (Krish's picks),
 // otherwise the project's gallery.
 //
@@ -30,7 +33,7 @@ export const PROJECTS = [
     category: 'Thumbnails',
     client: 'Rochak For Sports + my own channel',
     size: 'feature',
-    cover: img('rochak-thumbnails', 3, 1400, 995),
+    cover: cover('rochak-thumbnails', 1600, 1000),
     result: 'Thumbnails for @rochakforsports while the channel grew from 60K to 200K subscribers.',
     about:
       'A curated collection of high-performing YouTube thumbnails for sports and creator-led content: my work with @rochakforsports, plus self-directed concepts for my personal channel.',
@@ -47,7 +50,7 @@ export const PROJECTS = [
     client: 'Peeyo',
     viaKoach: true,
     size: 'tall',
-    cover: img('peeyo', 2, 1400, 876),
+    cover: cover('peeyo', 1600, 2000),
     tools: ['Photoshop', 'Figma'],
     behance: 'https://www.behance.net/gallery/240572435/PEEYO-BRANDING',
     gallery: [img('peeyo', 1, 1400, 600), img('peeyo', 2, 1400, 876), img('peeyo', 5, 1400, 600), img('peeyo', 4, 1400, 600)],
@@ -60,7 +63,7 @@ export const PROJECTS = [
     client: 'Endura',
     viaKoach: true,
     size: 'half',
-    cover: img('endura', 4, 1400, 2332),
+    cover: cover('endura', 1600, 900),
     tools: ['Photoshop', 'Figma'],
     behance: 'https://www.behance.net/gallery/214009703/Endura-Fitness-SM-Feed',
     gallery: [img('endura', 1, 1400, 600), img('endura', 4, 1400, 2332), img('endura', 5, 1400, 600), img('endura', 7, 1400, 600), img('endura', 2, 1400, 600)],
@@ -72,7 +75,7 @@ export const PROJECTS = [
     category: 'Social Media',
     client: 'Gourmet Greens',
     size: 'half',
-    cover: img('gourmet-greens', 3, 1080, 1080),
+    cover: cover('gourmet-greens', 1600, 900),
     tools: ['Photoshop', 'Figma'],
     behance: 'https://www.behance.net/gallery/211241539/Gourmet-Greens-SM-feed',
     gallery: [img('gourmet-greens', 1, 1400, 600), img('gourmet-greens', 2, 1080, 1080), img('gourmet-greens', 3, 1080, 1080), img('gourmet-greens', 4, 1080, 1080), img('gourmet-greens', 5, 1080, 1080), img('gourmet-greens', 6, 1080, 1080), img('gourmet-greens', 7, 1080, 1080)],
