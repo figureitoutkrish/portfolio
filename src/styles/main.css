@@ -1220,8 +1220,7 @@ html:not(.js) .intro { display: none; }
   background: var(--paper);
   color: var(--fg);
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--line);
-  font-family: var(--font);
-  text-transform: none;
+  font-family: var(--font); /* follows the page: lowercase on home/data, as written on creative */
 }
 [data-theme="dark"] .palette__panel { background: #16181f; }
 .palette__field { display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; border-bottom: 1px solid var(--line); color: var(--muted); }
