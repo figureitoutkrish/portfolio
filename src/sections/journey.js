@@ -50,12 +50,11 @@ export function initJourney({ reducedMotion, lenis }) {
   // moment you stop, it drains back to 0; scroll again and it refills to where you are. Once it
   // reaches 100% it stays.
   const fillEase = gsap.parseEase('power2.out');
-  const IDLE = 0.1; // s without scroll input = stopped (just enough to bridge wheel ticks)
+  const IDLE = 0.1; // s without wheel / touch input = stopped (just enough to bridge wheel ticks)
+  const IDLE_KEYS = 0.6; // held keys repeat only after ~0.5s, so give keyboard scrolling longer
   let shown = { chars: -1, cells: -1, label: '' };
   const loader = { fill: 0, target: 0, mode: 'follow' }; // mode: follow | drain | refill
-  let drainTween = null;
   let idleCall = null;
-  let refillTo = null;
 
   function renderFill() {
     const fill = loader.fill;
@@ -75,9 +74,11 @@ export function initJourney({ reducedMotion, lenis }) {
     pixels.draw(fill);
   }
 
+  // The fill only ever has one tween at a time: each new one overwrites the last (a drain
+  // cancels a refill and vice versa), so nothing is left half-killed.
   function refill() {
-    refillTo ??= gsap.quickTo(loader, 'fill', { duration: 0.35, ease: 'ui-out', onUpdate: renderFill });
-    refillTo(loader.target);
+    loader.mode = 'refill';
+    gsap.to(loader, { fill: loader.target, duration: 0.35, ease: 'ui-out', overwrite: true, onUpdate: renderFill });
   }
 
   function startDrain(retries = 10) {
@@ -88,23 +89,24 @@ export function initJourney({ reducedMotion, lenis }) {
       if (retries > 0) idleCall = gsap.delayedCall(IDLE, startDrain, [retries - 1]);
       return;
     }
-    refillTo?.tween?.kill();
     loader.mode = 'drain';
-    drainTween = gsap.to(loader, { fill: 0, duration: 0.3 + loader.fill * 0.7, ease: 'power1.out', onUpdate: renderFill });
+    gsap.to(loader, {
+      fill: 0,
+      duration: 0.3 + loader.fill * 0.7,
+      ease: 'power1.out',
+      overwrite: true,
+      onUpdate: renderFill,
+    });
   }
 
   // Stopping is read from the input itself (wheel / touch / keys), not from the scroll position,
   // which keeps gliding for a moment under Lenis and the scrub. Momentum after you let go
   // doesn't count as scrolling.
-  function onScrollInput() {
+  function onScrollInput(idle = IDLE) {
     if (!inBoot()) return;
-    if (loader.mode === 'drain') {
-      drainTween?.kill();
-      loader.mode = 'refill';
-      refill();
-    }
+    if (loader.mode === 'drain') refill();
     idleCall?.kill();
-    idleCall = gsap.delayedCall(IDLE, startDrain);
+    idleCall = gsap.delayedCall(idle, startDrain);
   }
 
   function renderBoot(p) {
@@ -113,10 +115,10 @@ export function initJourney({ reducedMotion, lenis }) {
 
     const target = fillEase(gsap.utils.clamp(0, 1, (p - 0.15) / 0.85));
     loader.target = target;
-    if (loader.mode === 'drain' && target >= 1) loader.mode = 'refill'; // carried past the end
+    if (loader.mode === 'drain' && target >= 1) refill(); // carried past the end
     if (loader.mode === 'refill') {
       if (Math.abs(loader.fill - target) < 0.01) {
-        refillTo?.tween?.kill();
+        gsap.killTweensOf(loader);
         loader.mode = 'follow';
       } else refill();
     }
@@ -265,7 +267,7 @@ export function initJourney({ reducedMotion, lenis }) {
       .to({}, { duration: holdPx }); // rest at the end before the page moves on
 
     geo = { bootPx, revealPx, travelPx, dist };
-    drainTween?.kill();
+    gsap.killTweensOf(loader);
     loader.mode = 'follow';
     renderBoot(0);
     updateYear();
@@ -292,9 +294,10 @@ export function initJourney({ reducedMotion, lenis }) {
   };
 
   const SCROLL_KEYS = new Set(['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', ' ', 'Home', 'End']);
-  const onKeyScroll = (e) => SCROLL_KEYS.has(e.key) && onScrollInput();
-  window.addEventListener('wheel', onScrollInput, { passive: true });
-  window.addEventListener('touchmove', onScrollInput, { passive: true });
+  const onKeyScroll = (e) => SCROLL_KEYS.has(e.key) && onScrollInput(IDLE_KEYS);
+  const onPointerScroll = () => onScrollInput();
+  window.addEventListener('wheel', onPointerScroll, { passive: true });
+  window.addEventListener('touchmove', onPointerScroll, { passive: true });
   window.addEventListener('keydown', onKeyScroll);
 
   build();
@@ -313,8 +316,8 @@ export function initJourney({ reducedMotion, lenis }) {
     master?.scrollTrigger?.kill();
     master?.kill();
     window.removeEventListener('resize', onResize);
-    window.removeEventListener('wheel', onScrollInput);
-    window.removeEventListener('touchmove', onScrollInput);
+    window.removeEventListener('wheel', onPointerScroll);
+    window.removeEventListener('touchmove', onPointerScroll);
     window.removeEventListener('keydown', onKeyScroll);
     document.removeEventListener('keydown', onKey);
   };
