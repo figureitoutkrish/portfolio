@@ -37,7 +37,7 @@ export function mountRacer(body, { os, reducedMotion }) {
   body.classList.add('os__body--game');
   body.innerHTML = `
     <canvas class="game__canvas" width="${W}" height="${H}" role="img" aria-label="Racer: arrow keys or the keys under the Mac to steer"></canvas>
-    <div class="game__hud"><span class="game__msg">demo · press ↑ or A to drive</span><span class="game__best"></span></div>
+    <div class="game__hud"><span class="game__msg">demo · press ↑ or A to drive · esc / eject to quit</span><span class="game__best"></span></div>
     <div class="game__actions" hidden>
       <button class="os__btn" type="button" data-act="again">Retry</button>
       <button class="os__btn os__btn--default" type="button" data-act="save">Save score</button>
@@ -66,7 +66,7 @@ export function mountRacer(body, { os, reducedMotion }) {
     mode = newMode;
     g = fresh();
     actions.hidden = true;
-    msg.textContent = mode === 'demo' ? 'demo · press ↑ or A to drive' : 'go!';
+    msg.textContent = mode === 'demo' ? 'demo · press ↑ or A to drive · esc / eject to quit' : 'go! · esc / eject to quit';
   }
 
   function crash() {

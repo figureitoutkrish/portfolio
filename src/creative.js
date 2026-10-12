@@ -23,7 +23,19 @@ const viaWipe = arrivedViaWipe();
 const os = createOS({ reducedMotion, lenis });
 initCabinet({ os, reducedMotion });
 initDesk({ reducedMotion });
-initHeaderLights({ lenis, reducedMotion });
+const lights = initHeaderLights({ lenis, reducedMotion });
+// Phones: the Mac's screen is small, so a game takes the whole screen (and gives it back after).
+let autoZoomed = false;
+os?.on((type, on) => {
+  if (type !== 'gaming' || !matchMedia('(max-width: 767px)').matches) return;
+  if (on && !lights.isZoomed()) {
+    lights.zoom(true);
+    autoZoomed = true;
+  } else if (!on && autoZoomed) {
+    lights.zoom(false);
+    autoZoomed = false;
+  }
+});
 initWork({ reducedMotion, lenis });
 
 // Hero entrance: the headline rises line by line, the desk settles in after it.

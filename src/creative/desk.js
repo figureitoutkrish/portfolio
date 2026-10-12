@@ -30,6 +30,7 @@ export function initDesk({ reducedMotion }) {
     const id = el.dataset.dragId || el.className;
     makeDraggable(el, {
       reducedMotion,
+      bounds: () => desk,
       store: sessionSpot(id),
       onTap: (e) => {
         if (el.classList.contains('sticky--flip')) {
@@ -102,6 +103,7 @@ export function initDesk({ reducedMotion }) {
     if (note.pos) gsap.set(el, { x: note.pos.x, y: note.pos.y });
     makeDraggable(el, {
       reducedMotion,
+      bounds: () => desk,
       onDrop: (pos) => note.mine && moveNote(note.id, pos), // others' notes move on your screen only
     });
     return el;

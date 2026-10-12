@@ -73,7 +73,7 @@ export function mountCircle(body, { os }) {
     points = [];
     result = null;
     actions.hidden = true;
-    msg.textContent = 'draw a perfect circle around the dot';
+    msg.textContent = 'draw a perfect circle around the dot · esc / eject to quit';
     clear();
   }
 
@@ -82,7 +82,7 @@ export function mountCircle(body, { os }) {
     e.preventDefault();
     reset();
     drawing = true;
-    canvas.setPointerCapture(e.pointerId);
+    try { canvas.setPointerCapture(e.pointerId); } catch { /* synthetic or ended pointer */ }
     points.push(local(e));
     ctx.fillStyle = '#111';
   });

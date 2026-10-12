@@ -124,7 +124,7 @@ export function createOS({ reducedMotion, lenis }) {
   }
 
   // ---------- windows ----------
-  function open(name) {
+  function open(name, { from = null } = {}) {
     const app = APPS[name];
     if (!app || !state.on) return;
     if (app.disk && state.disk !== app.disk) {
@@ -148,7 +148,16 @@ export function createOS({ reducedMotion, lenis }) {
     current = { name, win, api };
     state.app = name;
     win.querySelector('.os__close').addEventListener('click', () => close());
-    if (!reducedMotion) gsap.from(win, { scale: 0.94, autoAlpha: 0, duration: 0.2, ease: 'ui-out', transformOrigin: '50% 40%' });
+    if (!reducedMotion) {
+      // grow out of the icon that opened it (or the screen's centre)
+      let origin = '50% 40%';
+      if (from) {
+        const w = win.getBoundingClientRect();
+        const f = from.getBoundingClientRect();
+        origin = `${f.left + f.width / 2 - w.left}px ${f.top + f.height / 2 - w.top}px`;
+      }
+      gsap.from(win, { scale: 0.3, autoAlpha: 0, duration: 0.28, ease: 'ui-out', transformOrigin: origin });
+    }
     setGaming(!!app.game);
     emit('open', name);
   }
@@ -169,14 +178,15 @@ export function createOS({ reducedMotion, lenis }) {
   const select = (btn) => icons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
   icons.forEach((btn) => {
     btn.setAttribute('aria-pressed', 'false');
+    btn.addEventListener('pointerdown', () => select(btn)); // highlight on press, not release
     btn.addEventListener('pointerup', (e) => {
-      if (e.pointerType === 'touch') open(btn.dataset.app); // no double-tap guessing on touch
+      if (e.pointerType === 'touch') open(btn.dataset.app, { from: btn }); // no double-tap guessing on touch
     });
     btn.addEventListener('click', (e) => {
       select(btn);
-      if (e.detail === 0) open(btn.dataset.app); // keyboard Enter / Space
+      if (e.detail === 0) open(btn.dataset.app, { from: btn }); // keyboard Enter / Space
     });
-    btn.addEventListener('dblclick', () => open(btn.dataset.app));
+    btn.addEventListener('dblclick', () => open(btn.dataset.app, { from: btn }));
   });
   desk.addEventListener('pointerdown', (e) => {
     if (e.target === desk) select(null);
@@ -277,8 +287,11 @@ export function createOS({ reducedMotion, lenis }) {
 
   // ---------- power ----------
   const boot = root.querySelector('.os__boot');
+  let bootTimer = 0;
   function powerOff() {
     if (!state.on) return;
+    clearTimeout(bootTimer);
+    boot.hidden = true;
     closeMenu();
     close();
     state.on = false;
@@ -307,7 +320,7 @@ export function createOS({ reducedMotion, lenis }) {
     }
     boot.hidden = false;
     gsap.fromTo(root, { filter: 'brightness(2.2)' }, { filter: 'brightness(1)', duration: 0.5, ease: 'ui-out' });
-    setTimeout(() => {
+    bootTimer = setTimeout(() => {
       boot.hidden = true;
       afterBoot();
     }, 950);

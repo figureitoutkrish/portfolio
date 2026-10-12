@@ -415,12 +415,11 @@
   overflow: hidden;
 }
 .desk.is-zoomed .desk__exit { position: absolute; top: 1rem; right: 1rem; display: inline-flex; z-index: 60; }
-.desk.is-zoomed .photo, .desk.is-zoomed .sticky--ghost { display: none; }
+/* Full screen is for playing: just the Mac, its keys and the disks. */
+.desk.is-zoomed .photo, .desk.is-zoomed .sticky, .desk.is-zoomed .notes { display: none; }
 .lights__btn[aria-pressed="true"]::before { box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.25), 0 0 0 2px rgba(255, 255, 255, 0.6); }
 kbd { font-family: var(--f-mono); font-size: 0.75em; opacity: 0.7; }
 
-/* While a game holds the page: nothing else should look clickable-for-scrolling */
-html.is-gaming .desk { z-index: 20; }
 
 /* ---------- Glossy pills (the Instagram post's buttons) ---------- */
 .pill--glossy-white {
@@ -599,4 +598,28 @@ html.is-gaming .desk { z-index: 20; }
 @media (prefers-reduced-motion: reduce) {
   .card__media img, .card__arrow, .filter, .notepad__btn, .sticky--ghost { transition: none; }
   .chat__typing { animation: none; }
+}
+
+/* ---------- Audit: touch targets ---------- */
+/* The Mac's physical buttons are drawn small (they're to scale), but their tap areas aren't. */
+.mac3d__eject, .mac3d__power, .mac3d__knob { position: relative; }
+.mac3d__eject::after, .mac3d__power::after, .mac3d__knob::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 40px);
+  height: max(100%, 40px);
+  translate: -50% -50%;
+}
+.mac3d__power { position: absolute; }
+.mac3d__knob { position: absolute; }
+/* Touch screens: the traffic lights get a full-size target each. */
+@media (pointer: coarse) {
+  .lights__btn { width: 34px; }
+}
+/* Phones: visitors' notes line up under the Mac instead of covering it. */
+@media (max-width: 767px) {
+  .notes { position: static; display: flex; justify-content: center; gap: 0.75rem; pointer-events: auto; }
+  .notes > .sticky--visitor { position: relative; inset: auto !important; width: 34vw; font-size: 1.05rem; }
 }

@@ -47,7 +47,7 @@ export function initCabinet({ os, reducedMotion }) {
   };
   knob.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    knob.setPointerCapture(e.pointerId);
+    try { knob.setPointerCapture(e.pointerId); } catch { /* synthetic or ended pointer */ }
     const startY = e.clientY;
     const start = bright;
     const move = (ev) => setBright(start + (startY - ev.clientY) * 0.8);
@@ -82,9 +82,23 @@ export function initCabinet({ os, reducedMotion }) {
     return { dx: m.left + m.width / 2 - (r.left + r.width / 2), dy: m.top + m.height / 2 - (r.top + r.height / 2), fit: (m.width * 0.92) / disk.offsetWidth };
   };
 
+  // The Mac is off: the screen can't show an alert, so the power button asks instead.
+  const nudgePower = () => {
+    if (reducedMotion) return;
+    gsap.fromTo(power, { scale: 1 }, { scale: 1.25, duration: 0.16, repeat: 3, yoyo: true, ease: 'power1.inOut', clearProps: 'scale' });
+  };
+  const nudgeDisks = () => {
+    if (reducedMotion) return;
+    disks.filter((d) => d !== inside).forEach((d, i) =>
+      gsap.fromTo(d, { rotation: home.get(d) - 7 }, { rotation: home.get(d), duration: 0.6, delay: i * 0.06, ease: 'elastic.out(1.2, 0.3)' })
+    );
+  };
+
   function insert(disk) {
-    if (busy || !os.state.on) {
-      if (!os.state.on) os.alert?.('Turn the Mac on first (the round button).');
+    if (busy) return;
+    if (!os.state.on) {
+      nudgePower();
+      gsap.to(disk, { x: 0, y: 0, scale: 1, rotation: home.get(disk), duration: reducedMotion ? 0 : 0.5, ease: 'back.out(1.5)' });
       return;
     }
     if (inside === disk) return;
@@ -165,12 +179,14 @@ export function initCabinet({ os, reducedMotion }) {
   disks.forEach((disk) => {
     disk.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 || busy || inside === disk) return;
+      gsap.killTweensOf(disk); // grab it mid-spring: start from where it is
+      if (!reducedMotion) gsap.to(disk, { scale: 1.04, duration: 0.12, ease: 'ui-out' }); // picked up, instantly
       const sx = e.clientX;
       const sy = e.clientY;
       const ox = gsap.getProperty(disk, 'x');
       const oy = gsap.getProperty(disk, 'y');
       let dragging = false;
-      disk.setPointerCapture(e.pointerId);
+      try { disk.setPointerCapture(e.pointerId); } catch { /* synthetic or ended pointer */ }
       const move = (ev) => {
         const dx = ev.clientX - sx;
         const dy = ev.clientY - sy;
@@ -188,7 +204,10 @@ export function initCabinet({ os, reducedMotion }) {
         disk.removeEventListener('pointerup', up);
         disk.removeEventListener('pointercancel', up);
         slot.classList.remove('is-target');
-        if (!dragging) return; // a plain click: handled by the click listener
+        if (!dragging) {
+          if (!reducedMotion) gsap.to(disk, { scale: 1, duration: 0.15, ease: 'ui-out' });
+          return; // a plain click: handled by the click listener
+        }
         disk.classList.remove('is-dragging');
         disk.dataset.dragged = '1';
         if (overSlot(disk)) insert(disk);
@@ -221,10 +240,11 @@ export function initCabinet({ os, reducedMotion }) {
     const down = (e) => {
       e.preventDefault();
       btn.classList.add('is-down');
-      btn.setPointerCapture?.(e.pointerId);
+      try { btn.setPointerCapture(e.pointerId); } catch { /* synthetic or ended pointer */ }
       if (!os.state.gaming) {
-        // not in a game yet: the keys still feel alive, and point at the disks
-        os.state.on && os.state.app === 'work' && os.alert('Insert a floppy to play: drag one into the slot.', { icon: '◙' });
+        // not in a game yet: the keys still press, and the disks wiggle to say "start here"
+        if (os.state.on) nudgeDisks();
+        else nudgePower();
         return;
       }
       os.key(key, true);

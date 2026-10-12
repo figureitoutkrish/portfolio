@@ -8,7 +8,7 @@ import { navigate } from '../utils/transition.js';
 export function initHeaderLights({ lenis, reducedMotion }) {
   const lights = document.querySelector('.lights');
   const desk = document.querySelector('.desk');
-  if (!lights) return () => {};
+  if (!lights) return { zoom() {}, isZoomed: () => false, destroy() {} };
 
   // ---------- red: quit ----------
   let modal = null;
@@ -110,5 +110,5 @@ export function initHeaderLights({ lenis, reducedMotion }) {
   // A small "exit full screen" button lives on the zoomed desk too.
   desk?.querySelector('.desk__exit')?.addEventListener('click', () => zoom(false));
 
-  return () => document.removeEventListener('keydown', onZoomKey);
+  return { zoom, isZoomed: () => zoomed, destroy: () => document.removeEventListener('keydown', onZoomKey) };
 }
