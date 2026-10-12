@@ -49,7 +49,7 @@ src/
   page.js               # Entry for the data page (placeholder)
   creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
   creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
-  shared.js             # Every page: Lenis, menu, tab bar, page transitions
+  shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js)
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)

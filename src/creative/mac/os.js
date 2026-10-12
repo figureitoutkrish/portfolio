@@ -1,9 +1,11 @@
 import gsap from 'gsap';
+import { sfx, soundOn, setSound, onSoundChange } from '../sound.js';
 import { mountSlideshow } from './apps/slideshow.js';
 import { mountCircle } from './apps/circle.js';
 import { mountRacer } from './apps/racer.js';
 import { mountScores } from './apps/scores.js';
 import { mountChat } from './apps/chat.js';
+import { mountSecret } from './apps/secret.js';
 
 // The vintage Mac's operating system: menu bar, desktop icons, one classic window at a time,
 // alert / prompt dialogs, power and boot, and "game mode".
@@ -17,6 +19,7 @@ const APPS = {
   racer: { title: 'RACER.DSK', mount: mountRacer, disk: 'racer', game: true },
   scores: { title: 'High Scores', mount: mountScores },
   chat: { title: 'Talk to Krish', mount: mountChat },
+  secret: { title: 'MESSAGE.MOV', mount: mountSecret, disk: 'secret' }, // no desktop icon: it's a secret
 };
 const GAME_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Spacebar', 'Enter', 'PageUp', 'PageDown', 'Home', 'End']);
 
@@ -83,6 +86,7 @@ export function createOS({ reducedMotion, lenis }) {
       };
       document.addEventListener('keydown', onKey, true);
       root.append(wrap);
+      sfx('alert');
       (field || actions.lastElementChild).focus({ preventScroll: true });
       if (!reducedMotion) gsap.from(wrap.firstElementChild, { scale: 0.92, autoAlpha: 0, duration: 0.18, ease: 'ui-out' });
     });
@@ -171,7 +175,7 @@ export function createOS({ reducedMotion, lenis }) {
     win.remove();
     if (!keepGame) setGaming(false);
     emit('close', name);
-    if (!keepGame && APPS[name]?.game) emit('game-closed', name);
+    if (!keepGame && APPS[name]?.disk) emit('game-closed', name); // closing a disk's app ejects it
   }
 
   // ---------- desktop icons: click selects, double-click / Enter / single tap opens ----------
@@ -191,6 +195,20 @@ export function createOS({ reducedMotion, lenis }) {
   desk.addEventListener('pointerdown', (e) => {
     if (e.target === desk) select(null);
   });
+
+  // ---------- speaker (sound on/off), in the menu bar next to the clock ----------
+  const speaker = document.createElement('button');
+  speaker.type = 'button';
+  speaker.className = 'os__speaker';
+  const syncSpeaker = (v) => {
+    speaker.setAttribute('aria-pressed', String(v));
+    speaker.setAttribute('aria-label', v ? 'Sound on (turn off)' : 'Sound off (turn on)');
+    speaker.innerHTML = `<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" shape-rendering="crispEdges"><path d="M1 4h2l3-3v10L3 8H1z" fill="currentColor"/>${v ? '<path d="M8 4c1 1 1 3 0 4M9.5 2.5c2 2 2 5 0 7" fill="none" stroke="currentColor"/>' : '<path d="M8 4l3 4M11 4l-3 4" stroke="currentColor"/>'}</svg>`;
+  };
+  syncSpeaker(soundOn());
+  speaker.addEventListener('click', () => setSound(!soundOn()));
+  const offSound = onSoundChange(syncSpeaker);
+  clock.before(speaker);
 
   // ---------- menus ----------
   const MENUS = {
@@ -245,6 +263,7 @@ export function createOS({ reducedMotion, lenis }) {
         if (item.disabled) el.setAttribute('aria-disabled', 'true');
         el.addEventListener('click', () => {
           if (item.disabled) return;
+          sfx('click');
           closeMenu();
           item.run?.();
         });
@@ -319,6 +338,7 @@ export function createOS({ reducedMotion, lenis }) {
       return;
     }
     boot.hidden = false;
+    sfx('boot');
     gsap.fromTo(root, { filter: 'brightness(2.2)' }, { filter: 'brightness(1)', duration: 0.5, ease: 'ui-out' });
     bootTimer = setTimeout(() => {
       boot.hidden = true;
@@ -374,6 +394,7 @@ export function createOS({ reducedMotion, lenis }) {
 
   publicApi.destroy = () => {
     clearInterval(clockTimer);
+    offSound();
     close();
     document.removeEventListener('pointerdown', onDocPointer);
     document.removeEventListener('keydown', onDocKey);

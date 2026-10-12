@@ -1,4 +1,5 @@
 import { saveScore } from './scores.js';
+import { sfx } from '../../sound.js';
 
 // RACER.DSK: top-down pixel racer. Dodge traffic, your speed climbs, score = distance.
 // Until you touch a key it drives itself (demo); ← → steer, ↑ faster, ↓ slower.
@@ -63,6 +64,7 @@ export function mountRacer(body, { os, reducedMotion }) {
   const fresh = () => ({ x: LANES[1], speed: 70, t: 0, dist: 0, spawnIn: 0.6, cars: [], scroll: 0, shake: 0, flash: 0, sparks: [], startedAt: performance.now() });
 
   function start(newMode) {
+    if (newMode === 'play') sfx('start');
     mode = newMode;
     g = fresh();
     actions.hidden = true;
@@ -82,6 +84,7 @@ export function mountRacer(body, { os, reducedMotion }) {
       return;
     }
     mode = 'over';
+    sfx('crash');
     const m = Math.round(g.dist);
     msg.textContent = `crashed · ${m}m`;
     if (m > best) {

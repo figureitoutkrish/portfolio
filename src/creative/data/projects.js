@@ -3,14 +3,18 @@
 // Pulled from Krish's Behance (behance.net/theinvrangers); originals in content/behance/.
 // Facts and results only from content/about.md or Krish's own Behance text: nothing invented.
 
+import PLACEHOLDERS from './placeholders.json';
+
 export const CATEGORIES = ['Thumbnails', 'Social Media', 'Branding', 'Print', 'Video'];
 
-const img = (slug, n, w, h) => ({
-  src: `/assets/work/${slug}/${String(n).padStart(2, '0')}.webp`,
-  sm: `/assets/work/${slug}/${String(n).padStart(2, '0')}-sm.webp`,
-  w,
-  h,
-});
+// lqip: a 20px-wide blurred preview (data URI), shown while the real image loads.
+// Regenerate after adding images: see the note in design-system/pages/creative.md.
+const img = (slug, n, w, h) => {
+  const nn = String(n).padStart(2, '0');
+  return { src: `/assets/work/${slug}/${nn}.webp`, sm: `/assets/work/${slug}/${nn}-sm.webp`, w, h, lqip: PLACEHOLDERS[`${slug}/${nn}`] };
+};
+// On hover, a card cycles through its own project's images: `hover` if set (Krish's picks),
+// otherwise the project's gallery.
 
 export const PROJECTS = [
   {

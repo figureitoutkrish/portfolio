@@ -7,6 +7,17 @@
     <meta name="theme-color" content="#128556" data-light="#128556" data-dark="#014625" />
     <title>Creative — Krish Viramgama</title>
     <meta name="description" content="Branding, thumbnails, video and Koach: the creative side of Krish Viramgama." />
+    <!-- Share previews (WhatsApp, LinkedIn, iMessage, X). __SITE_URL__ is filled in at build time (vite.config.js). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Krish Viramgama" />
+    <meta property="og:title" content="The Creative · Krish Viramgama" />
+    <meta property="og:description" content="Thumbnails, brands, campaigns and video, plus a vintage Mac you can actually play with." />
+    <meta property="og:url" content="__SITE_URL__/creative/" />
+    <meta property="og:image" content="__SITE_URL__/og/creative.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Creative · Krish Viramgama" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <!-- Until the stylesheet applies (in dev, Vite injects CSS from JS), show nothing rather than
          an unstyled flash; mid page-change, hold the wipe's blue so the sweep looks continuous. -->
@@ -53,6 +64,7 @@
               <li><a href="https://www.behance.net/theinvrangers" target="_blank" rel="noopener">behance <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
               <li><a href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener">koach studio <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
             </ul>
+            <button class="menu__theme menu__jump" type="button" data-palette><span>jump to…</span><kbd>⌘K</kbd></button>
             <button class="menu__theme" type="button" data-theme-toggle aria-pressed="false"><span data-theme-label>dark mode</span><kbd>k</kbd></button>
           </nav>
         </header>
@@ -125,6 +137,8 @@
             <figcaption class="photo__caption">figuring it out.</figcaption>
           </figure>
 
+          <!-- The secret disk, hidden under a sticky note. -->
+          <button class="floppy floppy--secret" type="button" data-disk="secret" aria-label="Insert disk: a secret message"><span class="floppy__shutter" aria-hidden="true"></span><span class="floppy__label">MESSAGE.MOV<small>shh.</small></span></button>
           <div class="sticky sticky--canary" tabindex="0" role="note" data-drag-id="welcome">welcome to the creative side!</div>
           <div class="sticky sticky--rose sticky--flip" tabindex="0" role="button" aria-pressed="false" aria-label="Flip note: how it started" data-drag-id="story">
             <span class="sticky__front">6th grade.<br />&#8377;50 a thumbnail,<br />for friends.</span>

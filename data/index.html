@@ -7,6 +7,17 @@
     <meta name="theme-color" content="#f7f7f7" />
     <title>Data — Krish Viramgama</title>
     <meta name="description" content="The data science and engineering side of Krish Viramgama." />
+    <!-- Share previews (WhatsApp, LinkedIn, iMessage, X). __SITE_URL__ is filled in at build time (vite.config.js). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Krish Viramgama" />
+    <meta property="og:title" content="Data · Krish Viramgama" />
+    <meta property="og:description" content="The data science and engineering side of Krish Viramgama." />
+    <meta property="og:url" content="__SITE_URL__/data/" />
+    <meta property="og:image" content="__SITE_URL__/og/data.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Data · Krish Viramgama" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preload" href="/assets/fonts/Nohemi-VF.ttf" as="font" type="font/ttf" crossorigin />
     <!-- Until the stylesheet applies (in dev, Vite injects CSS from JS), show nothing rather than
@@ -46,6 +57,7 @@
               <li><a href="https://www.behance.net/theinvrangers" target="_blank" rel="noopener">behance <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
               <li><a href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener">koach studio <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a></li>
             </ul>
+            <button class="menu__theme menu__jump" type="button" data-palette><span>jump to…</span><kbd>⌘K</kbd></button>
             <button class="menu__theme" type="button" data-theme-toggle aria-pressed="false"><span data-theme-label>dark mode</span><kbd>k</kbd></button>
           </nav>
         </header>

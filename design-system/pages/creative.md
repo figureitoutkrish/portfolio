@@ -59,5 +59,17 @@ A platinum-beige vintage Macintosh, built in CSS. The front face sits at z = 0, 
 - **Work** (`work.js`, `data/projects.js`): 12 projects (11 from Behance + an Atovio placeholder). Bento on 12 columns with sizes feature / tall / wide / square / small and fixed row heights from 640px; filters with counts, animated with GSAP Flip. **Project window** (`project-window.js`): grows from the card and shrinks back, `#project/<slug>`, ← → step, Esc / backdrop / red dot close, focus trapped and restored.
 - **Backend**: see `docs-backend.md`.
 
+
+## Extras
+- **⌘K palette** (`src/sections/palette.js`, site-wide; also "jump to… ⌘K" in the menu). It opens instantly from the keyboard and animates only from a click. Base commands: pages, theme, email, socials. This page adds projects, Play Racer / Circle (scrolls to the Mac and inserts the disk), High Scores, Talk to Krish, Sound and Mac full screen. Styled as a paper Mac window here, plain elsewhere.
+- **Link previews** (`peek.js`): on hover or keyboard focus over outside links (Koach, Instagram, YouTube, LinkedIn, Behance, project pages, email), a mini Mac window appears above the link. The first waits 320ms, the next ones open instantly; it grows from the link.
+- **Pixel cursors** (mouse / trackpad only): classic arrow, pointing hand on clickables, open hand on draggables (stickers, notes, disks, knob), fist while holding. Defined as `--cur-*` tokens in creative-mac.css.
+- **Rev, the mascot** (`mascot.js`): an original chibi red pixel race car (headlight eye, "K" door). Not a copy of any film character. It sits on the Mac's top, blinks, drives back and forth every ~11s and honks when tapped. Its hint bubble cycles tips, including one about the secret disk. It reacts to disks, games and power (sleeps when the Mac is off).
+- **Secret disk**: MESSAGE.MOV is hidden under the welcome note (under the story note on phones). It plays `public/assets/secret/message.mp4` (+ optional `message.jpg` poster) and shows "coming soon" until the file exists.
+- **Sound** (`sound.js`): Web Audio, synthesised, **off by default**. Toggle with the speaker in the Mac's menu bar or ⌘K. Sounds play only on causal moments: disk in/out, power, boot, alerts, keys, game start / crash / score, the mascot's horn.
+- **Hover cycling**: a work card cycles through its own project's images on hover (`hover: [...]` in projects.js if set, otherwise the gallery).
+- **Blurry placeholders**: every work image has a 20px blurred preview (`data/placeholders.json`) that shows until the real one fades in. After adding images, regenerate the placeholders (the 20px WebP data URIs keyed `slug/NN`).
+- **Share previews**: `public/og/{home,data,creative}.jpg` (1200×630) plus og/twitter tags on every page. `__SITE_URL__` is filled at build from `SITE_URL` or Vercel's production URL.
+
 ## Motion
 Name lines rise (ui-out, 70ms stagger), the rest fades up after. Same eases/durations as MASTER. Reduced motion: no entrance.

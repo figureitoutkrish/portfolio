@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { initMenu } from './sections/menu.js';
 import { initTabbar } from './sections/tabbar.js';
 import { initTheme } from './utils/theme.js';
+import { initPalette } from './sections/palette.js';
 import { initPageTransitions, navigate } from './utils/transition.js';
 import { prefersReducedMotion } from './utils/motion.js';
 
@@ -21,14 +22,16 @@ export function initShared() {
     gsap.ticker.lagSmoothing(0);
   }
 
-  initTheme({ reducedMotion });
+  const theme = initTheme({ reducedMotion });
   initMenu({ reducedMotion });
   initPageTransitions({ reducedMotion, lenis });
-  initTabbar({ reducedMotion, navigate: (url) => navigate(url, { reducedMotion, lenis }) });
+  const go = (url) => navigate(url, { reducedMotion, lenis });
+  initTabbar({ reducedMotion, navigate: go });
+  const palette = initPalette({ reducedMotion, navigate: go, toggleTheme: theme.toggle });
 
   // Wait for fonts (max 1.5s) so text doesn't swap typefaces mid-animation.
   const fontsReady = Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1500))]);
   fontsReady.then(() => ScrollTrigger.refresh()); // text metrics changed: re-measure trigger points
 
-  return { reducedMotion, lenis, fontsReady };
+  return { reducedMotion, lenis, fontsReady, palette };
 }

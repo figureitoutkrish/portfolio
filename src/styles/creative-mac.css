@@ -623,3 +623,212 @@ kbd { font-family: var(--f-mono); font-size: 0.75em; opacity: 0.7; }
   .notes { position: static; display: flex; justify-content: center; gap: 0.75rem; pointer-events: auto; }
   .notes > .sticky--visitor { position: relative; inset: auto !important; width: 34vw; font-size: 1.05rem; }
 }
+
+/* ---------- Blurry placeholders + hover cycling ---------- */
+.card__media { background-size: cover; background-position: center; }
+.card__media::before { /* the 20px preview, blurred so it reads as "loading", not as a bad image */
+  content: "";
+  position: absolute;
+  inset: -10%;
+  background: inherit;
+  filter: blur(14px);
+  transform: scale(1.05);
+}
+.card__media[style*="background-image"] { background-color: transparent; }
+.card__img { opacity: 0; transition: opacity 400ms var(--ease-out), transform 600ms var(--ease-out); }
+.card__img.is-loaded { opacity: 1; }
+.card__img--cycle { opacity: 1; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .card__img { transition: none; } }
+.pw__shot { position: relative; background-size: cover; background-position: center; }
+.pw__shot::before { content: ""; position: absolute; inset: 0; background: inherit; filter: blur(14px); }
+.pw__shot img { position: relative; opacity: 0; transition: opacity 400ms var(--ease-out); }
+.pw__shot img.is-loaded { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .pw__shot img { transition: none; } }
+
+/* Speaker toggle in the Mac's menu bar */
+.os__speaker {
+  display: grid;
+  place-items: center;
+  margin-left: auto;
+  width: 6cqw;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--os-ink);
+  cursor: default;
+}
+.os__speaker svg { width: 3.4cqw; height: 3.4cqw; }
+.os__speaker[aria-pressed="true"] { background: var(--os-ink); color: var(--os-paper); }
+.os__speaker:focus-visible { outline: 1px dotted var(--os-ink); outline-offset: -2px; }
+.os__speaker + .os__clock { margin-left: 2cqw; }
+
+/* ---------- Pixel Mac cursors (creative page, mouse / trackpad only) ---------- */
+@media (hover: hover) and (pointer: fine) {
+  html.creative {
+    --cur-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='38' viewBox='0 0 12 19' shape-rendering='crispEdges'%3E%3Cpath d='M1.5 1.5V15.5L4.5 12.5L7 17.5L9 16.5L6.5 11.5H10.5Z' fill='%23000' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E") 3 3, default;
+    --cur-point: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='34' viewBox='0 0 16 17' shape-rendering='crispEdges'%3E%3Cpath d='M5.5 1.5H7.5V6.5H9.5V7.5H11.5V8.5H13.5V12.5L12.5 15.5H5.5L2.5 11.5V9.5H4.5V11.5H5.5Z' fill='%23fff' stroke='%23000'/%3E%3Cpath d='M7.5 8.5V10.5M9.5 8.5V10.5M11.5 9.5V10.5' stroke='%23000'/%3E%3C/svg%3E") 12 3, pointer;
+    --cur-grab: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='34' viewBox='0 0 15 17' shape-rendering='crispEdges'%3E%3Cpath d='M2.5 8.5H3.5V4.5H5.5V2.5H9.5V3.5H11.5V7.5H12.5V12.5L11.5 15.5H4.5L2.5 12.5Z' fill='%23fff' stroke='%23000'/%3E%3Cpath d='M5.5 4.5V8.5M7.5 3.5V8.5M9.5 3.5V8.5' stroke='%23000'/%3E%3C/svg%3E") 15 12, grab;
+    --cur-fist: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='34' viewBox='0 0 15 17' shape-rendering='crispEdges'%3E%3Cpath d='M3.5 6.5H5.5V5.5H9.5V6.5H11.5V7.5H12.5V12.5L11.5 15.5H4.5L2.5 12.5V8.5H3.5Z' fill='%23fff' stroke='%23000'/%3E%3Cpath d='M5.5 5.5V8.5M7.5 5.5V8.5M9.5 5.5V8.5' stroke='%23000'/%3E%3C/svg%3E") 15 12, grabbing;
+  }
+  html.creative, html.creative body { cursor: var(--cur-arrow); }
+  html.creative :is(a[href], button:not(:disabled), [role="button"], summary, label[for], .card__hit, .filter, .pill, .os__icon, .os__menu, .os__item, .os__btn, .os__close, .os__speaker, .scores__tab, .chat__chip, .lights__btn, .menu-btn) { cursor: var(--cur-point); }
+  html.creative .desk :is(.sticker, .sticky:not(.sticky--ghost), .floppy, .mac3d__knob) { cursor: var(--cur-grab); }
+  html.creative :is(.is-held, .floppy.is-dragging, .is-held *) { cursor: var(--cur-fist) !important; }
+  html.creative :is(input[type="text"], textarea) { cursor: text; }
+  html.creative .game__canvas--draw { cursor: crosshair; }
+}
+
+/* ---------- Link previews ---------- */
+.peek {
+  position: fixed;
+  z-index: 95;
+  width: 17.5rem;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--c-paper);
+  box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  color: var(--c-ink);
+  pointer-events: none;
+}
+.peek[hidden] { display: none; }
+.peek__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 26px;
+  padding: 0 0.6rem;
+  border-bottom: 1px solid var(--c-hair);
+  background: linear-gradient(var(--c-paper), var(--c-paper-2));
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  color: var(--c-ink-2);
+}
+.peek__dot { width: 7px; height: 7px; border-radius: 50%; background: #28c840; }
+.peek__path { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.peek__body { display: flex; gap: 0.7rem; align-items: center; padding: 0.7rem 0.75rem 0.8rem; }
+.peek__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  font: 800 1rem/1 var(--f-body);
+}
+.peek__text { display: grid; gap: 0.15rem; min-width: 0; }
+.peek__title { font-size: 0.875rem; font-weight: 800; }
+.peek__desc { font-size: 0.75rem; line-height: 1.35; color: var(--c-ink-2); }
+
+/* ⌘K on the creative page: a paper Mac window */
+html.creative .palette__scrim { background: rgba(0, 25, 12, 0.45); }
+html.creative .palette__panel { border-radius: 12px; background: var(--c-paper); color: var(--c-ink); box-shadow: var(--win-shadow), 0 0 0 1px rgba(0, 0, 0, 0.08); font-family: var(--f-body); --fg: var(--c-ink); --muted: var(--c-ink-2); --line: var(--c-hair); }
+html.creative .palette__panel::before { content: ""; height: 8px; background: linear-gradient(var(--c-paper), var(--c-paper-2)); }
+html.creative .palette__item[aria-selected="true"] { background: var(--c-ink); color: var(--c-paper); }
+html.creative .palette__group { font-family: var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+html.creative .palette__toast { background: var(--c-ink); color: var(--c-paper); font-family: var(--f-body); }
+
+/* ---------- The secret disk + MESSAGE.MOV ---------- */
+.floppy--secret { --disk: #20221f; z-index: 5; top: 2%; left: 3%; bottom: auto; right: auto; transform: rotate(8deg); }
+.floppy--secret .floppy__label { background: #f3f0e6; }
+.desk.is-zoomed .floppy--secret:not(.is-inside) { display: none; }
+@media (max-width: 767px) {
+  .floppy--secret { top: 0.75rem; left: auto; right: 1%; }
+}
+.os__body--movie { background: #111; color: #f4f4ee; }
+.movie__stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; background: #000; }
+.movie__video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+.movie__soon { display: grid; justify-items: center; gap: 1.4cqw; padding: 4cqw; text-align: center; font-size: 3.2cqw; }
+.movie__soon[hidden] { display: none; }
+.movie__reel {
+  width: 10cqw;
+  height: 10cqw;
+  border: 0.8cqw solid #f4f4ee;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f4f4ee 0.9cqw, transparent 1cqw) 50% 22% / 100% 100% no-repeat, radial-gradient(circle, #f4f4ee 0.9cqw, transparent 1cqw) 22% 62% / 100% 100% no-repeat, radial-gradient(circle, #f4f4ee 0.9cqw, transparent 1cqw) 78% 62% / 100% 100% no-repeat;
+  animation: reel 2.4s linear infinite;
+}
+@keyframes reel { to { transform: rotate(360deg); } }
+.movie__caption { flex: none; padding: 1.2cqw 2cqw; border-top: 1px solid #444; font-size: 2.8cqw; color: #bbb; }
+@media (prefers-reduced-motion: reduce) { .movie__reel { animation: none; } }
+
+/* ---------- Rev, the mascot ---------- */
+.mascot {
+  --cw: calc(var(--mw) * 0.2);
+  position: absolute;
+  z-index: 8;
+  left: 58%;
+  top: calc(var(--cw) * -0.5833 + 3px); /* wheels resting on the Mac's top edge */
+  width: var(--cw);
+  padding: 0;
+  border: 0;
+  background: none;
+  translate: -50% 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.mascot__car {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  transform: scaleX(var(--face, 1));
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.18));
+}
+.mascot:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 4px; border-radius: 6px; }
+.mascot__bubble {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  width: max-content;
+  max-width: min(14rem, 60vw);
+  padding: 0.45rem 0.6rem;
+  border: 1.5px solid var(--os-ink);
+  border-radius: 10px;
+  background: var(--os-paper);
+  color: var(--os-ink);
+  font-family: var(--f-pixel);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  text-align: left;
+  translate: -50% 0;
+  box-shadow: 2px 2px 0 var(--os-ink);
+  transform-origin: 50% 100%;
+}
+.mascot__bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-right: 1.5px solid var(--os-ink);
+  border-bottom: 1.5px solid var(--os-ink);
+  background: var(--os-paper);
+  rotate: 45deg;
+}
+.mascot__bubble[hidden] { display: none; }
+@media (hover: hover) and (pointer: fine) { html.creative .mascot { cursor: var(--cur-point); } }
+
+/* Phones: keys first, then "+ leave a note", then visitors' notes, all in the normal flow
+   (nothing floating over the photo or the stickers). */
+@media (max-width: 767px) {
+  .desk > .pad { order: 1; }
+  .desk > .sticky--ghost {
+    position: static;
+    order: 2;
+    justify-self: center;
+    width: auto;
+    aspect-ratio: auto;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    grid-auto-flow: column;
+    gap: 0.4rem;
+    align-items: center;
+    font-size: 1.4rem;
+    transform: rotate(-2deg);
+  }
+  .desk > .sticky--ghost span { font-size: 1.15rem; }
+  .desk > .notes { order: 3; }
+  .photo { top: calc(2.5rem + var(--mw) * 0.66); bottom: auto; }
+}

@@ -67,9 +67,14 @@ export function initProjectWindow({ reducedMotion, lenis }) {
     const gallery = $('.pw__gallery');
     gallery.innerHTML = p.gallery?.length
       ? p.gallery
-          .map((g, j) => `<figure class="pw__shot${g.h > g.w * 1.4 ? ' pw__shot--tall' : ''}"><img src="${g.src}" width="${g.w}" height="${g.h}" alt="${p.title}, image ${j + 1}" loading="${j < 2 ? 'eager' : 'lazy'}" decoding="async" /></figure>`)
+          .map((g, j) => `<figure class="pw__shot${g.h > g.w * 1.4 ? ' pw__shot--tall' : ''}"${g.lqip ? ` style="background-image:url(${g.lqip})"` : ''}><img src="${g.src}" width="${g.w}" height="${g.h}" alt="${p.title}, image ${j + 1}" loading="${j < 2 ? 'eager' : 'lazy'}" decoding="async" /></figure>`)
           .join('') + (p.galleryNote ? `<p class="pw__note note">${p.galleryNote}</p>` : '')
       : `<div class="ph ph--wide"><span>Placeholder · ${p.placeholder || 'visuals coming soon'}</span></div>`;
+    gallery.querySelectorAll('img').forEach((im) => {
+      const done = () => im.classList.add('is-loaded');
+      if (im.complete && im.naturalWidth) done();
+      else im.addEventListener('load', done, { once: true });
+    });
     scroller.scrollTop = 0;
   }
 

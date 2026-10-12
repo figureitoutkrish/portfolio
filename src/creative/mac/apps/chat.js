@@ -57,6 +57,13 @@ export const TOPICS = [
     link: { label: 'data side →', href: '/data/' },
   },
   {
+    id: 'secret',
+    chip: 'any secrets?',
+    keys: ['secret', 'hidden', 'easter egg', 'surprise', 'message'],
+    answer: 'psst… some sticky notes are hiding things. try moving the yellow one.',
+    secret: true,
+  },
+  {
     id: 'dance',
     chip: 'anything else?',
     keys: ['dance', 'hobby', 'hobbies', 'fun', 'free time', 'else', 'vlog', 'video'],

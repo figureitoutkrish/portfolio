@@ -1,5 +1,6 @@
 import { scoreCircle } from './circle-score.js';
 import { saveScore } from './scores.js';
+import { sfx } from '../../sound.js';
 
 // CIRCLE.DSK: draw a perfect circle around the dot. Mouse, pen or finger.
 // Chunky low-res canvas (scaled up, pixelated) to match the 1-bit screen.
@@ -103,6 +104,7 @@ export function mountCircle(body, { os }) {
       return;
     }
     result = r.score;
+    sfx('score');
     // Show the ideal circle, dotted, so you can see where it wandered.
     const radius = points.reduce((a, [x, y]) => a + Math.hypot(x - center[0], y - center[1]), 0) / points.length;
     ctx.fillStyle = 'rgba(17,17,17,.35)';

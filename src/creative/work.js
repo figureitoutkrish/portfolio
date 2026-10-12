@@ -44,6 +44,51 @@ export function initWork({ reducedMotion, lenis }) {
     });
   });
 
+  // Blurry preview → sharp image: fade the real one in once it has loaded.
+  grid.querySelectorAll('.card__img').forEach((im) => {
+    const done = () => im.classList.add('is-loaded');
+    if (im.complete && im.naturalWidth) done();
+    else im.addEventListener('load', done, { once: true });
+  });
+
+  // Hover: cycle through this project's own images (desktop pointers, not reduced motion).
+  if (!reducedMotion && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    cards.forEach((c) => {
+      const p = projectBySlug(c.dataset.slug);
+      const frames = (p.hover || p.gallery || []).filter((g) => g.sm !== p.cover?.sm);
+      const imgEl = c.querySelector('.card__img');
+      if (!imgEl || frames.length < 1) return;
+      let timer = 0;
+      let i = 0;
+      let layer = null;
+      const show = () => {
+        const f = frames[i % frames.length];
+        i += 1;
+        const next = new Image();
+        next.src = f.sm;
+        next.className = 'card__img card__img--cycle';
+        next.alt = '';
+        next.decode?.().catch(() => {}).finally(() => {
+          if (!c.matches(':hover')) return;
+          c.querySelector('.card__media').append(next);
+          gsap.fromTo(next, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: 'ui-out', onComplete: () => { layer?.remove(); layer = next; } });
+        });
+      };
+      c.addEventListener('pointerenter', () => {
+        frames.forEach((f) => (new Image().src = f.sm)); // warm them
+        timer = setInterval(show, 900);
+        setTimeout(show, 280);
+      });
+      c.addEventListener('pointerleave', () => {
+        clearInterval(timer);
+        i = 0;
+        const stale = c.querySelectorAll('.card__img--cycle');
+        gsap.to(stale, { autoAlpha: 0, duration: 0.25, ease: 'ui-out', onComplete: () => stale.forEach((n) => n.remove()) });
+        layer = null;
+      });
+    });
+  }
+
   grid.addEventListener('click', (e) => {
     const c = e.target.closest('.card');
     if (c && c.dataset.slug) openProject(c.dataset.slug, { from: c });
@@ -83,8 +128,9 @@ export function initWork({ reducedMotion, lenis }) {
 
 function card(p, i) {
   const num = String(i + 1).padStart(2, '0');
+  const pos = p.coverPosition === 'top' ? 'object-position:50% 0;' : '';
   const media = p.cover
-    ? `<img src="${p.cover.sm}" srcset="${p.cover.sm} 640w, ${p.cover.src} ${p.cover.w}w" sizes="(min-width: 1100px) 40vw, (min-width: 640px) 50vw, 100vw" width="${p.cover.w}" height="${p.cover.h}" alt="" loading="lazy" decoding="async"${p.coverPosition === 'top' ? ' style="object-position:50% 0"' : ''} />`
+    ? `<img class="card__img" src="${p.cover.sm}" srcset="${p.cover.sm} 640w, ${p.cover.src} ${p.cover.w}w" sizes="(min-width: 1100px) 40vw, (min-width: 640px) 50vw, 100vw" width="${p.cover.w}" height="${p.cover.h}" alt="" loading="lazy" decoding="async" style="${pos}" />`
     : `<div class="ph"><span>Placeholder · ${p.placeholder || 'coming soon'}</span></div>`;
   const tag = p.viaKoach ? '<span class="card__tag">via Koach</span>' : '';
   const result = p.result && p.size === 'feature' ? `<p class="card__result">${p.result}</p>` : '';
@@ -92,7 +138,7 @@ function card(p, i) {
     <article class="card card--${p.size}" data-slug="${p.slug}" data-category="${p.category}">
       <button class="card__hit" type="button" aria-label="Open ${p.title}, ${p.subtitle}"></button>
       <div class="win__bar"><span class="win__lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="win__title">Project ${num}</span>${tag}</div>
-      <div class="card__media">${media}</div>
+      <div class="card__media"${p.cover?.lqip ? ` style="background-image:url(${p.cover.lqip})"` : ''}>${media}</div>
       <div class="card__foot">
         <div><h3 class="card__title">${p.title}</h3><p class="card__meta">${p.subtitle}${p.client ? ` · ${p.client}` : ''}</p>${result}</div>
         <span class="card__arrow" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M4 12 12 4M5.5 4H12v6.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>

@@ -633,7 +633,7 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
 .sticker--koach span { font-family: var(--f-display); font-size: calc(var(--mw) * 0.055); --tracking: 0.02em; }
 .sticker--koach small { font-family: var(--f-note); font-size: calc(var(--mw) * 0.035); font-weight: 600; }
 .sticker--star { top: -5%; right: 2%; width: calc(var(--mw) * 0.12); transform: rotate(12deg); }
-.sticker--smile { top: -4%; left: 38%; width: calc(var(--mw) * 0.1); transform: rotate(-12deg); }
+.sticker--smile { top: -5%; left: 6%; width: calc(var(--mw) * 0.1); transform: rotate(-12deg); }
 .sticker--yt {
   bottom: 9%;
   left: 26%;

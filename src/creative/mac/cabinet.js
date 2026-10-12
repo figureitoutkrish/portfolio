@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { sfx } from '../sound.js';
 
 // The Mac's physical parts: power, brightness knob, eject, LED, the two floppies and the
 // gamepad keys. Talks to the OS (os.js) through its public API.
@@ -6,7 +7,7 @@ import gsap from 'gsap';
 //   the game loads. Eject (or Esc, or power) pops it back out and it springs home to the desk.
 export function initCabinet({ os, reducedMotion }) {
   const mac = document.querySelector('[data-mac]');
-  if (!mac || !os) return () => {};
+  if (!mac || !os) return { insert() {}, eject() {}, destroy() {} };
   const desk = mac.closest('.desk');
   const slot = mac.querySelector('.mac3d__slot');
   const mouth = mac.querySelector('.mac3d__slot-mouth');
@@ -28,6 +29,7 @@ export function initCabinet({ os, reducedMotion }) {
     if (os.state.on) {
       if (os.state.disk) ejectDisk(); // like pulling the plug: the game ends
       os.powerOff();
+      sfx('off');
     } else os.powerOn();
   });
   const offPower = os.on((type, on) => {
@@ -118,6 +120,7 @@ export function initCabinet({ os, reducedMotion }) {
       inside = disk;
       busy = false;
       blink(4);
+      sfx('insert');
       os.insertDisk(disk.dataset.disk);
     };
     if (reducedMotion) {
@@ -139,6 +142,7 @@ export function initCabinet({ os, reducedMotion }) {
     busy = true;
     os.ejectDisk();
     blink(2);
+    sfx('eject');
     const back = () => {
       disk.classList.remove('is-inside', 'is-moving');
       disk.setAttribute('aria-pressed', 'false');
@@ -240,6 +244,7 @@ export function initCabinet({ os, reducedMotion }) {
     const down = (e) => {
       e.preventDefault();
       btn.classList.add('is-down');
+      sfx('key');
       try { btn.setPointerCapture(e.pointerId); } catch { /* synthetic or ended pointer */ }
       if (!os.state.gaming) {
         // not in a game yet: the keys still press, and the disks wiggle to say "start here"
@@ -279,5 +284,12 @@ export function initCabinet({ os, reducedMotion }) {
     window.removeEventListener('keyup', mirror);
   });
 
-  return () => cleanups.forEach((fn) => fn());
+  return {
+    insert: (name) => {
+      const d = disks.find((x) => x.dataset.disk === name);
+      if (d) insert(d);
+    },
+    eject: () => inside && ejectDisk(),
+    destroy: () => cleanups.forEach((fn) => fn()),
+  };
 }
