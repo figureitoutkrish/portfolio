@@ -524,6 +524,7 @@ img { display: block; max-width: 100%; }
 
 /* Terminal */
 .term {
+  --boot-p: 0; /* bar charge 0 → 1, set by journey.js */
   position: absolute;
   inset: 0;
   display: grid;
@@ -531,6 +532,17 @@ img { display: block; max-width: 100%; }
   justify-items: start;
   gap: 1.1rem;
   padding: 0 var(--gutter);
+  isolation: isolate;
+}
+/* A glow that rises with the charge (bryangarage.dev's band does the same). */
+.term::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(120% 90% at 50% 120%, rgba(76, 116, 255, 0.42), transparent 62%);
+  opacity: var(--boot-p);
+  pointer-events: none;
 }
 .term__line {
   --tracking: -0.01em;
@@ -539,6 +551,8 @@ img { display: block; max-width: 100%; }
 }
 .term__prompt { display: block; color: var(--muted-dark); }
 .term__cmd { color: var(--ink-dark); }
+.term__cmd, .term__pending { white-space: pre; }
+.term__pending { color: transparent; } /* the untyped rest: holds its space so nothing reflows */
 .term__caret {
   display: inline-block;
   width: 0.55ch;

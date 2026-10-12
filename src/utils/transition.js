@@ -162,7 +162,7 @@ export function initPageTransitions({ reducedMotion, lenis }) {
     e.preventDefault();
     if (samePage(link.url)) {
       // Like tapping the active tab: go back to the top instead of reloading.
-      if (lenis) lenis.scrollTo(0);
+      if (lenis) lenis.scrollTo(0, { force: true }); // force: also works while the journey holds the page
       else window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
       return;
     }
