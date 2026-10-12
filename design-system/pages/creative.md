@@ -2,8 +2,11 @@
 
 Overrides MASTER.md for this page only. The design/creative section of the site: green technical grid, Mac windows, handwritten notes. Editorial portfolio first, Mac nostalgia second, play third. References: Krish's mockup (bento grid, Mac windows, notes) and his Instagram post (lighter green, white grid, Aqua-style pills).
 
-## Global chrome (unchanged, for consistency)
-`krish.` header + menu (with the theme button), the liquid-glass tab bar and the page wipe stay exactly as on every page. The menu panel gets ink tokens in light mode (it's light glass over green).
+## Scope
+Three parts only: the hero Mac, Work, and a small Koach block. Nothing that home already says (name, bio, About, stats, clients, timeline) is repeated here. The thumbnail origin story (₹50 for friends in 6th grade → ₹1,000 today) lives only in hidden details: the flip note, the floppy label, the chat bot.
+
+## Global chrome
+The `krish.` menu, the liquid-glass tab bar and the page wipe stay as on every page. **The header on this page only** gets three working traffic lights before `krish.`: red = "Quit Creative?" alert → home; yellow = skip to Work; green = Mac full screen. No extra toolbar. The menu panel gets ink tokens in light mode (light glass over green).
 
 ## Colour (tokens on `html.creative`, src/styles/creative.css)
 | Role | Light | Dark |
@@ -28,14 +31,21 @@ Body background: 24px cells (28px from 768px), stronger line every 5th cell. The
 - Notes: **Caveat** 600, lime, slightly rotated, lowercase, ≥1.35rem. Used for memos and asides only, never for essential info (always `aria-hidden` or duplicated).
 - Self-hosted via @fontsource (OFL). Nohemi stays home-only. Casing follows the mockup, not the site-wide lowercase rule.
 
+## The Mac (hero centrepiece)
+A platinum-beige vintage Macintosh, built in CSS. The front face sits at z = 0, so it's never distorted. The top and right side are real 3D planes that recede, seen through `perspective` from up and to the right. Everything scales off `--mw` (Mac width).
+
+- **Parts:** recessed bezel, CRT with scanlines, a tube vignette and glare. The chin has a rainbow "K" badge, a "Krish Classic" model plate, a floppy slot with an eject button, an LED, a power button and a brightness knob. A foot and a desk shadow sit below.
+- **Screen:** a 1-bit classic Mac OS (`.os`) in Pixelify Sans, with the terminal and chat in VT323. Menu bar (✦ File Edit Special Help + clock), dithered desktop, pixel icons (Work, Circle, Racer, Talk to me, Scores), and a striped-title classic window. The screen is a size container, so all of its sizes are in `cqw`.
+- **Around it:** stickers (Koach → Instagram, YouTube, Behance, star, smiley), sticky notes (canary, rose that flips with the origin story, tang), two floppies (CIRCLE.DSK, RACER.DSK), physical gamepad keys, and the taped photo window.
+- **Phones:** only the rose note, the photo smaller, keys left and disks right. The hero clips horizontal overflow.
+
 ## Components
 - `.win`: paper window, 12px radius, `.win__bar` (30px, traffic lights `#ff5f57 #febc2e #28c840`, mono title).
 - `.pill`: 44px min height; `--lime` (primary), `--line` (secondary, white outline), `--glossy` (Aqua blue, selected states).
 - `.note` (+ `.note__arrow` hand-drawn SVG), `.ph` placeholder (aspect-ratio box, faint grid, mono label: never fake work), `.tick`, `.coord`.
-- `.ctool`: sticky section toolbar (paper bar, `krish / creative` path, Work · About · Playground · Contact, `@koach.studio ↗`); marks the current section with a green dot; links scroll via Lenis, sections use `scroll-margin-top: 5rem`.
 
 ## Hero
-Copy left (label, ANTON name, lime notes "Designer / Editor / Creative" + "& data science student", intro, View Work / About Me). Right: mini Mac with the taped photo window (`IMG_0291.JPG`, `creative-hero.jpg`) leaning on its lower-left, notes "same guy, more ideas." and "double-click to explore", mono list. Phones: photo first, then the Mac (no sticky note).
+"alter ego 02:" (Caveat) over "THE CREATIVE." (Anton), plus a one-line lede. The desk with the Mac is on the right from 1100px, and below the headline on smaller screens.
 
 ## Motion
 Name lines rise (ui-out, 70ms stagger), the rest fades up after. Same eases/durations as MASTER. Reduced motion: no entrance.

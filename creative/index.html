@@ -34,7 +34,15 @@
   <body>
     <main class="page page--creative">
         <header class="site-header" data-fade>
-          <a class="logo" href="/">krish.</a>
+          <div class="site-header__lead">
+            <!-- Traffic lights (src/creative/header-lights.js): quit to home · skip to work · Mac full screen -->
+            <div class="lights" role="group" aria-label="Window controls">
+              <button class="lights__btn lights__btn--close" type="button" aria-label="Quit creative and go home" data-light="close"><svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M3 3l4 4M7 3l-4 4"/></svg></button>
+              <button class="lights__btn lights__btn--min" type="button" aria-label="Minimise: skip to the work" data-light="min"><svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M2.5 5h5"/></svg></button>
+              <button class="lights__btn lights__btn--zoom" type="button" aria-label="Full screen Mac" data-light="zoom"><svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="M3 6.5V3h3.5M7 3.5V7H3.5" /></svg></button>
+            </div>
+            <a class="logo" href="/">krish.</a>
+          </div>
           <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-menu"><span></span><span></span></button>
           <nav id="site-menu" class="menu glass glass--regular" aria-label="Find me online">
             <p class="menu__label">find me online</p>
@@ -49,99 +57,100 @@
           </nav>
         </header>
 
-      <!-- Section toolbar (src/creative/toolbar.js): sticks once you scroll, marks the section you're in. -->
-      <nav class="ctool" aria-label="Sections">
-        <div class="ctool__bar">
-          <span class="win__lights" aria-hidden="true"><i></i><i></i><i></i></span>
-          <a class="ctool__path" href="#top"><span aria-hidden="true">krish</span><span class="ctool__sep" aria-hidden="true">/</span>creative</a>
-          <ul class="ctool__links">
-            <li><a href="#work">Work</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#playground">Playground</a></li>
-            <li><a href="#contact">Contact</a></li>
-          </ul>
-          <a class="ctool__ext" href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener">@koach.studio <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 9 9 3M4 3h5v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></a>
-        </div>
-      </nav>
-
       <section class="chero" id="top" aria-labelledby="chero-title">
         <span class="tick tick--tl" aria-hidden="true"></span><span class="tick tick--br" aria-hidden="true"></span>
         <p class="coord coord--hero" aria-hidden="true">x 024 · y 096</p>
 
-        <div class="chero__copy">
-          <p class="clabel" data-fade><span>01</span> [ alter ego 02 · creative ]</p>
-          <h1 id="chero-title" class="chero__name"><span class="line"><span>Krish</span></span><span class="line"><span>Viramgama</span></span></h1>
-          <p class="chero__roles note" data-fade>Designer / Editor / Creative</p>
-          <p class="chero__student note" data-fade>&amp; data science student</p>
-          <p class="chero__intro" data-fade>I build brands, design thumbnails and edit stories, and sometimes I work with data. Data science student at NMIMS, co-founder of Koach, a creative studio.</p>
-          <div class="chero__actions" data-fade>
-            <a class="pill pill--lime" href="#work">View Work <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-            <a class="pill pill--line" href="#about">About Me</a>
-          </div>
+        <div class="chero__head">
+          <p class="chero__kicker note" data-fade>alter ego 02:</p>
+          <h1 id="chero-title" class="chero__title"><span class="visually-hidden">Alter ego 02: </span><span class="line"><span>The</span></span><span class="line"><span>Creative.</span></span></h1>
+          <p class="chero__lede" data-fade>Thumbnails, brands, campaigns and video. Have a play on the Mac, then scroll for the work.</p>
         </div>
 
-        <div class="chero__stage">
-          <!-- Miniature Mac (src/creative/minimac.js). Everything in it also lives on the page. -->
-          <div class="mac win" data-mac data-fade>
-            <div class="win__bar"><span class="win__lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="win__title">Krish&rsquo;s Desktop</span></div>
-            <div class="mac__screen">
-              <div class="mac__menubar" aria-hidden="true"><b>&#63743;</b><span>Finder</span><span>File</span><span>Edit</span><span>View</span><time class="mac__clock">12:00</time></div>
-              <div class="mac__desk" role="group" aria-label="Krish's desktop: open a folder to look around">
-                <div class="mac__sticky" aria-hidden="true">welcome to my desk.<br />double-click a folder<br />to look around &rarr;</div>
-                <ul class="mac__icons">
-                  <li><button class="mac__icon" type="button" data-app="work"><span class="mac__glyph mac__glyph--folder" aria-hidden="true"></span><span class="mac__label">Work</span></button></li>
-                  <li><button class="mac__icon" type="button" data-app="about"><span class="mac__glyph mac__glyph--about" aria-hidden="true"></span><span class="mac__label">About</span></button></li>
-                  <li><button class="mac__icon" type="button" data-app="playground"><span class="mac__glyph mac__glyph--play" aria-hidden="true"></span><span class="mac__label">Playground</span></button></li>
-                  <li><button class="mac__icon" type="button" data-app="contact"><span class="mac__glyph mac__glyph--mail" aria-hidden="true"></span><span class="mac__label">Contact</span></button></li>
-                </ul>
-                <div class="mac__windows"></div>
+        <!-- The desk: the Mac and everything stuck around it. -->
+        <div class="desk" data-fade>
+          <div class="mac3d" data-mac>
+            <div class="mac3d__top" aria-hidden="true"></div>
+            <div class="mac3d__side" aria-hidden="true"></div>
+            <div class="mac3d__face">
+              <div class="mac3d__bezel">
+                <div class="crt">
+                  <!-- Mac OS (src/creative/mac/os.js) -->
+                  <div class="os" data-os>
+                    <div class="os__menubar">
+                      <span class="os__apple" aria-hidden="true">&#10022;</span>
+                      <span class="os__menu">File</span><span class="os__menu">Edit</span><span class="os__menu">Special</span><span class="os__menu">Help</span>
+                      <time class="os__clock">12:00</time>
+                    </div>
+                    <div class="os__desk">
+                      <ul class="os__icons" aria-label="Apps">
+                        <li><button class="os__icon" type="button" data-app="work"><span class="os__glyph os__glyph--work" aria-hidden="true"></span><span class="os__name">Work</span></button></li>
+                        <li><button class="os__icon" type="button" data-app="circle"><span class="os__glyph os__glyph--circle" aria-hidden="true"></span><span class="os__name">Circle</span></button></li>
+                        <li><button class="os__icon" type="button" data-app="racer"><span class="os__glyph os__glyph--racer" aria-hidden="true"></span><span class="os__name">Racer</span></button></li>
+                        <li><button class="os__icon" type="button" data-app="chat"><span class="os__glyph os__glyph--chat" aria-hidden="true"></span><span class="os__name">Talk to me</span></button></li>
+                        <li><button class="os__icon" type="button" data-app="scores"><span class="os__glyph os__glyph--scores" aria-hidden="true"></span><span class="os__name">Scores</span></button></li>
+                      </ul>
+                      <div class="os__win" data-win="work">
+                        <div class="os__bar"><span class="os__close" aria-hidden="true"></span><span class="os__title">Work.slideshow</span></div>
+                        <div class="os__body os__body--slides"><span class="os__ph">your work, on repeat</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="crt__scan" aria-hidden="true"></span>
+                  <span class="crt__glare" aria-hidden="true"></span>
+                </div>
               </div>
-              <div class="mac__dock" role="toolbar" aria-label="Dock">
-                <button class="mac__dockitem" type="button" data-app="work" aria-label="Work"><span class="mac__glyph mac__glyph--folder" aria-hidden="true"></span></button>
-                <button class="mac__dockitem" type="button" data-app="about" aria-label="About"><span class="mac__glyph mac__glyph--about" aria-hidden="true"></span></button>
-                <button class="mac__dockitem" type="button" data-app="playground" aria-label="Playground"><span class="mac__glyph mac__glyph--play" aria-hidden="true"></span></button>
-                <button class="mac__dockitem" type="button" data-app="contact" aria-label="Contact"><span class="mac__glyph mac__glyph--mail" aria-hidden="true"></span></button>
+              <div class="mac3d__chin">
+                <span class="mac3d__badge" aria-hidden="true">K</span>
+                <span class="mac3d__model" aria-hidden="true">Krish Classic</span>
+                <span class="mac3d__slot"><span class="mac3d__slot-mouth"></span><button class="mac3d__eject" type="button" aria-label="Eject disk"></button></span>
+                <span class="mac3d__led" aria-hidden="true"></span>
+                <button class="mac3d__power" type="button" aria-label="Power" aria-pressed="true"></button>
+                <button class="mac3d__knob" type="button" role="slider" aria-label="Brightness" aria-valuemin="40" aria-valuemax="100" aria-valuenow="100"><span></span></button>
               </div>
+              <span class="mac3d__vents" aria-hidden="true"></span>
             </div>
+            <div class="mac3d__foot" aria-hidden="true"></div>
+
+            <!-- Stuck on the Mac -->
+            <a class="sticker sticker--koach" href="https://www.instagram.com/koach.studio/" target="_blank" rel="noopener" aria-label="Koach studio on Instagram" draggable="false"><span>KOACH</span><small>studio</small></a>
+            <span class="sticker sticker--star" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><path d="M24 3l6.2 13.4 14.6 1.6-10.9 9.9 3 14.4L24 35l-12.9 7.3 3-14.4L3.2 18l14.6-1.6z" fill="#ffd23f" stroke="#20221f" stroke-width="2.4" stroke-linejoin="round"/></svg></span>
+            <span class="sticker sticker--smile" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="#ffe14a" stroke="#20221f" stroke-width="2.4"/><circle cx="17" cy="20" r="2.6" fill="#20221f"/><circle cx="31" cy="20" r="2.6" fill="#20221f"/><path d="M15 28c2.5 4 5.5 6 9 6s6.5-2 9-6" fill="none" stroke="#20221f" stroke-width="2.6" stroke-linecap="round"/></svg></span>
+            <a class="sticker sticker--yt" href="https://www.youtube.com/@figureitoutwithkrish" target="_blank" rel="noopener" aria-label="Figure it out with Krish on YouTube" draggable="false"><svg viewBox="0 0 28 20" width="28" height="20" aria-hidden="true"><rect width="28" height="20" rx="6" fill="#ff2a2a"/><path d="M11 5.5v9l8-4.5z" fill="#fff"/></svg><span>figure it out</span></a>
+            <a class="sticker sticker--be" href="https://www.behance.net/theinvrangers" target="_blank" rel="noopener" aria-label="Krish on Behance" draggable="false">B&#275;</a>
           </div>
 
-          <figure class="photo win" data-fade>
+          <figure class="photo win">
             <span class="tape" aria-hidden="true"></span>
             <div class="win__bar"><span class="win__lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="win__title">IMG_0291.JPG</span></div>
             <img src="/assets/images/creative-hero.jpg" width="980" height="877" alt="Krish, arms crossed, in a Barcelona jersey at a fair ground" decoding="async" fetchpriority="high" />
             <figcaption class="photo__caption">figuring it out.</figcaption>
           </figure>
 
-          <p class="note note--same" aria-hidden="true">same guy,<br />more ideas.<svg class="note__arrow" viewBox="0 0 60 40" width="60" height="40" aria-hidden="true"><path d="M4 6c14 2 30 10 40 26M44 32l-9-3M44 32l1-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></p>
-          <p class="note note--hint" aria-hidden="true">double-click to explore</p>
-          <ul class="chero__list" aria-label="What I make">
-            <li>Brands</li><li>Thumbnails</li><li>Videos</li><li>Campaigns</li><li>And more.</li>
-          </ul>
+          <div class="sticky sticky--canary" tabindex="0" role="note">welcome to the creative side!</div>
+          <div class="sticky sticky--rose sticky--flip" tabindex="0" role="button" aria-pressed="false" aria-label="Flip note">
+            <span class="sticky__front">6th grade.<br />&#8377;50 a thumbnail,<br />for friends.</span>
+            <span class="sticky__back">now &#8377;1,000.<br />same kid.</span>
+          </div>
+          <div class="sticky sticky--tang" tabindex="0" role="note">insert a floppy &#8600;</div>
+
+          <button class="floppy floppy--circle" type="button" data-disk="circle" aria-label="Insert disk: Perfect Circle"><span class="floppy__shutter" aria-hidden="true"></span><span class="floppy__label">CIRCLE.DSK<small>draw a perfect one</small></span></button>
+          <button class="floppy floppy--racer" type="button" data-disk="racer" aria-label="Insert disk: Racer"><span class="floppy__shutter" aria-hidden="true"></span><span class="floppy__label">RACER.DSK<small>don&rsquo;t crash</small></span></button>
+
+          <div class="pad" role="group" aria-label="Game controls">
+            <button class="pad__btn pad__btn--left" type="button" data-key="ArrowLeft" aria-label="Left">&#9664;</button>
+            <button class="pad__btn pad__btn--up" type="button" data-key="ArrowUp" aria-label="Up">&#9650;</button>
+            <button class="pad__btn pad__btn--down" type="button" data-key="ArrowDown" aria-label="Down">&#9660;</button>
+            <button class="pad__btn pad__btn--right" type="button" data-key="ArrowRight" aria-label="Right">&#9654;</button>
+            <button class="pad__btn pad__btn--a" type="button" data-key="Enter" aria-label="A">A</button>
+          </div>
         </div>
       </section>
 
       <section class="csec" id="work" aria-labelledby="work-title">
-        <p class="clabel"><span>02</span> [ selected work ]</p>
+        <p class="clabel"><span>01</span> [ selected work ]</p>
         <h2 id="work-title" class="csec__title">Work</h2>
-        <div class="ph ph--wide"><span>Placeholder · bento grid (next milestone)</span></div>
-      </section>
-
-      <section class="csec" id="about" aria-labelledby="about-title">
-        <p class="clabel"><span>03</span> [ about ]</p>
-        <h2 id="about-title" class="csec__title">About Me</h2>
-        <div class="ph ph--wide"><span>Placeholder · about (later milestone)</span></div>
-      </section>
-
-      <section class="csec" id="playground" aria-labelledby="playground-title">
-        <p class="clabel"><span>04</span> [ playground ]</p>
-        <h2 id="playground-title" class="csec__title">Playground</h2>
-        <div class="ph ph--wide"><span>Placeholder · experiments (later milestone)</span></div>
-      </section>
-
-      <section class="csec" id="contact" aria-labelledby="contact-title">
-        <p class="clabel"><span>05</span> [ contact ]</p>
-        <h2 id="contact-title" class="csec__title">Let&rsquo;s make something worth looking at.</h2>
-        <div class="ph ph--wide"><span>Placeholder · contact (later milestone)</span></div>
+        <div class="ph ph--wide"><span>Placeholder · bento grid (milestone 3)</span></div>
       </section>
     </main>
 

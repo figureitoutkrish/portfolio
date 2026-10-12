@@ -5,7 +5,6 @@
 html.creative {
   /* Light: the Instagram-post green, a touch deeper so white text clears 4.5:1 (#128556 = 4.6:1). */
   --c-green: #128556;
-  --c-green-deep: #0e6d46; /* mini-Mac wallpaper */
   --c-grid: rgba(255, 255, 255, 0.07);
   --c-grid-major: rgba(255, 255, 255, 0.22);
   --c-paper: #f5f4ef;
@@ -16,7 +15,6 @@ html.creative {
   --c-lime: #b6ed68; /* CTAs and handwritten notes (3.4:1 on green: large text only) */
   --c-blue: #d9e8f8; /* selected / pressed accents, sparingly */
   --c-blue-ink: #24548c;
-  --c-select: #2b6fd6; /* Finder-style selected label */
   --c-white: #ffffff;
   --c-dim: rgba(255, 255, 255, 0.62); /* decorative only (coordinates, ticks) */
 
@@ -27,6 +25,18 @@ html.creative {
   --f-body: "Manrope Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
   --f-note: "Caveat Variable", "Bradley Hand", cursive;
+  --f-pixel: "Pixelify Sans", "Chicago", monospace; /* the Mac's system font */
+  --f-term: "VT323", ui-monospace, monospace; /* the Mac's terminal / chat */
+
+  /* The vintage Mac: platinum beige plastic. */
+  --mac-face: #ebe4d3;
+  --mac-face-2: #ddd4c0;
+  --mac-top: #f3eee2;
+  --mac-side: #c9bfa8;
+  --mac-bezel: #d6ccb6;
+  --mac-glass: #232622;
+  --os-paper: #f4f4ee;
+  --os-ink: #111;
 
   --win-radius: 12px;
   --win-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 48px -18px rgba(0, 32, 16, 0.45), 0 2px 6px rgba(0, 32, 16, 0.12);
@@ -43,7 +53,6 @@ html.creative {
 /* Dark: the mockup's deep racing green. Panels stay paper, a shade dimmer. */
 html.creative[data-theme="dark"] {
   --c-green: #014625;
-  --c-green-deep: #013a1f;
   --c-grid: rgba(255, 255, 255, 0.05);
   --c-grid-major: rgba(255, 255, 255, 0.13);
   --c-paper: #ecebe4;
@@ -227,313 +236,629 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
   pointer-events: none;
 }
 
-/* ---------- Section toolbar ---------- */
-.ctool {
-  position: sticky;
-  top: 0.75rem;
-  z-index: 30;
-  margin-top: 0.75rem;
-}
-.ctool__bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: 44px;
-  padding: 0 0.5rem 0 0.875rem;
-  border-radius: 12px;
-  background: var(--c-paper);
-  box-shadow: var(--win-shadow);
-  color: var(--c-ink);
-}
-.ctool__path {
-  --tracking: -0.01em;
-  display: none;
-  align-items: center;
-  min-height: 44px;
-  color: var(--c-ink);
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.ctool__sep { margin: 0 0.35em; color: var(--c-ink-2); font-weight: 500; }
-.ctool__links {
-  display: flex;
-  flex: 1;
-  justify-content: center;
-  list-style: none;
-}
-.ctool__links a {
-  --tracking: -0.005em;
+
+/* ---------- Header: traffic lights before the name (creative page only) ---------- */
+.site-header__lead { display: flex; align-items: center; gap: 0.9rem; }
+.lights { display: flex; }
+.lights__btn {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 0.6rem;
-  color: var(--c-ink-2);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 150ms ease;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.ctool__links a[aria-current="true"] { color: var(--c-ink); }
-.ctool__links a[aria-current="true"]::after {
+.lights__btn::before {
   content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 7px;
-  width: 4px;
-  height: 4px;
-  margin-left: -2px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  background: var(--c-green);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.25);
+  transition: transform 160ms var(--ease-out);
 }
-.ctool__ext {
-  display: none;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 44px;
-  padding: 0 0.5rem;
-  color: var(--c-ink-2);
-  font-family: var(--f-mono);
-  font-size: 0.75rem;
-  text-decoration: none;
-  transition: color 150ms ease;
+.lights__btn--close::before { background: #ff5f57; }
+.lights__btn--min::before { background: #febc2e; }
+.lights__btn--zoom::before { background: #28c840; }
+.lights__btn svg {
+  position: absolute;
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 120ms ease;
 }
-.ctool .win__lights { display: none; }
+.lights__btn:active::before { transform: scale(0.88); filter: brightness(0.85); }
+/* Like macOS: the glyphs show when you're over the group (or focused inside it). */
+.lights:focus-within .lights__btn svg { opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
-  .ctool__links a:hover, .ctool__ext:hover, .ctool__path:hover { color: var(--c-ink); }
+  .lights:hover .lights__btn svg { opacity: 1; }
 }
+.lights__btn:focus-visible { outline: none; }
+.lights__btn:focus-visible::before { outline: 2px solid var(--c-lime); outline-offset: 2px; }
 
 /* ---------- Hero ---------- */
 .chero {
   position: relative;
   display: grid;
-  gap: 3rem;
-  padding: 3rem 0 4rem;
+  gap: 2.5rem;
+  padding: 2rem 0 4rem;
+  scroll-margin-top: 1rem;
+  overflow-x: clip; /* stickers and disks may hang off the desk, never off the page */
 }
-.chero .tick--tl { top: 1rem; left: -7px; }
+.chero .tick--tl { top: 0.5rem; left: -7px; }
 .chero .tick--br { right: -7px; bottom: 1rem; }
-.coord--hero { top: 1.4rem; right: 0; }
+.coord--hero { top: 0.8rem; right: 0; }
 
-.chero__copy { position: relative; z-index: 2; display: grid; align-content: center; justify-items: start; }
-.chero__name {
+.chero__head { position: relative; z-index: 2; display: grid; align-content: center; justify-items: start; }
+.chero__kicker { font-size: clamp(1.7rem, 6vw, 2.4rem); transform: rotate(-3deg); transform-origin: left; }
+.chero__title {
   --tracking: 0.005em;
-  margin: 1.25rem 0 0.75rem;
+  margin: 0.25rem 0 0;
   font-family: var(--f-display);
-  font-size: clamp(3.75rem, 16vw, 8.25rem);
+  font-size: clamp(4.5rem, 21vw, 10rem);
   font-weight: 400;
-  line-height: 0.9;
+  line-height: 0.88;
   text-transform: uppercase;
   color: var(--c-white);
 }
-.chero__name .line { display: block; overflow: hidden; padding-top: 0.04em; }
-.chero__name .line > span { display: block; }
-.chero__roles { font-size: clamp(1.6rem, 5.6vw, 2.1rem); transform: rotate(-1.5deg); transform-origin: left; }
-.chero__student { margin-top: 0.15rem; font-size: clamp(1.45rem, 5vw, 1.8rem); transform: rotate(-1.5deg); transform-origin: left; }
-.chero__intro {
+.chero__title .line { display: block; overflow: hidden; padding-top: 0.04em; }
+.chero__title .line > span { display: block; }
+.chero__lede {
   --tracking: -0.005em;
-  max-width: 34rem;
-  margin-top: 1.5rem;
+  max-width: 24rem;
+  margin-top: 1.25rem;
   font-size: 1.0625rem;
-  font-weight: 500;
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--c-white);
 }
-.chero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
 
-.chero__stage { position: relative; display: grid; gap: 1.5rem; }
-.chero__list {
-  --tracking: 0.1em;
+/* ---------- The desk ---------- */
+.desk {
+  --mw: min(30rem, 82vw); /* Mac width; everything on the desk scales off it */
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 1.75rem;
+  padding: 2.5rem 0 1rem;
+}
+
+/* ---------- The vintage Mac (CSS-built) ---------- */
+.mac3d {
+  --depth: calc(var(--mw) * 0.55);
+  position: relative;
+  width: var(--mw);
+  aspect-ratio: 1 / 1.16;
+  /* Front face sits at z = 0 (undistorted); top and side recede, seen from up and to the right. */
+  perspective: calc(var(--mw) * 3);
+  perspective-origin: 120% -40%;
+}
+.mac3d__face {
+  position: absolute;
+  inset: 0 0 4% 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  list-style: none;
-  font-family: var(--f-mono);
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  color: var(--c-white);
+  flex-direction: column;
+  border-radius: calc(var(--mw) * 0.035);
+  background: linear-gradient(170deg, var(--mac-face) 0%, var(--mac-face-2) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.08),
+    inset -2px 0 0 rgba(0, 0, 0, 0.05);
+}
+.mac3d__top,
+.mac3d__side {
+  position: absolute;
+  top: 0;
+  border-radius: calc(var(--mw) * 0.02);
+}
+.mac3d__top {
+  left: 0;
+  width: 100%;
+  height: var(--depth);
+  transform-origin: 50% 0;
+  transform: rotateX(-90deg);
+  background: linear-gradient(to bottom, var(--mac-top), #e2dbc9);
+}
+.mac3d__side {
+  left: 100%;
+  width: var(--depth);
+  height: 96%;
+  transform-origin: 0 50%;
+  transform: rotateY(90deg);
+  background: linear-gradient(to right, var(--mac-side), #b4aa92);
+}
+.mac3d__foot {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 0;
+  height: 5%;
+  border-radius: 0 0 calc(var(--mw) * 0.02) calc(var(--mw) * 0.02);
+  background: linear-gradient(var(--mac-side), #b9af98);
+}
+/* Shadow on the desk */
+.mac3d::after {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: -12%;
+  bottom: -4%;
+  height: 10%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 25, 12, 0.45), transparent);
+  filter: blur(6px);
 }
 
-/* Photo window (polaroid on the drawing board) */
+.mac3d__bezel {
+  margin: 7% 8% 0;
+  padding: 5.5%;
+  border-radius: calc(var(--mw) * 0.028);
+  background: var(--mac-bezel);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.22), inset 0 -1px 0 rgba(255, 255, 255, 0.55);
+}
+.crt {
+  position: relative;
+  aspect-ratio: 4 / 3.15;
+  overflow: hidden;
+  border-radius: calc(var(--mw) * 0.035) / calc(var(--mw) * 0.045);
+  background: var(--mac-glass);
+  box-shadow: 0 0 0 calc(var(--mw) * 0.012) var(--mac-glass);
+  container-type: inline-size;
+  isolation: isolate;
+}
+.crt__scan,
+.crt__glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.crt__scan {
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px);
+  box-shadow: inset 0 0 7cqw rgba(0, 0, 0, 0.4); /* tube vignette */
+  border-radius: inherit;
+}
+.crt__glare { background: radial-gradient(120% 80% at 20% 0%, rgba(255, 255, 255, 0.22), transparent 45%); }
+
+/* Chin: badge, model, floppy slot, LED, power, knob */
+.mac3d__chin {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3%;
+  padding: 0 8%;
+}
+.mac3d__badge {
+  display: grid;
+  place-items: center;
+  width: calc(var(--mw) * 0.055);
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: linear-gradient(#5fbf6a 0 20%, #f2c230 20% 40%, #ef8a2c 40% 60%, #e2453d 60% 80%, #4a7bd6 80%);
+  color: #fff;
+  font-family: var(--f-display);
+  font-size: calc(var(--mw) * 0.04);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.mac3d__model {
+  --tracking: 0.04em;
+  font-family: var(--f-pixel);
+  font-size: calc(var(--mw) * 0.026);
+  color: #8f8672;
+}
+.mac3d__slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  width: 34%;
+}
+.mac3d__slot-mouth {
+  flex: 1;
+  height: calc(var(--mw) * 0.016);
+  border-radius: 3px;
+  background: #3a3832;
+  box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.mac3d__eject {
+  width: calc(var(--mw) * 0.028);
+  height: calc(var(--mw) * 0.014);
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: #cfc6b1;
+  box-shadow: 0 1px 0 #a99f88;
+  cursor: pointer;
+}
+.mac3d__led {
+  position: absolute;
+  right: 8%;
+  bottom: 22%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6cf27a;
+  box-shadow: 0 0 6px #6cf27a;
+}
+.mac3d__power {
+  position: absolute;
+  left: 8%;
+  bottom: 18%;
+  width: calc(var(--mw) * 0.04);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #f7f2e6, #cfc5ae);
+  box-shadow: 0 2px 0 #a9a08a, inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 120ms var(--ease-out), box-shadow 120ms var(--ease-out);
+}
+.mac3d__power:active { transform: translateY(2px); box-shadow: 0 0 0 #a9a08a, inset 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.mac3d__knob {
+  position: absolute;
+  right: -1.5%;
+  top: 30%;
+  width: calc(var(--mw) * 0.035);
+  height: calc(var(--mw) * 0.09);
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: repeating-linear-gradient(to bottom, #cdc3ad 0 2px, #b3a990 2px 4px);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
+  cursor: ns-resize;
+}
+.mac3d__vents {
+  position: absolute;
+  left: 8%;
+  right: 50%;
+  bottom: 6%;
+  height: 7%;
+  background: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.13) 0 2px, transparent 2px 7px);
+  opacity: 0.0; /* reserved: back vents show only when the Mac is turned */
+}
+.mac3d__chin :focus-visible,
+.mac3d__power:focus-visible,
+.mac3d__knob:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 2px; }
+
+/* ---------- Mac OS (1-bit classic) ---------- */
+.os {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--os-paper);
+  color: var(--os-ink);
+  font-family: var(--f-pixel);
+  font-size: 3.4cqw;
+  line-height: 1.1;
+}
+.os__menubar {
+  display: flex;
+  align-items: center;
+  gap: 3.4cqw;
+  height: 7cqw;
+  padding: 0 3cqw;
+  border-bottom: 1px solid var(--os-ink);
+  background: var(--os-paper);
+}
+.os__apple { font-size: 4cqw; }
+.os__clock { margin-left: auto; font-variant-numeric: tabular-nums; }
+.os__desk {
+  position: relative;
+  flex: 1;
+  /* classic desktop dither */
+  background-color: #e3e3dc;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.5) 0.55px, transparent 0.75px);
+  background-size: 3px 3px;
+}
+.os__icons {
+  position: absolute;
+  top: 3cqw;
+  right: 2cqw;
+  display: grid;
+  gap: 1.2cqw;
+  list-style: none;
+}
+.os__icon {
+  display: grid;
+  justify-items: center;
+  gap: 0.8cqw;
+  width: 15cqw;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--os-ink);
+  font: inherit;
+  cursor: default;
+}
+.os__glyph {
+  width: 8cqw;
+  height: 8cqw;
+  background-repeat: no-repeat;
+  background-size: contain;
+  image-rendering: pixelated;
+}
+.os__name {
+  padding: 0 0.6cqw;
+  background: var(--os-paper);
+  font-size: 2.9cqw;
+  white-space: nowrap;
+}
+.os__icon[aria-pressed="true"] .os__glyph { filter: invert(1); }
+.os__icon[aria-pressed="true"] .os__name { background: var(--os-ink); color: var(--os-paper); }
+.os__icon:focus-visible { outline: none; }
+.os__icon:focus-visible .os__name { outline: 1px dotted var(--os-ink); outline-offset: 1px; }
+
+/* Pixel glyphs (1-bit, drawn on a 16px grid) */
+.os__glyph--work { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M1 3h5l1 1h8v10H1z' fill='%23fff' stroke='%23111'/%3E%3Cpath d='M1 6h14' stroke='%23111'/%3E%3C/svg%3E"); }
+.os__glyph--circle { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='14' height='14' fill='%23fff' stroke='%23111'/%3E%3Ccircle cx='8' cy='8' r='4.5' fill='none' stroke='%23111' stroke-width='1.2'/%3E%3C/svg%3E"); }
+.os__glyph--racer { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='14' height='14' fill='%23fff' stroke='%23111'/%3E%3Cpath d='M6 4h4v8H6z' fill='%23111'/%3E%3Cpath d='M5 5h1v2H5zM10 5h1v2h-1zM5 9h1v2H5zM10 9h1v2h-1z' fill='%23111'/%3E%3C/svg%3E"); }
+.os__glyph--chat { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M1 2h14v9H7l-3 3v-3H1z' fill='%23fff' stroke='%23111'/%3E%3Cpath d='M4 5h8M4 8h5' stroke='%23111'/%3E%3C/svg%3E"); }
+.os__glyph--scores { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath d='M4 2h8v4a4 4 0 0 1-8 0z' fill='%23fff' stroke='%23111'/%3E%3Cpath d='M8 10v3M5 14h6M4 3H2v2l2 1M12 3h2v2l-2 1' stroke='%23111' fill='none'/%3E%3C/svg%3E"); }
+
+/* Classic window */
+.os__win {
+  position: absolute;
+  left: 4cqw;
+  top: 4cqw;
+  width: 62cqw;
+  border: 1px solid var(--os-ink);
+  background: var(--os-paper);
+  box-shadow: 1px 1px 0 var(--os-ink);
+}
+.os__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 5.5cqw;
+  border-bottom: 1px solid var(--os-ink);
+  /* the striped title bar */
+  background: linear-gradient(var(--os-paper), var(--os-paper)) center / 100% 100% no-repeat;
+  background-image: repeating-linear-gradient(to bottom, var(--os-ink) 0 1px, transparent 1px 2px);
+  background-clip: content-box;
+  padding: 1cqw 0.8cqw;
+}
+.os__close {
+  position: absolute;
+  left: 2cqw;
+  width: 3.2cqw;
+  height: 3.2cqw;
+  border: 1px solid var(--os-ink);
+  background: var(--os-paper);
+  box-shadow: 0 0 0 1cqw var(--os-paper);
+}
+.os__title {
+  padding: 0 1.6cqw;
+  background: var(--os-paper);
+  font-size: 3cqw;
+}
+.os__body { position: relative; }
+.os__body--slides { aspect-ratio: 16 / 10; display: grid; place-items: center; }
+.os__ph { font-family: var(--f-term); font-size: 4cqw; color: #555; }
+
+/* ---------- Stickers (src/creative/stickers.js makes them draggable) ---------- */
+.sticker {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  color: var(--c-ink);
+  text-decoration: none;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25));
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.sticker svg { display: block; width: 100%; height: auto; }
+.sticker--koach {
+  top: 27%;
+  left: -6%;
+  padding: 0.4rem 0.7rem 0.45rem;
+  border-radius: 10px;
+  background: var(--c-lime);
+  box-shadow: 0 0 0 3px #fff;
+  line-height: 0.85;
+  transform: rotate(-9deg);
+}
+.sticker--koach span { font-family: var(--f-display); font-size: calc(var(--mw) * 0.055); --tracking: 0.02em; }
+.sticker--koach small { font-family: var(--f-note); font-size: calc(var(--mw) * 0.035); font-weight: 600; }
+.sticker--star { top: -5%; right: 2%; width: calc(var(--mw) * 0.12); transform: rotate(12deg); }
+.sticker--smile { top: -4%; left: 38%; width: calc(var(--mw) * 0.1); transform: rotate(-12deg); }
+.sticker--yt {
+  bottom: 9%;
+  left: 26%;
+  grid-auto-flow: column;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--f-note);
+  font-size: calc(var(--mw) * 0.04);
+  font-weight: 700;
+  transform: rotate(-4deg);
+}
+.sticker--yt svg { width: calc(var(--mw) * 0.05); }
+.sticker--be {
+  right: 12%;
+  bottom: 6%;
+  width: calc(var(--mw) * 0.09);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #1769ff;
+  box-shadow: 0 0 0 3px #fff;
+  color: #fff;
+  font-family: var(--f-body);
+  font-size: calc(var(--mw) * 0.038);
+  font-weight: 800;
+  transform: rotate(10deg);
+}
+
+/* ---------- Sticky notes ---------- */
+.sticky {
+  position: absolute;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  width: calc(var(--mw) * 0.3);
+  aspect-ratio: 1;
+  padding: 0.6rem;
+  background: var(--tone, #f8e98b);
+  box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.5), inset 0 -8px 12px -10px rgba(0, 0, 0, 0.18);
+  color: var(--c-ink);
+  font-family: var(--f-note);
+  font-size: calc(var(--mw) * 0.05);
+  font-weight: 600;
+  line-height: 1.05;
+  text-align: center;
+  user-select: none;
+}
+.sticky::before { /* the sticky strip */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 18%;
+  background: rgba(0, 0, 0, 0.04);
+}
+.sticky:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 3px; }
+.sticky--canary { --tone: #f8e98b; top: 0; left: -2%; transform: rotate(-6deg); }
+.sticky--rose { --tone: #f7b9cb; top: 18%; right: 0; transform: rotate(5deg); cursor: pointer; }
+.sticky--tang { --tone: #f6c27a; right: -3%; bottom: 33%; transform: rotate(-4deg); }
+.sticky__back { display: none; }
+.sticky--flip[aria-pressed="true"] .sticky__front { display: none; }
+.sticky--flip[aria-pressed="true"] .sticky__back { display: block; }
+
+/* ---------- Floppies ---------- */
+.floppy {
+  position: absolute;
+  z-index: 6;
+  width: calc(var(--mw) * 0.2);
+  aspect-ratio: 1 / 1.04;
+  padding: 0;
+  border: 0;
+  border-radius: 3px 3px 3px 3px;
+  background: var(--disk, #2d3138);
+  box-shadow: 0 8px 14px -8px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  cursor: grab;
+}
+.floppy--circle { --disk: #2a5cc9; right: -5%; bottom: 9%; transform: rotate(-8deg); }
+.floppy--racer { --disk: #c8372d; right: 7%; bottom: 1%; transform: rotate(6deg); }
+.floppy__shutter {
+  position: absolute;
+  top: 0;
+  left: 26%;
+  width: 48%;
+  height: 34%;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(90deg, #c9ccd1, #eef0f2 50%, #b9bdc3);
+}
+.floppy__shutter::after {
+  content: "";
+  position: absolute;
+  top: 14%;
+  right: 16%;
+  width: 22%;
+  height: 62%;
+  background: #2d3138;
+}
+.floppy__label {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 6%;
+  height: 46%;
+  display: grid;
+  align-content: center;
+  padding: 0 6%;
+  border-radius: 2px;
+  background: #fbfaf5;
+  color: var(--c-ink);
+  font-family: var(--f-pixel);
+  font-size: calc(var(--mw) * 0.026);
+  line-height: 1.1;
+  text-align: left;
+}
+.floppy__label small { font-family: var(--f-note); font-size: calc(var(--mw) * 0.03); font-weight: 600; color: var(--c-ink-2); }
+.floppy:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 3px; }
+
+/* ---------- Photo, taped to the Mac's side ---------- */
 .photo {
-  justify-self: center;
-  width: min(100%, 22rem);
-  padding-bottom: 0;
-  transform: rotate(-3deg);
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  bottom: 18%;
+  width: calc(var(--mw) * 0.42);
+  transform: rotate(-6deg);
   overflow: visible;
 }
+.photo .win__bar { height: 22px; border-radius: var(--win-radius) var(--win-radius) 0 0; }
+.photo .win__lights i { width: 7px; height: 7px; }
+.photo .win__title { font-size: 0.5625rem; }
 .photo img {
-  width: calc(100% - 1.25rem);
+  width: calc(100% - 1rem);
   height: auto;
-  margin: 0.625rem auto 0;
+  margin: 0.5rem auto 0;
   border-radius: 3px;
   aspect-ratio: 980 / 877;
   object-fit: cover;
   background: var(--c-paper-2);
 }
 .photo__caption {
-  padding: 0.5rem 1rem 0.9rem;
+  padding: 0.35rem 0.75rem 0.6rem;
   font-family: var(--f-note);
-  font-size: 1.6rem;
+  font-size: calc(var(--mw) * 0.045);
   font-weight: 600;
   line-height: 1;
   text-align: right;
   color: var(--c-ink);
   transform: rotate(-2deg);
 }
-.photo .win__bar { border-radius: var(--win-radius) var(--win-radius) 0 0; }
 .tape {
   position: absolute;
-  top: -12px;
+  top: -10px;
   left: 50%;
   z-index: 2;
-  width: 88px;
-  height: 24px;
-  margin-left: -44px;
-  background: rgba(240, 238, 225, 0.72);
+  width: 64px;
+  height: 20px;
+  margin-left: -32px;
+  background: rgba(240, 238, 225, 0.75);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   transform: rotate(4deg);
 }
 
-.note--same, .note--hint { display: none; }
-
-/* ---------- Mini Mac (shell; behaviour in src/creative/minimac.js) ---------- */
-.mac { width: 100%; }
-.mac__screen {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  aspect-ratio: 4 / 3.4;
-  background-color: var(--c-green-deep);
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
-  background-position: -1px -1px;
-}
-.mac__menubar {
-  --tracking: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  height: 22px;
-  padding: 0 0.7rem;
-  background: rgba(245, 244, 239, 0.86);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--c-ink);
-}
-.mac__menubar span:not(:nth-child(2)) { font-weight: 500; }
-.mac__clock { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; }
-.mac__desk { position: relative; flex: 1; }
-.mac__icons {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.5rem;
-  display: grid;
-  grid-template-columns: repeat(2, auto);
-  gap: 0.25rem;
-  list-style: none;
-}
-.mac__icon {
-  display: grid;
-  justify-items: center;
-  gap: 0.2rem;
-  width: 80px;
-  padding: 0.35rem 0.25rem;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--c-white);
-  font: inherit;
-  cursor: default;
-  -webkit-tap-highlight-color: transparent;
-}
-.mac__label {
-  --tracking: 0;
-  padding: 0.05rem 0.35rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-.mac__icon[aria-pressed="true"] .mac__glyph { background-color: rgba(255, 255, 255, 0.18); }
-.mac__icon[aria-pressed="true"] .mac__label { background: var(--c-select); text-shadow: none; }
-.mac__icon:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 0; }
-
-/* App glyphs: drawn with CSS + inline SVG backgrounds so they stay crisp at any size. */
-.mac__glyph {
-  display: block;
-  width: 46px;
-  height: 46px;
-  border-radius: 8px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 40px 40px;
-}
-.mac__glyph--folder { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M4 10a3 3 0 0 1 3-3h8l3 3h15a3 3 0 0 1 3 3v2H4z' fill='%2389b8ea'/%3E%3Crect x='4' y='13' width='32' height='21' rx='3' fill='%23a9cdf3'/%3E%3Crect x='4' y='13' width='32' height='3' fill='%23ffffff' opacity='.45'/%3E%3C/svg%3E"); }
-.mac__glyph--about { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='6' y='5' width='28' height='31' rx='3' fill='%23f5f4ef'/%3E%3Ccircle cx='20' cy='16' r='5' fill='%23128556'/%3E%3Cpath d='M11 30c1.5-5 5-7 9-7s7.5 2 9 7' fill='%23128556'/%3E%3Crect x='6' y='5' width='28' height='31' rx='3' fill='none' stroke='%2320221f' stroke-opacity='.15'/%3E%3C/svg%3E"); }
-.mac__glyph--play { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='5' y='5' width='30' height='30' rx='8' fill='%23b6ed68'/%3E%3Cpath d='M20 11l2.4 5.6L28 19l-5.6 2.4L20 27l-2.4-5.6L12 19l5.6-2.4z' fill='%2320221f'/%3E%3C/svg%3E"); }
-.mac__glyph--mail { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='5' y='9' width='30' height='22' rx='3' fill='%23d9e8f8'/%3E%3Cpath d='M6 11l14 11 14-11' fill='none' stroke='%2324548c' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-
-.mac__sticky {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  padding: 0.7rem 0.8rem 0.8rem;
-  background: #fbf3a4;
-  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.45);
-  font-family: var(--f-note);
-  font-size: 1.15rem;
-  font-weight: 600;
-  line-height: 1.05;
-  color: var(--c-ink);
-  transform: rotate(-3deg);
-}
-.mac__windows { position: absolute; inset: 0; pointer-events: none; }
-
-.mac__dock {
-  display: flex;
-  gap: 0.35rem;
-  align-self: center;
-  margin-bottom: 0.6rem;
-  padding: 0.3rem;
-  border-radius: 14px;
-  background: rgba(245, 244, 239, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 8px 20px -10px rgba(0, 0, 0, 0.4);
-}
-.mac__dockitem {
-  position: relative;
+/* ---------- Gamepad (physical keys under the Mac) ---------- */
+.pad { display: flex; gap: 0.5rem; }
+.pad__btn {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
+  padding: 0;
   border: 0;
   border-radius: 10px;
-  background: none;
+  background: linear-gradient(var(--mac-top), var(--mac-face-2));
+  box-shadow: 0 4px 0 #b3a990, 0 6px 10px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #6f6754;
+  font-family: var(--f-pixel);
+  font-size: 0.95rem;
   cursor: pointer;
-  transform-origin: 50% 100%;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 90ms var(--ease-out), box-shadow 90ms var(--ease-out);
 }
-.mac__dockitem .mac__glyph { width: 36px; height: 36px; background-size: 34px 34px; }
-.mac__dockitem.is-open::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  margin-left: -2px;
-  border-radius: 50%;
-  background: var(--c-ink);
-}
-.mac__dockitem:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 1px; }
+.pad__btn:active, .pad__btn.is-down { transform: translateY(3px); box-shadow: 0 1px 0 #b3a990, 0 2px 4px -2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.8); }
+.pad__btn--a { margin-left: 0.75rem; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #c6f584, var(--c-lime) 60%, #93c94f); box-shadow: 0 4px 0 #6f9a3a, 0 6px 10px -4px rgba(0, 0, 0, 0.4); color: var(--c-ink); }
+.pad__btn--a:active, .pad__btn--a.is-down { box-shadow: 0 1px 0 #6f9a3a, 0 2px 4px -2px rgba(0, 0, 0, 0.4); }
+.pad__btn:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 3px; }
 
-/* ---------- Sections (shells; filled in later milestones) ---------- */
-.csec { position: relative; display: grid; gap: 1.25rem; padding: 4rem 0; scroll-margin-top: 5rem; }
-.chero { scroll-margin-top: 5rem; }
+/* ---------- Sections ---------- */
+.csec { position: relative; display: grid; gap: 1.25rem; padding: 4rem 0; scroll-margin-top: 1rem; }
 .csec__title {
   --tracking: -0.035em;
   font-family: var(--f-body);
@@ -543,46 +868,41 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
   color: var(--c-white);
 }
 
-/* Phones: the photo leads, and the desk keeps just the icons (the sticky note needs room). */
-@media (max-width: 639px) {
-  .photo { order: -1; }
-  .mac__sticky { display: none; }
+/* Phones: fewer notes, kept off the screen; the keys sit left, the disks right. */
+@media (max-width: 767px) {
+  .desk { --mw: min(30rem, 78vw); justify-items: start; padding-left: 4vw; }
+  .sticky { width: calc(var(--mw) * 0.27); font-size: calc(var(--mw) * 0.046); }
+  .sticky--canary, .sticky--tang { display: none; }
+  .sticky--rose { top: 0.5rem; right: 0; }
+  .photo { width: calc(var(--mw) * 0.38); bottom: 22%; left: -1%; }
+  .pad { gap: 0.4rem; }
+  .pad__btn { width: 42px; height: 42px; }
+  .floppy { width: calc(var(--mw) * 0.24); }
+  .floppy--circle { right: 0; bottom: 4%; }
+  .floppy--racer { right: 17%; bottom: -1%; }
 }
 
 /* ---------- Larger screens ---------- */
-@media (min-width: 640px) {
-  .ctool__path { display: inline-flex; }
-  .ctool .win__lights { display: inline-flex; }
-  .ctool__links { justify-content: flex-end; }
-}
 @media (min-width: 768px) {
   html.creative { --gutter: 2.5rem; --cell: 28px; }
-  .ctool__ext { display: inline-flex; }
-  .ctool__links { justify-content: center; }
+  .desk { --mw: min(30rem, 60vw); padding-inline: 4rem; }
 }
-@media (min-width: 1024px) {
+@media (min-width: 1100px) {
   html.creative { --gutter: 4vw; }
   .chero {
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
-    gap: 4rem;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
     align-items: center;
-    padding: 4.5rem 0 6rem;
+    gap: 2rem;
+    min-height: calc(100svh - 5rem);
+    padding: 1rem 0 3rem;
   }
-  .chero__name { font-size: clamp(5.5rem, 8.6vw, 8.75rem); }
-  .chero__stage { display: block; padding: 2.25rem 0 4.5rem 4rem; }
-  .mac { width: 100%; }
-  .mac__screen { aspect-ratio: 16 / 11; }
-  /* The photo leans on the Mac's left edge, clear of the desktop icons (top-right). */
-  .photo { position: absolute; left: -1.5rem; bottom: 0; z-index: 3; width: 36%; }
-  .note--same { display: block; position: absolute; top: -2.25rem; left: -0.5rem; transform: rotate(-6deg); }
-  .note--same .note__arrow { margin: 0.2rem 0 0 4.5rem; transform: rotate(10deg); }
-  .note--hint { display: block; position: absolute; top: 0; right: 1rem; font-size: 1.35rem; transform: rotate(-3deg); }
-  .chero__list { position: absolute; right: 0; bottom: 0.75rem; justify-content: flex-end; max-width: 55%; }
+  .chero__title { font-size: clamp(6.5rem, 9.6vw, 10rem); }
+  .desk { --mw: min(31rem, 36vw); padding: 3rem 5rem 1rem; }
 }
 
 /* ---------- Preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .pill, .pill svg { transition: none; }
+  .pill, .pill svg, .lights__btn::before, .mac3d__power, .pad__btn { transition: none; }
 }
 @media (prefers-contrast: more) {
   html.creative { --c-grid: transparent; --c-grid-major: rgba(255, 255, 255, 0.3); --c-dim: #fff; }
