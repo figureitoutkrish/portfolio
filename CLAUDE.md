@@ -34,7 +34,7 @@ npm run preview   # serve the production build
 ```
 index.html              # Home (pamidordesign.co-style hero) + intro overlay + gradient wipe
 data/index.html         # Data alter-ego page (placeholder)
-creative/index.html     # Creative alter-ego page (placeholder)
+creative/index.html     # Creative alter-ego page: green grid, Mac windows, bento work (design-system/pages/creative.md)
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
 vite.config.js
@@ -44,7 +44,8 @@ public/assets/
   fonts/                # Self-hosted web fonts
 src/
   main.js               # Home entry (intro, home reveal)
-  page.js               # Entry for the alter-ego pages
+  page.js               # Entry for the data page (placeholder)
+  creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css)
   shared.js             # Every page: Lenis, menu, tab bar, page transitions
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)

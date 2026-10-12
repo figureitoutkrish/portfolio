@@ -1,6 +1,7 @@
 # Design System — Krish Viramgama Portfolio
 
 Global source of truth. Page files in `design-system/pages/` only record deviations from this.
+**Exception: the creative page (`pages/creative.md`) has its own palette (green grid), fonts (Anton / Manrope / JetBrains Mono / Caveat) and casing.**
 Tokens live in `:root` in `src/styles/main.css`; this file explains them.
 
 ## Source

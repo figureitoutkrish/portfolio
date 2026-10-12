@@ -1,0 +1,590 @@
+/* Creative page (alter ego 02): green technical grid, Mac windows, handwritten notes.
+   Loaded only by src/creative.js, after main.css. Rules: design-system/pages/creative.md. */
+
+/* ---------- Tokens ---------- */
+html.creative {
+  /* Light: the Instagram-post green, a touch deeper so white text clears 4.5:1 (#128556 = 4.6:1). */
+  --c-green: #128556;
+  --c-green-deep: #0e6d46; /* mini-Mac wallpaper */
+  --c-grid: rgba(255, 255, 255, 0.07);
+  --c-grid-major: rgba(255, 255, 255, 0.22);
+  --c-paper: #f5f4ef;
+  --c-paper-2: #ebe9e1;
+  --c-ink: #20221f;
+  --c-ink-2: #5a5e56; /* 6.1:1 on paper */
+  --c-hair: rgba(32, 34, 31, 0.1);
+  --c-lime: #b6ed68; /* CTAs and handwritten notes (3.4:1 on green: large text only) */
+  --c-blue: #d9e8f8; /* selected / pressed accents, sparingly */
+  --c-blue-ink: #24548c;
+  --c-select: #2b6fd6; /* Finder-style selected label */
+  --c-white: #ffffff;
+  --c-dim: rgba(255, 255, 255, 0.62); /* decorative only (coordinates, ticks) */
+
+  --cell: 24px;
+  --major: calc(var(--cell) * 5);
+
+  --f-display: "Anton", Impact, "Arial Narrow", sans-serif;
+  --f-body: "Manrope Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  --f-note: "Caveat Variable", "Bradley Hand", cursive;
+
+  --win-radius: 12px;
+  --win-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 48px -18px rgba(0, 32, 16, 0.45), 0 2px 6px rgba(0, 32, 16, 0.12);
+
+  /* Shared tokens the global chrome reads (header, focus ring, menu button). */
+  --bg: var(--c-green);
+  --fg: var(--c-white);
+  --muted: rgba(255, 255, 255, 0.86);
+  --line: rgba(255, 255, 255, 0.35);
+  --accent: var(--c-lime);
+  --gutter: 1.25rem;
+}
+
+/* Dark: the mockup's deep racing green. Panels stay paper, a shade dimmer. */
+html.creative[data-theme="dark"] {
+  --c-green: #014625;
+  --c-green-deep: #013a1f;
+  --c-grid: rgba(255, 255, 255, 0.05);
+  --c-grid-major: rgba(255, 255, 255, 0.13);
+  --c-paper: #ecebe4;
+  --c-paper-2: #e0ded5;
+  --win-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 28px 56px -18px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Base ---------- */
+html.creative body {
+  text-transform: none;
+  font-family: var(--f-body);
+  font-weight: 500;
+  background-color: var(--bg);
+  /* The technical grid: faint cells, stronger every fifth line. */
+  background-image:
+    linear-gradient(var(--c-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--c-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-grid) 1px, transparent 1px);
+  background-size: var(--major) var(--major), var(--major) var(--major), var(--cell) var(--cell), var(--cell) var(--cell);
+  background-position: -1px -1px;
+}
+
+.page--creative {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 1.25rem var(--gutter) 8rem;
+}
+.page--creative .site-header { z-index: 35; } /* the menu opens over the sticky toolbar */
+
+/* The menu panel is light glass in light mode: give it ink, not the page's white. */
+html.creative:not([data-theme="dark"]) .menu {
+  --fg: var(--c-ink);
+  --muted: var(--c-ink-2);
+  --line: var(--c-hair);
+  --accent: #0b6b3f;
+}
+html.creative[data-theme="dark"] .menu {
+  --fg: #ececf1;
+  --muted: #a9aca4;
+  --line: rgba(236, 236, 241, 0.18);
+}
+html.creative .menu a,
+html.creative .menu__label,
+html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
+
+/* ---------- Shared pieces ---------- */
+/* Mono label: "02  [ SELECTED WORK ]" */
+.clabel {
+  --tracking: 0.08em;
+  display: flex;
+  gap: 1.25em;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--c-white);
+}
+.clabel span { font-variant-numeric: tabular-nums; }
+
+/* Handwritten notes, as if scribbled on the drawing. */
+.note {
+  --tracking: 0;
+  font-family: var(--f-note);
+  font-weight: 600;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--c-lime);
+}
+.note__arrow { display: block; color: var(--c-lime); }
+
+/* Window chrome: paper body, title bar with traffic lights. */
+.win {
+  position: relative;
+  background: var(--c-paper);
+  border-radius: var(--win-radius);
+  box-shadow: var(--win-shadow);
+  color: var(--c-ink);
+  overflow: hidden;
+}
+.win__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 30px;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--c-hair);
+  background: linear-gradient(var(--c-paper), var(--c-paper-2));
+}
+.win__lights { display: inline-flex; gap: 6px; flex: none; }
+.win__lights i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+}
+.win__lights i:nth-child(1) { background: #ff5f57; }
+.win__lights i:nth-child(2) { background: #febc2e; }
+.win__lights i:nth-child(3) { background: #28c840; }
+.win__title {
+  --tracking: 0.02em;
+  overflow: hidden;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  color: var(--c-ink-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Pills */
+.pill {
+  --tracking: -0.005em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1.4rem;
+  border-radius: 999px;
+  font-family: var(--f-body);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms var(--ease-out), background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+.pill:active { transform: scale(0.97); }
+.pill--lime { background: var(--c-lime); color: var(--c-ink); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 6px 16px -8px rgba(0, 0, 0, 0.35); }
+.pill--line { border: 1.5px solid rgba(255, 255, 255, 0.85); color: var(--c-white); }
+/* Glossy Aqua-style pill (the Instagram post's buttons) for selected states. */
+.pill--glossy {
+  background: linear-gradient(#eef5fd, var(--c-blue) 48%, #b9d3f1 52%, #cfe2f7);
+  color: var(--c-blue-ink);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(36, 84, 140, 0.18), 0 4px 10px -4px rgba(36, 84, 140, 0.45);
+}
+.pill svg { transition: transform 200ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .pill--lime:hover { background: #c5f37f; }
+  .pill--lime:hover svg { transform: translateX(3px); }
+  .pill--line:hover { background: rgba(255, 255, 255, 0.12); }
+}
+
+/* Placeholder: keeps the layout and aspect ratio, never pretends to be finished work. */
+.ph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background-color: var(--c-paper-2);
+  background-image:
+    linear-gradient(var(--c-hair) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-hair) 1px, transparent 1px);
+  background-size: 16px 16px;
+  color: var(--c-ink-2);
+}
+.ph span {
+  --tracking: 0.06em;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  background: var(--c-paper);
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  text-align: center;
+}
+.ph--wide { aspect-ratio: 16 / 7; }
+
+/* Technical marks: corner ticks and tiny coordinates (decorative). */
+.tick { position: absolute; width: 14px; height: 14px; pointer-events: none; }
+.tick::before, .tick::after { content: ""; position: absolute; background: var(--c-dim); }
+.tick::before { left: 0; right: 0; top: 50%; height: 1px; }
+.tick::after { top: 0; bottom: 0; left: 50%; width: 1px; }
+.coord {
+  --tracking: 0.06em;
+  position: absolute;
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  color: var(--c-dim);
+  pointer-events: none;
+}
+
+/* ---------- Section toolbar ---------- */
+.ctool {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 30;
+  margin-top: 0.75rem;
+}
+.ctool__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0 0.5rem 0 0.875rem;
+  border-radius: 12px;
+  background: var(--c-paper);
+  box-shadow: var(--win-shadow);
+  color: var(--c-ink);
+}
+.ctool__path {
+  --tracking: -0.01em;
+  display: none;
+  align-items: center;
+  min-height: 44px;
+  color: var(--c-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ctool__sep { margin: 0 0.35em; color: var(--c-ink-2); font-weight: 500; }
+.ctool__links {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  list-style: none;
+}
+.ctool__links a {
+  --tracking: -0.005em;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  color: var(--c-ink-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.ctool__links a[aria-current="true"] { color: var(--c-ink); }
+.ctool__links a[aria-current="true"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--c-green);
+}
+.ctool__ext {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  color: var(--c-ink-2);
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.ctool .win__lights { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .ctool__links a:hover, .ctool__ext:hover, .ctool__path:hover { color: var(--c-ink); }
+}
+
+/* ---------- Hero ---------- */
+.chero {
+  position: relative;
+  display: grid;
+  gap: 3rem;
+  padding: 3rem 0 4rem;
+}
+.chero .tick--tl { top: 1rem; left: -7px; }
+.chero .tick--br { right: -7px; bottom: 1rem; }
+.coord--hero { top: 1.4rem; right: 0; }
+
+.chero__copy { position: relative; z-index: 2; display: grid; align-content: center; justify-items: start; }
+.chero__name {
+  --tracking: 0.005em;
+  margin: 1.25rem 0 0.75rem;
+  font-family: var(--f-display);
+  font-size: clamp(3.75rem, 16vw, 8.25rem);
+  font-weight: 400;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: var(--c-white);
+}
+.chero__name .line { display: block; overflow: hidden; padding-top: 0.04em; }
+.chero__name .line > span { display: block; }
+.chero__roles { font-size: clamp(1.6rem, 5.6vw, 2.1rem); transform: rotate(-1.5deg); transform-origin: left; }
+.chero__student { margin-top: 0.15rem; font-size: clamp(1.45rem, 5vw, 1.8rem); transform: rotate(-1.5deg); transform-origin: left; }
+.chero__intro {
+  --tracking: -0.005em;
+  max-width: 34rem;
+  margin-top: 1.5rem;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--c-white);
+}
+.chero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+
+.chero__stage { position: relative; display: grid; gap: 1.5rem; }
+.chero__list {
+  --tracking: 0.1em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  list-style: none;
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  color: var(--c-white);
+}
+
+/* Photo window (polaroid on the drawing board) */
+.photo {
+  justify-self: center;
+  width: min(100%, 22rem);
+  padding-bottom: 0;
+  transform: rotate(-3deg);
+  overflow: visible;
+}
+.photo img {
+  width: calc(100% - 1.25rem);
+  height: auto;
+  margin: 0.625rem auto 0;
+  border-radius: 3px;
+  aspect-ratio: 980 / 877;
+  object-fit: cover;
+  background: var(--c-paper-2);
+}
+.photo__caption {
+  padding: 0.5rem 1rem 0.9rem;
+  font-family: var(--f-note);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+  text-align: right;
+  color: var(--c-ink);
+  transform: rotate(-2deg);
+}
+.photo .win__bar { border-radius: var(--win-radius) var(--win-radius) 0 0; }
+.tape {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  z-index: 2;
+  width: 88px;
+  height: 24px;
+  margin-left: -44px;
+  background: rgba(240, 238, 225, 0.72);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  transform: rotate(4deg);
+}
+
+.note--same, .note--hint { display: none; }
+
+/* ---------- Mini Mac (shell; behaviour in src/creative/minimac.js) ---------- */
+.mac { width: 100%; }
+.mac__screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 4 / 3.4;
+  background-color: var(--c-green-deep);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+  background-position: -1px -1px;
+}
+.mac__menubar {
+  --tracking: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  height: 22px;
+  padding: 0 0.7rem;
+  background: rgba(245, 244, 239, 0.86);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--c-ink);
+}
+.mac__menubar span:not(:nth-child(2)) { font-weight: 500; }
+.mac__clock { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 500; }
+.mac__desk { position: relative; flex: 1; }
+.mac__icons {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 0.25rem;
+  list-style: none;
+}
+.mac__icon {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  width: 80px;
+  padding: 0.35rem 0.25rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--c-white);
+  font: inherit;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+.mac__label {
+  --tracking: 0;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.mac__icon[aria-pressed="true"] .mac__glyph { background-color: rgba(255, 255, 255, 0.18); }
+.mac__icon[aria-pressed="true"] .mac__label { background: var(--c-select); text-shadow: none; }
+.mac__icon:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 0; }
+
+/* App glyphs: drawn with CSS + inline SVG backgrounds so they stay crisp at any size. */
+.mac__glyph {
+  display: block;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 40px 40px;
+}
+.mac__glyph--folder { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M4 10a3 3 0 0 1 3-3h8l3 3h15a3 3 0 0 1 3 3v2H4z' fill='%2389b8ea'/%3E%3Crect x='4' y='13' width='32' height='21' rx='3' fill='%23a9cdf3'/%3E%3Crect x='4' y='13' width='32' height='3' fill='%23ffffff' opacity='.45'/%3E%3C/svg%3E"); }
+.mac__glyph--about { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='6' y='5' width='28' height='31' rx='3' fill='%23f5f4ef'/%3E%3Ccircle cx='20' cy='16' r='5' fill='%23128556'/%3E%3Cpath d='M11 30c1.5-5 5-7 9-7s7.5 2 9 7' fill='%23128556'/%3E%3Crect x='6' y='5' width='28' height='31' rx='3' fill='none' stroke='%2320221f' stroke-opacity='.15'/%3E%3C/svg%3E"); }
+.mac__glyph--play { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='5' y='5' width='30' height='30' rx='8' fill='%23b6ed68'/%3E%3Cpath d='M20 11l2.4 5.6L28 19l-5.6 2.4L20 27l-2.4-5.6L12 19l5.6-2.4z' fill='%2320221f'/%3E%3C/svg%3E"); }
+.mac__glyph--mail { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='5' y='9' width='30' height='22' rx='3' fill='%23d9e8f8'/%3E%3Cpath d='M6 11l14 11 14-11' fill='none' stroke='%2324548c' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+
+.mac__sticky {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.7rem 0.8rem 0.8rem;
+  background: #fbf3a4;
+  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.45);
+  font-family: var(--f-note);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--c-ink);
+  transform: rotate(-3deg);
+}
+.mac__windows { position: absolute; inset: 0; pointer-events: none; }
+
+.mac__dock {
+  display: flex;
+  gap: 0.35rem;
+  align-self: center;
+  margin-bottom: 0.6rem;
+  padding: 0.3rem;
+  border-radius: 14px;
+  background: rgba(245, 244, 239, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 8px 20px -10px rgba(0, 0, 0, 0.4);
+}
+.mac__dockitem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  transform-origin: 50% 100%;
+}
+.mac__dockitem .mac__glyph { width: 36px; height: 36px; background-size: 34px 34px; }
+.mac__dockitem.is-open::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--c-ink);
+}
+.mac__dockitem:focus-visible { outline: 2px solid var(--c-lime); outline-offset: 1px; }
+
+/* ---------- Sections (shells; filled in later milestones) ---------- */
+.csec { position: relative; display: grid; gap: 1.25rem; padding: 4rem 0; scroll-margin-top: 5rem; }
+.chero { scroll-margin-top: 5rem; }
+.csec__title {
+  --tracking: -0.035em;
+  font-family: var(--f-body);
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--c-white);
+}
+
+/* Phones: the photo leads, and the desk keeps just the icons (the sticky note needs room). */
+@media (max-width: 639px) {
+  .photo { order: -1; }
+  .mac__sticky { display: none; }
+}
+
+/* ---------- Larger screens ---------- */
+@media (min-width: 640px) {
+  .ctool__path { display: inline-flex; }
+  .ctool .win__lights { display: inline-flex; }
+  .ctool__links { justify-content: flex-end; }
+}
+@media (min-width: 768px) {
+  html.creative { --gutter: 2.5rem; --cell: 28px; }
+  .ctool__ext { display: inline-flex; }
+  .ctool__links { justify-content: center; }
+}
+@media (min-width: 1024px) {
+  html.creative { --gutter: 4vw; }
+  .chero {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
+    gap: 4rem;
+    align-items: center;
+    padding: 4.5rem 0 6rem;
+  }
+  .chero__name { font-size: clamp(5.5rem, 8.6vw, 8.75rem); }
+  .chero__stage { display: block; padding: 2.25rem 0 4.5rem 4rem; }
+  .mac { width: 100%; }
+  .mac__screen { aspect-ratio: 16 / 11; }
+  /* The photo leans on the Mac's left edge, clear of the desktop icons (top-right). */
+  .photo { position: absolute; left: -1.5rem; bottom: 0; z-index: 3; width: 36%; }
+  .note--same { display: block; position: absolute; top: -2.25rem; left: -0.5rem; transform: rotate(-6deg); }
+  .note--same .note__arrow { margin: 0.2rem 0 0 4.5rem; transform: rotate(10deg); }
+  .note--hint { display: block; position: absolute; top: 0; right: 1rem; font-size: 1.35rem; transform: rotate(-3deg); }
+  .chero__list { position: absolute; right: 0; bottom: 0.75rem; justify-content: flex-end; max-width: 55%; }
+}
+
+/* ---------- Preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .pill, .pill svg { transition: none; }
+}
+@media (prefers-contrast: more) {
+  html.creative { --c-grid: transparent; --c-grid-major: rgba(255, 255, 255, 0.3); --c-dim: #fff; }
+  .note { color: var(--c-white); }
+}

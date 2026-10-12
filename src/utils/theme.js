@@ -8,7 +8,10 @@ import { wipeCover, wipeReveal } from './transition.js';
 //   - The choice is saved and synced: other pages pick it up, and other open tabs follow live.
 const KEY = 'krish:theme';
 const root = document.documentElement;
-const COLORS = { light: '#f7f7f7', dark: '#0b0c10' };
+// Browser-chrome colour per theme; a page can override it on its theme-color meta
+// (data-light / data-dark), e.g. the creative page's greens.
+const meta = document.querySelector('meta[name="theme-color"]');
+const COLORS = { light: meta?.dataset.light || '#f7f7f7', dark: meta?.dataset.dark || '#0b0c10' };
 
 export const currentTheme = () => (root.dataset.theme === 'dark' ? 'dark' : 'light');
 
