@@ -159,7 +159,12 @@ export function initJourney({ reducedMotion, lenis }) {
       img.alt = '';
       cardArt.append(img);
     }
-    cardMono.textContent = (li.querySelector('.tl__logo')?.textContent || org[0] || '').trim();
+    // the org's logo, big, on the card (or its initial when there's no logo)
+    const logo = li.querySelector('.tl__logo img');
+    cardMono.textContent = '';
+    cardMono.classList.toggle('has-logo', !!logo);
+    if (logo) cardMono.append(Object.assign(logo.cloneNode(), { alt: '' }));
+    else cardMono.textContent = (org[0] || '').trim();
 
     // Sit above the bar (below it if there's no room), lined up with its visible start.
     const s = stage.getBoundingClientRect();

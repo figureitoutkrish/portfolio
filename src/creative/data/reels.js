@@ -25,6 +25,7 @@ export const THEMES = {
 export const REELS = [
   {
     title: 'so close to 100 million!!!! but this is me after every exam',
+    url: 'https://www.instagram.com/p/DRhjK7IDAEH/',
     hook: 'Wyd after exam? Me:',
     theme: 'relatable',
     views: 13_600_000,
@@ -42,6 +43,7 @@ export const REELS = [
   },
   {
     title: 'check the reel covers 😏',
+    url: 'https://www.instagram.com/p/DUVuQTDDDrp/',
     hook: 'They weren’t supposed to WIN',
     theme: 'sports',
     views: 391_000,
