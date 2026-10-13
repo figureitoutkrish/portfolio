@@ -1,6 +1,7 @@
 import './styles/main.css';
 import './styles/creative.css';
 import './styles/creative-mac.css';
+import './styles/creative-content.css';
 import '@fontsource/anton/latin-400.css';
 import '@fontsource-variable/manrope/wght.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
@@ -19,6 +20,7 @@ import { initPeek } from './creative/peek.js';
 import { initMascot } from './creative/mascot.js';
 import { initSpeedo } from './creative/speedo.js';
 import { initCat } from './creative/cat.js';
+import { initContent } from './creative/content.js';
 import { makeDraggable, sessionSpot } from './creative/drag.js';
 import { registerCommands } from './sections/palette.js';
 import { PROJECTS } from './creative/data/projects.js';
@@ -50,6 +52,7 @@ initPeek({ reducedMotion });
 initMascot({ os, reducedMotion });
 initSpeedo();
 initCat({ reducedMotion, lenis });
+initContent({ reducedMotion });
 // The racing licence at the finish can be picked up and moved around its podium.
 const licence = document.querySelector('[data-licence]');
 if (licence) makeDraggable(licence, { reducedMotion, store: sessionSpot('licence'), bounds: () => licence.parentElement });
@@ -65,6 +68,7 @@ const toMac = (fn) => () => {
   else fn();
 };
 registerCommands([
+  { group: 'Pages', label: 'Content · best reels', hint: 'instagram', keys: 'content instagram reels views creator videos', run: () => (lenis ? lenis.scrollTo('#content', { offset: -40 }) : document.getElementById('content')?.scrollIntoView()) },
   { group: 'Play', label: 'Play Racer', hint: 'RACER.DSK', keys: 'game racer car drive play', run: toMac(() => cabinet.insert('racer')) },
   { group: 'Play', label: 'Play Perfect Circle', hint: 'CIRCLE.DSK', keys: 'game circle draw play', run: toMac(() => cabinet.insert('circle')) },
   { group: 'Play', label: 'High Scores', hint: 'leaderboard', keys: 'scores leaderboard top', run: toMac(() => os?.open('scores')) },

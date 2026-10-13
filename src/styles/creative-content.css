@@ -1,0 +1,149 @@
+/* ---------- Content section (src/creative/content.js, data/reels.js) ----------
+   Instagram numbers as race telemetry: a dark dash readout, P1's feature in a phone, a timing-tower
+   standings board, and four "what works" cards. Mobile first. */
+.content { padding-top: 4rem; }
+
+/* telemetry: the dash readout */
+.tele {
+  overflow: hidden;
+  border: 2px solid var(--c-ink);
+  border-radius: 14px;
+  background: #141512;
+  box-shadow: 5px 5px 0 var(--c-ink), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+  color: #f5f4ef;
+}
+.tele__bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-family: var(--f-mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.tele__live { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--c-lime); }
+.tele__live i { width: 8px; height: 8px; border-radius: 50%; background: #ff3b30; box-shadow: 0 0 8px #ff3b30; animation: tele-blink 1.6s steps(1) infinite; }
+@keyframes tele-blink { 50% { opacity: 0.25; } }
+.tele__bar a { text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; min-height: 32px; color: rgba(255, 255, 255, 0.78); text-transform: none; letter-spacing: 0; }
+@media (hover: hover) and (pointer: fine) { .tele__bar a:hover { color: #fff; } }
+.tele__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tele__cell { display: grid; align-content: start; gap: 0.2rem; padding: 1rem; border-right: 1px solid rgba(255, 255, 255, 0.08); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.tele__cell--big { grid-column: 1 / -1; }
+.tele__cell dt { font-family: var(--f-mono); font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255, 255, 255, 0.62); }
+.tele__cell dd { font-family: var(--f-display); font-size: clamp(2rem, 7vw, 2.75rem); line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
+.tele__cell--big dd { font-size: clamp(3.5rem, 15vw, 6.5rem); color: var(--c-lime); }
+.tele__cell small { font-size: 0.75rem; color: rgba(255, 255, 255, 0.62); }
+
+/* P1 feature */
+.viral { display: grid; gap: 2rem; align-items: center; margin-top: 3rem; }
+.phone {
+  position: relative;
+  text-decoration: none;
+  justify-self: center;
+  display: block;
+  width: min(15rem, 64vw);
+  padding: 8px;
+  border-radius: 34px;
+  background: #141512;
+  box-shadow: 0 0 0 2px var(--c-ink), 0 30px 50px -24px rgba(0, 0, 0, 0.7), inset 0 0 0 1.5px rgba(255, 255, 255, 0.12);
+  transform: rotate(-3deg);
+  transition: transform 260ms var(--ease-out);
+}
+.phone__screen { display: block; overflow: hidden; aspect-ratio: 9 / 16.75; border-radius: 26px; background: #2a2b28 center / cover url("/assets/content/reel-1.webp"); }
+.phone__screen img { width: 100%; height: 100%; object-fit: cover; }
+.phone__play {
+  position: absolute;
+  left: 50%;
+  bottom: 1.4rem;
+  translate: -50% 0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(20, 21, 18, 0.72);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.phone:active { transform: rotate(-3deg) scale(0.98); }
+@media (hover: hover) and (pointer: fine) { .phone:hover { transform: rotate(-1deg) translateY(-4px); } }
+.viral__body { display: grid; gap: 0.9rem; color: var(--c-white); }
+.viral__kicker { display: flex; align-items: center; gap: 0.6rem; font-family: var(--f-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.86); }
+.viral__pos { padding: 0.15rem 0.5rem; border-radius: 6px; background: var(--c-lime); color: var(--c-ink); font-weight: 700; }
+.viral__title { font-family: var(--f-display); font-size: clamp(3.5rem, 13vw, 6rem); font-weight: 400; line-height: 0.9; text-transform: uppercase; }
+.viral__title span { color: var(--c-lime); }
+.viral__lead { max-width: 30rem; font-size: 1.0625rem; line-height: 1.5; }
+.viral__stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem 1.25rem; max-width: 32rem; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.24); border-radius: 12px; }
+.viral__stats dt { font-family: var(--f-mono); font-size: 0.5625rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255, 255, 255, 0.7); }
+.viral__stats dd { font-family: var(--f-display); font-size: 1.75rem; line-height: 1.05; }
+.viral__stats small { display: block; font-size: 0.6875rem; color: rgba(255, 255, 255, 0.72); }
+.viral__why { list-style: none; color: var(--c-lime); font-size: 1.35rem; line-height: 1.15; }
+.viral__why li::before { content: "✓ "; }
+
+/* standings: a timing tower */
+.standings { margin-top: 3.5rem; overflow: hidden; border: 2px solid var(--c-ink); border-radius: 14px; background: #141512; box-shadow: 5px 5px 0 var(--c-ink); color: #f5f4ef; }
+.standings__head { display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.standings__flag { width: 28px; height: 16px; border-radius: 2px; background: repeating-conic-gradient(#f5f4ef 0 25%, #141512 0 50%) 0 0 / 8px 8px; }
+.standings__head h3 { font-family: var(--f-display); font-size: 1.5rem; font-weight: 400; letter-spacing: 0.02em; text-transform: uppercase; }
+.standings__head span:last-child { margin-left: auto; font-family: var(--f-mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.62); }
+.standings__list { list-style: none; }
+.lap + .lap { border-top: 1px solid rgba(255, 255, 255, 0.07); }
+.lap__link {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.4rem 2.75rem minmax(0, 1fr) auto;
+  grid-template-areas: "pos thumb name views" "pos thumb bar meta";
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.3rem;
+  padding: 0.65rem 1rem 0.65rem 0.85rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+.lap__link::before { content: ""; position: absolute; left: 0; top: 0.55rem; bottom: 0.55rem; width: 4px; border-radius: 0 3px 3px 0; background: var(--team); } /* team colour */
+.lap__link:active { background: rgba(255, 255, 255, 0.08); }
+@media (hover: hover) and (pointer: fine) { .lap__link:hover { background: rgba(255, 255, 255, 0.06); } .lap__link:hover .lap__thumb { transform: scale(1.08); } }
+.lap__link:focus-visible { outline: 2px solid var(--c-lime); outline-offset: -2px; }
+.lap__pos { grid-area: pos; font-family: var(--f-mono); font-size: 0.875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.lap--leader .lap__pos { color: var(--c-lime); }
+.lap__thumb { grid-area: thumb; display: grid; place-items: center; width: 2.75rem; aspect-ratio: 1; overflow: hidden; border-radius: 8px; background: #2a2b28; color: rgba(255, 255, 255, 0.5); font-size: 0.75rem; transition: transform 200ms var(--ease-out); }
+.lap__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.lap__name { grid-area: name; display: grid; min-width: 0; }
+.lap__title { overflow: hidden; font-size: 0.875rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.lap__team { font-family: var(--f-mono); font-size: 0.5625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--team); }
+.lap__bar { grid-area: bar; height: 6px; overflow: hidden; border-radius: 3px; background: rgba(255, 255, 255, 0.08); }
+.lap__bar i { display: block; width: calc(var(--w) * 100%); height: 100%; border-radius: 3px; background: var(--team); transform-origin: left; }
+.lap__views { grid-area: views; justify-self: end; font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); white-space: nowrap; }
+.lap__views b { font-family: var(--f-display); font-size: 1.125rem; font-weight: 400; color: #fff; }
+.lap__meta { grid-area: meta; justify-self: end; font-family: var(--f-mono); font-size: 0.625rem; color: rgba(255, 255, 255, 0.6); white-space: nowrap; }
+.standings__more { display: block; width: 100%; min-height: 44px; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); background: none; color: var(--c-lime); font-family: var(--f-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+.standings__more:active { background: rgba(255, 255, 255, 0.06); }
+
+/* what works */
+.works { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 2.5rem; list-style: none; }
+.works__card { display: grid; align-content: start; gap: 0.35rem; padding: 1rem; border: 2px solid var(--c-ink); border-radius: 12px; background: var(--tone); box-shadow: 3px 3px 0 var(--c-ink); color: var(--c-ink); }
+.works__card:nth-child(odd) { transform: rotate(-1deg); }
+.works__card:nth-child(even) { transform: rotate(1deg); }
+.works__card b { font-family: var(--f-display); font-size: clamp(2.25rem, 9vw, 3rem); font-weight: 400; line-height: 1; }
+.works__title { font-weight: 800; font-size: 1rem; }
+.works__text { font-size: 0.8125rem; line-height: 1.45; }
+.works__card--lime { --tone: #c9f28f; }
+.works__card--red { --tone: #ffb4a8; }
+.works__card--blue { --tone: #bcdcff; }
+.works__card--amber { --tone: #ffe08a; }
+.content__foot { margin-top: 1.5rem; font-family: var(--f-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.8); }
+.content__foot a { display: inline-flex; align-items: center; gap: 0.25rem; min-height: 32px; color: var(--c-lime); }
+
+@media (prefers-reduced-motion: reduce) { .tele__live i { animation: none; } .phone, .lap__thumb { transition: none; } }
+
+@media (min-width: 768px) {
+  .tele__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .tele__cell--big { grid-column: 1 / -1; }
+  .viral { grid-template-columns: auto minmax(0, 1fr); gap: 3.5rem; }
+  .viral__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lap__link { grid-template-columns: 2.6rem 3rem minmax(0, 1.4fr) minmax(8rem, 1fr) 6.5rem 7.5rem; grid-template-areas: "pos thumb name bar views meta"; column-gap: 1rem; }
+  .lap__views { justify-self: end; }
+  .works { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+}
+@media (min-width: 1100px) {
+  .tele__grid { grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr)); }
+  .tele__cell--big { grid-column: auto; }
+  .tele__cell--big dd { font-size: clamp(3.5rem, 5.5vw, 5.5rem); }
+  .phone { width: 17rem; }
+}
