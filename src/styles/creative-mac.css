@@ -908,8 +908,8 @@ html.creative .palette__toast { background: var(--c-ink); color: var(--c-paper);
 .racer-pet { padding: 0; border: 0; background: none; -webkit-tap-highlight-color: transparent; }
 .racer-pet__car { display: block; height: auto; image-rendering: pixelated; transform-origin: 50% 80%; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.22)); }
 /* following the cursor across the page */
-.racer-pet--follow { position: fixed; left: 0; top: 0; z-index: 75; pointer-events: none; will-change: transform; transition: opacity 200ms ease; }
-.racer-pet__marks { position: fixed; inset: 0; z-index: 74; pointer-events: none; }
+.racer-pet--follow { position: fixed; left: 0; top: 0; z-index: 32; /* above the desk, below the header (35), tab bar (40) and every menu */ pointer-events: none; will-change: transform; transition: opacity 200ms ease; }
+.racer-pet__marks { position: fixed; inset: 0; z-index: 31; pointer-events: none; }
 /* parked on the Mac (touch / reduced motion) */
 .racer-pet--park { position: absolute; z-index: 8; left: 60%; top: calc(var(--mw) * -0.115); translate: -50% 0; }
 .racer-pet--park .racer-pet__car { width: calc(var(--mw) * 0.2) !important; }

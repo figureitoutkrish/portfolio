@@ -240,3 +240,6 @@ html.creative .tt__sleeve-art { border: 2px solid var(--c-ink); border-radius: 6
 .tt:not(.is-spotify) .tt__embed { display: none; }
 .tt.is-spotify .tt__label b { font-size: 0.5625rem; }
 .tt.is-spotify .tt__label small { display: none; }
+
+/* open: the header (and the panel in it) sits above the tab bar */
+html.is-tt-open .site-header { z-index: 60; }

@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import { audio, sfx, soundOn, setSound, onSoundChange } from './sfx.js';
 import { RECORDS } from './records.js';
 import { createSpotify } from './spotify.js';
+import { createGenerative } from './generative.js';
 
 // The record player: a small spinning record in every page's header. Tap it and a turntable
 // grows out of it (origin-aware, like the menu): pick a record from the crate, drop the needle.
@@ -36,6 +37,7 @@ const write = (store, key, v) => {
   }
 };
 const playable = (r) => !!r.spotify || r.tracks.length > 0;
+const fileRec = (r) => !r.spotify && !r.gen;
 
 export function initPlayer({ reducedMotion }) {
   const header = document.querySelector('.site-header');
@@ -190,7 +192,7 @@ export function initPlayer({ reducedMotion }) {
     panel.classList.toggle('is-spotify', sp);
     $('.tt__track').textContent = t ? t.title : 'this record is still in the sleeve';
     $('.tt__artist').textContent = t ? t.artist : 'tracks coming soon';
-    $('.tt__src').textContent = sp ? 'via spotify · full songs when you’re logged in, 30-second previews otherwise' : '';
+    $('.tt__src').textContent = sp ? 'via spotify · full songs when you’re logged in, 30-second previews otherwise' : rec.gen ? 'written live by your browser, in the spirit of a certain block game · plays offline' : '';
     panel.querySelectorAll('.tt__sleeve').forEach((s) => s.setAttribute('aria-checked', String(s.dataset.rec === rec.id)));
     playBtn.disabled = !playable(rec);
     seek.disabled = !playable(rec);
@@ -202,7 +204,8 @@ export function initPlayer({ reducedMotion }) {
     const what = sp ? rec.title : t?.title;
     mini.setAttribute('aria-label', waiting ? `Resume music: ${what}` : playing ? `Record player, playing ${what}` : 'Record player');
   }
-  const save = () => write(sessionStorage, STATE, { rec: rec.id, i, t: pos || 0, playing });
+  // still waiting for a tap counts as playing, so it keeps waiting on the next page too
+  const save = () => write(sessionStorage, STATE, { rec: rec.id, i, t: pos || 0, playing: playing || waiting });
   const showTime = () => {
     if (document.activeElement !== seek) seek.value = dur ? String(Math.round((pos / dur) * 1000)) : '0';
     $('.tt__time').textContent = fmt(pos);
@@ -237,11 +240,25 @@ export function initPlayer({ reducedMotion }) {
     return sp;
   };
 
+  // ---------- source: made in code ----------
+  let gen = null;
+  let genClock = 0;
+  const ensureGen = () => (gen ||= createGenerative({ onEnded: () => step(1) }));
+  const genTicker = (on) => {
+    clearInterval(genClock);
+    if (on)
+      genClock = setInterval(() => {
+        pos = gen.position();
+        dur = gen.duration;
+        showTime();
+      }, 400);
+  };
+
   // ---------- source: files ----------
   let loaded = ''; // the track's own URL (el.src comes back absolute and percent-encoded)
   function loadFile(keepTime = 0) {
     const t = rec.tracks[i];
-    if (!t) return false;
+    if (!t || !fileRec(rec)) return false;
     if (loaded !== t.src) {
       loaded = t.src;
       el.src = t.src;
@@ -254,13 +271,13 @@ export function initPlayer({ reducedMotion }) {
     return true;
   }
   el.addEventListener('timeupdate', () => {
-    if (rec.spotify || !Number.isFinite(el.duration)) return;
+    if (!fileRec(rec) || !Number.isFinite(el.duration)) return;
     pos = el.currentTime;
     dur = el.duration;
     showTime();
   });
   el.addEventListener('loadedmetadata', () => {
-    if (rec.spotify) return;
+    if (!fileRec(rec)) return;
     dur = el.duration;
     showTime();
   });
@@ -280,6 +297,15 @@ export function initPlayer({ reducedMotion }) {
       c.play();
       return;
     }
+    if (rec.gen) {
+      const g = ensureGen();
+      g.setVolume(volume);
+      if (startAt) g.seek(startAt);
+      if (!g.play()) return;
+      setPlaying(true);
+      genTicker(true);
+      return;
+    }
     loadFile(startAt);
     try {
       if (fadeIn) el.volume = 0;
@@ -293,13 +319,21 @@ export function initPlayer({ reducedMotion }) {
   }
   async function pause() {
     if (rec.spotify) (await sp)?.pause();
-    else el.pause();
+    else if (rec.gen) {
+      gen?.pause();
+      genTicker(false);
+    } else el.pause();
     setPlaying(false);
   }
   function step(d) {
     if (rec.spotify || !rec.tracks.length) return;
     i = (i + d + rec.tracks.length) % rec.tracks.length;
-    loadFile();
+    if (rec.gen) {
+      ensureGen().load(i);
+      pos = 0;
+      dur = gen.duration;
+      showTime();
+    } else loadFile();
     if (playing) play();
     else render();
     save();
@@ -319,7 +353,10 @@ export function initPlayer({ reducedMotion }) {
     // the new record drops onto the platter
     if (!reducedMotion) gsap.fromTo(vinyl, { scale: 0.9, autoAlpha: 0.4 }, { scale: 1, autoAlpha: 1, duration: 0.35, ease: 'ui-out' });
     if (rec.spotify) ensureSpotify().then((c) => c?.load(rec.spotify));
-    else loadFile();
+    else if (rec.gen) {
+      ensureGen().load(i);
+      dur = gen.duration;
+    } else loadFile();
     render();
     showTime();
     save();
@@ -331,11 +368,15 @@ export function initPlayer({ reducedMotion }) {
     const s = (Number(seek.value) / 1000) * dur;
     if (!dur) return;
     if (rec.spotify) (await sp)?.seek(s);
-    else el.currentTime = s;
+    else if (rec.gen) {
+      gen?.seek(s);
+      pos = s;
+    } else el.currentTime = s;
   });
   volEl.addEventListener('input', () => {
     volume = Number(volEl.value) / 100;
     el.volume = volume;
+    gen?.setVolume(volume);
     if (crackle && !rec.spotify) crackle.g.gain.setTargetAtTime(0.05 * volume, crackle.a.currentTime, 0.1);
     write(localStorage, VOL, volume);
   });
@@ -372,6 +413,7 @@ export function initPlayer({ reducedMotion }) {
     if (next === open) return;
     open = next;
     mini.setAttribute('aria-expanded', String(open));
+    document.documentElement.classList.toggle('is-tt-open', open); // lifts the header above the tab bar
     const still = instant || reducedMotion;
     if (open) {
       if (rec.spotify) ensureSpotify(); // load the embed now, so play is instant
@@ -396,19 +438,40 @@ export function initPlayer({ reducedMotion }) {
   // ---------- page changes: fade out under the wipe, pick up on the next page ----------
   window.addEventListener('page:leave', () => {
     save();
-    if (playing && !rec.spotify) gsap.to(el, { volume: 0, duration: 0.5, ease: 'power1.in', overwrite: true });
+    if (playing && rec.gen) gen?.fadeOut(0.5);
+    else if (playing && fileRec(rec)) gsap.to(el, { volume: 0, duration: 0.5, ease: 'power1.in', overwrite: true });
   });
   window.addEventListener('pagehide', save);
+  // back/forward cache: the page comes back with the music faded out from the last page change
+  window.addEventListener('pageshow', (e) => e.persisted && (gen?.setVolume(volume), (el.volume = volume)));
 
   render();
-  if (!rec.spotify) loadFile(); // metadata only, so the length shows before you press play
+  if (fileRec(rec)) loadFile(); // metadata only, so the length shows before you press play
+  if (rec.gen) {
+    dur = ensureGen().duration;
+    gen.load(i);
+  }
+  showTime();
   if (saved.playing && playable(rec)) {
     pos = saved.t || 0;
-    if (rec.spotify) {
-      // an embed can't start by itself on a fresh page: one tap on the header record resumes
+    showTime();
+    if (fileRec(rec)) play({ fadeIn: true });
+    else {
+      // Spotify's embed and the browser's audio engine can't start by themselves on a fresh page:
+      // the header record pulses, and one tap on it resumes at the same spot. The made-in-code
+      // record also comes back with your first click or key press anywhere.
       waiting = true;
       render();
-    } else play({ fadeIn: true });
+      if (rec.gen) {
+        const resume = () => {
+          document.removeEventListener('pointerdown', resume, true);
+          document.removeEventListener('keydown', resume, true);
+          if (waiting && rec.gen) play();
+        };
+        document.addEventListener('pointerdown', resume, true);
+        document.addEventListener('keydown', resume, true);
+      }
+    }
   }
 
   return { open: () => setOpen(true), isPlaying: () => playing };

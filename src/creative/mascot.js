@@ -155,8 +155,21 @@ export function initMascot({ os, reducedMotion }) {
   // hide while something big is open (a game, a project, the palette)
   const hidden = () => {
     const d = document.documentElement;
-    return d.classList.contains('is-gaming') || d.classList.contains('is-pw-open') || d.classList.contains('is-palette-open') || d.classList.contains('is-mac-zoom');
+    return (
+      d.classList.contains('is-gaming') ||
+      d.classList.contains('is-pw-open') ||
+      d.classList.contains('is-palette-open') ||
+      d.classList.contains('is-mac-zoom') ||
+      d.classList.contains('is-tt-open') || // the record player
+      !!document.querySelector('.menu-btn[aria-expanded="true"]') // the menu
+    );
   };
+  // Over something you can press (buttons, links, fields, the header, the tab bar), the car
+  // fades right back so it never sits on what you're about to click.
+  const PRESSABLE = 'a[href], button, input, textarea, select, label, [role="button"], [role="slider"], [tabindex]:not([tabindex="-1"]), .site-header, .tabbar, .os, .notepad';
+  let overUi = false;
+  const onOver = (e) => (overUi = !!e.target.closest?.(PRESSABLE));
+  document.addEventListener('pointerover', onOver, { passive: true });
 
   let raf = 0;
   let wheelAcc = 0;
@@ -186,7 +199,7 @@ export function initMascot({ os, reducedMotion }) {
     const tilt = pose === 'side' ? Math.max(-8, Math.min(8, vy * 0.01)) * facing : 0;
     el.style.transform = `translate3d(${pos.x - w / 2}px, ${pos.y - h / 2}px, 0)`;
     canvas.style.transform = `scaleX(${pose === 'side' ? facing : 1}) rotate(${tilt}deg)`;
-    el.style.opacity = hidden() ? '0' : '1';
+    el.style.opacity = hidden() ? '0' : overUi ? '0.12' : '1';
 
     // tyre marks on fast turns, fading away
     mctx.globalCompositeOperation = 'destination-out';
@@ -217,7 +230,7 @@ export function initMascot({ os, reducedMotion }) {
 
   // a quick honk + wink when you click near it (it's under your cursor, so it can't be clicked)
   const onDown = (e) => {
-    if (Math.hypot(e.clientX - pos.x, e.clientY - pos.y) < 70 && !sleeping) {
+    if (Math.hypot(e.clientX - pos.x, e.clientY - pos.y) < 70 && !sleeping && !overUi && !hidden()) {
       sfx('honk');
       wink();
     }
@@ -229,6 +242,7 @@ export function initMascot({ os, reducedMotion }) {
     offOs?.();
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerdown', onDown);
+    document.removeEventListener('pointerover', onOver);
     window.removeEventListener('resize', sizeMarks);
     el.remove();
     marks.remove();
