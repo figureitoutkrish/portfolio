@@ -1,0 +1,82 @@
+/* Hover effects (src/utils/hover-fx.js), studied from visuvate.com. Only present on mouse/trackpad
+   devices without reduced motion (the JS doesn't add them otherwise). */
+
+/* ---------- roll: letters roll up and the same word rolls in from below ---------- */
+.roll-host { display: inline-flex; }
+.roll {
+  --bleed: 0.18em;
+  display: inline-flex;
+  align-items: flex-start;
+  height: calc(1lh + var(--bleed) * 2);
+  margin-block: calc(var(--bleed) * -1);
+  padding-inline: var(--bleed);
+  margin-inline: calc(var(--bleed) * -1);
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.roll__c {
+  display: inline-flex;
+  flex-direction: column;
+  white-space: pre;
+  transition: translate 0.52s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: calc(var(--i) * 18ms);
+}
+.roll__c > span { height: 1lh; padding-block: var(--bleed); box-sizing: content-box; }
+:is(a, button):hover .roll__c,
+:is(a, button):focus-visible .roll__c { translate: 0 -50%; }
+
+/* ---------- shine: a comet of light around the border ---------- */
+@property --shine-a { syntax: "<angle>"; inherits: false; initial-value: 135deg; }
+@property --shine-b { syntax: "<angle>"; inherits: false; initial-value: 135deg; }
+@property --shine-w { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.shine {
+  --shine-1: #ffffff;
+  --shine-2: rgba(255, 255, 255, 0.55);
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 1.5px; /* the ring's thickness */
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  transition: opacity 60ms linear;
+}
+.shine--a { background: conic-gradient(from calc(var(--shine-a) - var(--shine-w)), transparent 0deg, var(--shine-1) calc(var(--shine-w) / 2), var(--shine-2) var(--shine-w), transparent calc(var(--shine-w) * 2), transparent 360deg); }
+.shine--b { background: conic-gradient(from calc(var(--shine-b) - var(--shine-w)), transparent 0deg, var(--shine-1) calc(var(--shine-w) / 2), var(--shine-2) var(--shine-w), transparent calc(var(--shine-w) * 2), transparent 360deg); }
+:hover > .shine { opacity: 1; animation: 2.8s linear infinite; }
+:hover > .shine--a { animation-name: shine-a; }
+:hover > .shine--b { animation-name: shine-b; }
+@keyframes shine-a { 0% { --shine-a: 135deg; --shine-w: 0deg; } 10% { --shine-w: 26deg; } 86% { --shine-a: -45deg; --shine-w: 26deg; opacity: 1; } 100% { --shine-a: -45deg; --shine-w: 26deg; opacity: 0; } }
+@keyframes shine-b { 0% { --shine-b: 135deg; --shine-w: 0deg; } 10% { --shine-w: 26deg; } 86% { --shine-b: 315deg; --shine-w: 26deg; opacity: 1; } 100% { --shine-b: 315deg; --shine-w: 26deg; opacity: 0; } }
+/* page colours: lime on the creative page's dark cards, ink on its paper tiles, blue at home */
+html.creative .card .shine { --shine-1: #d6ff8f; --shine-2: rgba(182, 237, 104, 0.6); }
+html.creative :is(.crew, .works__card) .shine { --shine-1: #0b6440; --shine-2: rgba(11, 100, 64, 0.5); padding: 2px; }
+html:not(.creative) .shine { --shine-1: #1f4fff; --shine-2: rgba(122, 149, 255, 0.7); }
+
+/* ---------- shimmer: a dotted ring blooms from the centre and drifts ---------- */
+@property --ring-mid { syntax: "<percentage>"; inherits: false; initial-value: 1%; }
+@property --ring-peak { syntax: "<percentage>"; inherits: false; initial-value: 2%; }
+@property --ring-soft { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --ring-full { syntax: "<number>"; inherits: false; initial-value: 0; }
+.shimmer {
+  --dot: rgba(11, 100, 64, 0.32);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: radial-gradient(circle at center, var(--dot) 0 1.1px, transparent 1.6px);
+  background-size: 9px 9px;
+  -webkit-mask: radial-gradient(115% 150% at 50% 50%, transparent 0, rgba(0, 0, 0, var(--ring-soft)) var(--ring-mid), rgba(0, 0, 0, var(--ring-full)) var(--ring-peak), transparent 100%);
+  mask: radial-gradient(115% 150% at 50% 50%, transparent 0, rgba(0, 0, 0, var(--ring-soft)) var(--ring-mid), rgba(0, 0, 0, var(--ring-full)) var(--ring-peak), transparent 100%);
+  transition: --ring-mid 0.9s cubic-bezier(0.22, 0.61, 0.36, 1), --ring-peak 0.9s cubic-bezier(0.22, 0.61, 0.36, 1), --ring-soft 0.9s cubic-bezier(0.22, 0.61, 0.36, 1), --ring-full 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: shimmer-drift 14s linear infinite paused;
+}
+:hover > .shimmer { --ring-mid: 22%; --ring-peak: 47%; --ring-soft: 0.4; --ring-full: 1; animation-play-state: running; }
+@keyframes shimmer-drift { to { background-position: -90px -45px; } }
+/* the dots sit just above the tile's own background and under its content */
+.crew, .works__card { isolation: isolate; }

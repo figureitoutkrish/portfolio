@@ -107,6 +107,13 @@ Reusable material: `.glass` in `src/styles/glass.css` + behaviour in `src/utils/
 
 - Flat with faked depth (polaroid shadows) plus the liquid-glass functional layer. Three.js is installed but unused.
 
+## Hover effects (src/utils/hover-fx.js, styles/hover-fx.css; studied from visuvate.com)
+Mouse/trackpad only (touch gets plain labels), never with reduced motion.
+- **Letter roll** on buttons and text links (`.pill`, menu links, CTAs, chips): each letter is two stacked copies; on hover/focus they roll up one by one (0.52s, cubic-bezier(.22,.61,.36,1), 18ms stagger). The real label stays for screen readers in `.visually-hidden`; the rolling copy is `aria-hidden`.
+- **Border shine** on cards (`.card`, `.crew`, `.works__card`, record sleeves): two comets of light run around a 1.5px masked ring in opposite directions, 2.8s loop while hovered (conic gradient, angles animated via `@property`). Colour per page: lime on creative's dark cards, racing green on its paper tiles, brand blue elsewhere.
+- **Shimmer** on paper tiles (`.crew`, `.works__card`): a 9px dot texture blooms from the centre in a soft ring (radial mask, 0.9s) and drifts while hovered; it sits between the tile's background and its content (`isolation: isolate`, z-index −1).
+To add an element, put its selector in `ROLL`, `SHINE` or `SHIMMER` in `hover-fx.js`.
+
 ## Sound & the record player
 - **Engine** (`src/audio/sfx.js`): Web Audio, synthesised (no files). On from the visitor's first click or key press unless they turned it off (remembered in localStorage `krish:sound`). The record player's "sound effects" switch, the creative Mac's speaker and ⌘K → Sound are the same setting. Audio suspends in background tabs.
 - **One theme per page** via `<html data-sound>`: `glass` (home: soft sine ticks and pops, airy whoosh), `digital` (data: square blips), `retro` (creative: chiptune for the Mac and games, filtered-noise "physical" sounds for paper, stickers, the can, the cat). Shared names: `tap`, `open`, `close`, `toggle`, `whoosh`; use those from shared modules so each page sounds like itself. Continuous sounds use `loop('engine' | 'pencil')`.

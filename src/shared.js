@@ -10,6 +10,8 @@ import { initPageTransitions, navigate } from './utils/transition.js';
 import { prefersReducedMotion } from './utils/motion.js';
 import { initPlayer } from './audio/player.js';
 import './styles/player.css';
+import './styles/hover-fx.css';
+import { initHoverFx } from './utils/hover-fx.js';
 
 // Everything every page needs: smooth scroll, header menu, tab bar, wiped page transitions.
 export function initShared() {
@@ -31,6 +33,7 @@ export function initShared() {
   const go = (url) => navigate(url, { reducedMotion, lenis });
   initTabbar({ reducedMotion, navigate: go });
   const palette = initPalette({ reducedMotion, navigate: go, toggleTheme: theme.toggle });
+  initHoverFx({ reducedMotion }); // letter roll, border shine, shimmer (visuvate-style)
 
   // Wait for fonts (max 1.5s) so text doesn't swap typefaces mid-animation.
   const fontsReady = Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 1500))]);

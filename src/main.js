@@ -4,6 +4,7 @@ import { initShared } from './shared.js';
 import { initHome } from './sections/home.js';
 import { initIntro } from './sections/intro.js';
 import { initAbout } from './sections/about.js';
+import { initMetrics } from './sections/metrics.js';
 import { initTrail } from './sections/trail.js';
 import { initJourney } from './sections/journey.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
@@ -13,6 +14,7 @@ const { reducedMotion, lenis, fontsReady } = initShared();
 const home = initHome();
 initTrail({ reducedMotion });
 initAbout({ reducedMotion });
+initMetrics({ reducedMotion });
 initJourney({ reducedMotion, lenis });
 
 if (arrivedViaWipe()) {
