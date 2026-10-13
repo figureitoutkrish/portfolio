@@ -74,7 +74,7 @@
   color: var(--fg);
   transform-origin: calc(100% - 66px) 0; /* grows out of the header record */
 }
-.tt[hidden] { display: none; }
+.tt { max-height: calc(100svh - 5.5rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
 [data-theme="dark"] .tt { background: color-mix(in srgb, #16171d 82%, transparent); }
 @media (prefers-reduced-transparency: reduce) { .tt { background: var(--paper, #fff); -webkit-backdrop-filter: none; backdrop-filter: none; } [data-theme="dark"] .tt { background: #16171d; } }
 
@@ -121,6 +121,7 @@
   border-radius: 50%;
   background: var(--rec);
   color: var(--rec-ink);
+  overflow: hidden; /* keeps it round: aspect-ratio holds only when content can't stretch it */
   text-align: center;
   line-height: 1.05;
 }
@@ -226,3 +227,16 @@ html.creative .tt__sleeve-art { border: 2px solid var(--c-ink); border-radius: 6
 
 /* phones: the hardware buttons set the volume (and iOS ignores a page's volume anyway) */
 @media (pointer: coarse) { .tt__vol { visibility: hidden; } }
+
+/* Spotify records: the official embed shows the track, so the deck gets shorter and the file-only
+   bits (track text, skip buttons, volume) step aside */
+.tt__embed:empty, .tt__src:empty { display: none; }
+.tt__embed { min-height: 152px; overflow: hidden; border-radius: 12px; }
+.tt__embed iframe { display: block; border: 0; border-radius: 12px; }
+.tt__src { margin-top: -0.4rem; color: var(--muted); font-size: 0.625rem; line-height: 1.35; }
+.tt.is-spotify .tt__deck { aspect-ratio: 1.8; }
+.tt.is-spotify .tt__platter { left: 9%; width: auto; height: 84%; } /* sized by the shorter deck's height */
+.tt.is-spotify .tt__now, .tt.is-spotify .tt__btn--skip, .tt.is-spotify .tt__vol { display: none; }
+.tt:not(.is-spotify) .tt__embed { display: none; }
+.tt.is-spotify .tt__label b { font-size: 0.5625rem; }
+.tt.is-spotify .tt__label small { display: none; }

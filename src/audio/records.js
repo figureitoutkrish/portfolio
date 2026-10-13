@@ -1,4 +1,5 @@
-// The record player's crate. Each record is a folder of tracks in src/assets/music/<id>/:
+// The record player's crate. A record either streams from Spotify (`spotify`, below) or plays
+// its own files from src/assets/music/<id>/:
 // drop audio files in (AAC .m4a or .mp3, ~128 kbps) and they appear automatically, in name
 // order. Name files "01 Artist - Title.m4a" (the number only sets the order). Only use music
 // Krish has the rights to play here.
@@ -10,11 +11,13 @@ const trackFrom = (path, src) => {
   return rest.length ? { title: rest.join(' - '), artist, src } : { title: base, artist: 'krish’s crate', src };
 };
 
+// `spotify`: the record plays through Spotify's official embed instead (full songs for visitors
+// logged into Spotify in that browser, 30-second previews for everyone else; Spotify's rule).
 const RECORDS_BASE = [
-  { id: 'lofi', title: 'Lo-fi focus', note: 'for reading the work', color: '#c9b8ff', ink: '#2b2340' },
-  { id: 'race-day', title: 'Race day', note: 'pedal down', color: '#e4241b', ink: '#fff' },
-  { id: 'late-night', title: 'Late night', note: 'red bull o’clock', color: '#2c5cff', ink: '#fff' },
-  { id: 'picks', title: 'Krish’s picks', note: 'on repeat', color: '#b6ed68', ink: '#20221f' },
+  { id: 'lofi', title: 'Lo-fi focus', note: 'minecraft · c418', color: '#7fc96b', ink: '#1d3a17', spotify: 'spotify:album:3Gt7rOjcZQoHCfnKl5AkK7' },
+  { id: 'race-day', title: 'Race day', note: 'f1 the album', color: '#e4241b', ink: '#fff', spotify: 'spotify:album:2HwRKkEp7jXbxXwcGyZYHK' },
+  { id: 'late-night', title: 'Late night', note: 'red bull o’clock', color: '#2c5cff', ink: '#fff', spotify: 'spotify:playlist:0nB57Lwi9cZx6l0mbbM0JZ' },
+  { id: 'picks', title: 'Krish’s picks', note: 'die trying · drake', color: '#b6ed68', ink: '#20221f', spotify: 'spotify:track:0NUqi0ps17YpLUC3kgsZq0' },
 ];
 
 export const RECORDS = RECORDS_BASE.map((r) => ({
