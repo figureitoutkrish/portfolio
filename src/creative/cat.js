@@ -1,3 +1,4 @@
+import { sfx } from './sound.js';
 import gsap from 'gsap';
 
 // The cat: a die-cut sticker waiting at the finish line. Every hover (a tap on touch, Enter on the
@@ -37,6 +38,7 @@ export function initCat({ reducedMotion, lenis }) {
   };
   const next = () => {
     show(i + 1);
+    sfx('mrrp');
     if (!reducedMotion) gsap.fromTo(el.querySelector('img:not([hidden])'), { scale: 0.86, rotation: gsap.utils.random(-10, 10) }, { scale: 1, rotation: 0, duration: 0.35, ease: 'back.out(2.4)' });
     hint.classList.add('is-gone');
   };
@@ -137,6 +139,7 @@ export function initCat({ reducedMotion, lenis }) {
         dragging = true;
         el.classList.add('is-held');
         hint.classList.add('is-gone');
+        sfx('peel');
         if (!reducedMotion) gsap.to(el, { scale: 1.12, rotation: 0, duration: 0.18, ease: 'ui-out' });
       }
       if (moved) follow();
@@ -153,6 +156,7 @@ export function initCat({ reducedMotion, lenis }) {
         if (e.pointerType !== 'mouse' || !fine.matches) next(); // a tap swaps the cat on touch
         return;
       }
+      sfx('drop');
       // slap it down: a new little tilt, a squash, then still
       const r = Math.round(gsap.utils.random(-12, 12));
       if (reducedMotion) gsap.set(el, { scale: 1, rotation: r });

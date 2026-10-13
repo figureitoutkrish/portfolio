@@ -1,3 +1,4 @@
+import { sfx } from './sound.js';
 import gsap from 'gsap';
 import { makeDraggable, sessionSpot } from './drag.js';
 import { getNotes, postNote, deleteNote, moveNote } from './api-client.js';
@@ -42,6 +43,7 @@ export function initDesk({ reducedMotion }) {
   });
   const flip = (el) => {
     const next = el.getAttribute('aria-pressed') !== 'true';
+    sfx('flip');
     if (reducedMotion) {
       el.setAttribute('aria-pressed', String(next));
       return;

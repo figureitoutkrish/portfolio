@@ -1,0 +1,228 @@
+/* The record player (src/audio/player.js): a spinning record in the header + a turntable panel.
+   Base look follows the page's tokens (light / dark glass on home and data); the creative page
+   re-skins it as a paper window with ink borders. Only transform/opacity animate. */
+
+.site-header__end { display: flex; align-items: center; gap: 0.25rem; }
+
+/* ---------- the record in the header ---------- */
+.spin {
+  --rec: #c9b8ff;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms var(--ease-out);
+}
+.spin:active { transform: scale(var(--press-scale, 0.96)); }
+.spin__disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 34%, rgba(255, 255, 255, 0.08) 35% 36%, transparent 37% 52%, rgba(255, 255, 255, 0.08) 53% 54%, transparent 55%),
+    conic-gradient(from 20deg, #1b1b1f, #3a3a42 12%, #1b1b1f 25%, #2c2c33 50%, #1b1b1f 62%, #3a3a42 75%, #1b1b1f);
+  box-shadow: 0 0 0 1.5px currentColor, 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.spin__label { width: 9px; height: 9px; border-radius: 50%; background: var(--rec); box-shadow: inset 0 0 0 2.5px var(--rec), inset 0 0 0 3.5px rgba(0, 0, 0, 0.35); }
+.spin__label::after { content: ""; display: block; width: 2px; height: 2px; margin: 3.5px auto 0; border-radius: 50%; background: #111; }
+/* playing: a little equaliser of light around it */
+.spin.is-playing::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 6px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--bg, #fff);
+  border-radius: 50%;
+  background: var(--accent);
+}
+/* waiting for a tap to resume after a page change */
+.spin.is-waiting .spin__disc { animation: spin-nudge 1.6s var(--ease-out) infinite; }
+@keyframes spin-nudge { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.14); } }
+@media (prefers-reduced-motion: reduce) { .spin.is-waiting .spin__disc { animation: none; outline: 2px solid var(--accent); outline-offset: 3px; } }
+
+/* ---------- the turntable panel ---------- */
+.tt {
+  --rec: #c9b8ff;
+  --rec-ink: #2b2340;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 0.85rem;
+  width: min(21rem, calc(100vw - 2 * var(--gutter, 1.25rem)));
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--paper, #fff) 78%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  backdrop-filter: blur(24px) saturate(170%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: var(--fg);
+  transform-origin: calc(100% - 66px) 0; /* grows out of the header record */
+}
+.tt[hidden] { display: none; }
+[data-theme="dark"] .tt { background: color-mix(in srgb, #16171d 82%, transparent); }
+@media (prefers-reduced-transparency: reduce) { .tt { background: var(--paper, #fff); -webkit-backdrop-filter: none; backdrop-filter: none; } [data-theme="dark"] .tt { background: #16171d; } }
+
+.tt__head { display: flex; align-items: center; justify-content: space-between; }
+.tt__kicker { font-size: 0.75rem; letter-spacing: 0.02em; color: var(--muted); }
+.tt__x { display: grid; place-items: center; width: 32px; height: 32px; margin: -6px -6px -6px 0; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 1.35rem; line-height: 1; cursor: pointer; transition: transform 160ms var(--ease-out); }
+.tt__x:active { transform: scale(0.92); }
+
+/* deck: plinth, platter, vinyl with the record's label, tonearm */
+.tt__deck {
+  position: relative;
+  aspect-ratio: 1.35;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #2a2b31, #18191d);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -10px 20px rgba(0, 0, 0, 0.35);
+}
+.tt__platter {
+  position: absolute;
+  left: 7%;
+  top: 50%;
+  width: 66%;
+  aspect-ratio: 1;
+  translate: 0 -50%;
+  border-radius: 50%;
+  background: #0d0d10;
+  box-shadow: 0 0 0 3px #3b3c43, 0 8px 18px rgba(0, 0, 0, 0.5);
+}
+.tt__vinyl {
+  position: absolute;
+  inset: 3%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px),
+    conic-gradient(from 30deg, #111, #2e2e35 10%, #111 22%, #26262c 48%, #111 58%, #2e2e35 72%, #111);
+}
+.tt__label {
+  display: grid;
+  place-content: center;
+  width: 36%;
+  aspect-ratio: 1;
+  padding: 0.35rem;
+  border-radius: 50%;
+  background: var(--rec);
+  color: var(--rec-ink);
+  text-align: center;
+  line-height: 1.05;
+}
+.tt__label b { font-size: 0.6875rem; font-weight: 700; }
+.tt__label small { margin-top: 0.15rem; font-size: 0.5rem; opacity: 0.8; }
+.tt__label::after { content: ""; justify-self: center; width: 5px; height: 5px; margin-top: 0.2rem; border-radius: 50%; background: #0d0d10; }
+.tt__arm { position: absolute; right: 6%; top: 6%; width: 22%; height: auto; overflow: visible; pointer-events: none; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5)); }
+.tt__arm-base { fill: #4a4b53; stroke: #6a6b74; stroke-width: 2; }
+.tt__arm-rod { fill: none; stroke: #c9cbd2; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.tt__arm-head { fill: #e5e6ea; }
+.tt__arm-hit { position: absolute; right: 4%; top: 4%; width: 24%; height: 70%; border: 0; background: none; cursor: pointer; }
+
+.tt__now { min-height: 2.6rem; }
+.tt__track { overflow: hidden; font-size: 1rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.tt__artist { overflow: hidden; color: var(--muted); font-size: 0.8125rem; white-space: nowrap; text-overflow: ellipsis; }
+
+.tt__bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.6rem; color: var(--muted); font-size: 0.6875rem; font-variant-numeric: tabular-nums; }
+.tt input[type="range"] { width: 100%; height: 22px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.tt input[type="range"]:disabled { cursor: default; opacity: 0.4; }
+
+.tt__controls { display: flex; align-items: center; justify-content: center; gap: 1rem; }
+.tt__btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--fg);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), opacity 160ms ease;
+}
+.tt__btn:active { transform: scale(0.92); }
+.tt__btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+.tt__btn--play { width: 56px; height: 56px; background: var(--fg); color: var(--bg); }
+.tt__icon-pause, .tt.is-playing .tt__icon-play { display: none; }
+.tt.is-playing .tt__icon-pause { display: block; }
+
+/* crate of records */
+.tt__crate { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+.tt__sleeve {
+  display: grid;
+  font: inherit;
+  text-transform: inherit; /* buttons reset it; home and data are all lowercase */
+  gap: 0.25rem;
+  justify-items: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 200ms var(--ease-out);
+}
+.tt__sleeve:active { transform: scale(0.96); }
+.tt__sleeve-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--rec);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 4px 10px -4px rgba(0, 0, 0, 0.35);
+  transition: transform 220ms var(--ease-out);
+}
+/* the record peeking out of its sleeve */
+.tt__sleeve-art::after { content: ""; position: absolute; right: -38%; top: 12%; width: 76%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, var(--rec-ink) 0 14%, #151518 15% 100%); opacity: 0.9; }
+.tt__sleeve[aria-checked="true"] .tt__sleeve-art { transform: translateY(-4px); box-shadow: 0 0 0 2px var(--fg), 0 8px 14px -6px rgba(0, 0, 0, 0.4); }
+.tt__sleeve-title { font-size: 0.6875rem; font-weight: 600; line-height: 1.15; }
+.tt__sleeve small { font-size: 0.5625rem; color: var(--muted); }
+@media (hover: hover) and (pointer: fine) { .tt__sleeve:hover .tt__sleeve-art { transform: translateY(-3px); } }
+
+.tt__foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--line); }
+.tt__vol { display: flex; flex: 1; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.6875rem; }
+.tt__fx { text-transform: inherit; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; padding: 0; border: 0; background: none; color: var(--fg); font: inherit; font-size: 0.75rem; cursor: pointer; }
+.tt__fx i { position: relative; width: 34px; height: 20px; border-radius: 999px; background: var(--line); transition: background-color 200ms ease; }
+.tt__fx i::after { content: ""; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 200ms var(--ease-out); }
+.tt__fx[aria-checked="true"] i { background: var(--accent); }
+.tt__fx[aria-checked="true"] i::after { transform: translateX(14px); }
+@media (prefers-reduced-motion: reduce) { .tt__fx i, .tt__fx i::after, .tt__sleeve-art { transition: none; } }
+
+/* ---------- creative page: a paper window with ink borders ---------- */
+html.creative .spin { color: var(--c-white); }
+html.creative .tt {
+  border: 2px solid var(--c-ink);
+  border-radius: 12px;
+  background: var(--c-paper);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 5px 5px 0 var(--c-ink), 0 24px 48px -18px rgba(0, 32, 16, 0.45);
+  color: var(--c-ink);
+  --fg: var(--c-ink);
+  --bg: var(--c-paper);
+  --muted: var(--c-ink-2);
+  --line: var(--c-hair);
+  --accent: #0b6440;
+}
+html.creative .tt__kicker { font-family: var(--f-pixel); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--c-ink); }
+html.creative .tt__track { font-family: var(--f-body); font-weight: 800; }
+html.creative .tt__btn--play { box-shadow: 3px 3px 0 #0b6440; }
+html.creative .tt__sleeve-art { border: 2px solid var(--c-ink); border-radius: 6px; }
+
+/* phones: the hardware buttons set the volume (and iOS ignores a page's volume anyway) */
+@media (pointer: coarse) { .tt__vol { visibility: hidden; } }

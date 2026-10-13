@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { sfx } from '../audio/sfx.js';
 
 // The blue gradient wipe, used for the intro and for every page change.
 //   direction 'up'    — bottom → top (the intro)
@@ -117,10 +118,13 @@ export function navigate(url, { reducedMotion, lenis } = {}) {
   if (navigating) return;
   navigating = true;
   if (reducedMotion) {
+    window.dispatchEvent(new CustomEvent('page:leave'));
     window.location.href = url;
     return;
   }
   const direction = directionTo(url);
+  window.dispatchEvent(new CustomEvent('page:leave')); // the record player fades out and saves its place
+  sfx('whoosh');
   try {
     sessionStorage.setItem(WIPE_KEY, direction);
   } catch {

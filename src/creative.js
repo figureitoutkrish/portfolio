@@ -23,7 +23,7 @@ import { makeDraggable, sessionSpot } from './creative/drag.js';
 import { registerCommands } from './sections/palette.js';
 import { PROJECTS } from './creative/data/projects.js';
 import { openProject } from './creative/project-window.js';
-import { soundOn, setSound } from './creative/sound.js';
+import { soundOn, setSound, sfx } from './creative/sound.js';
 
 // Creative page (alter ego 02): the vintage Mac, then the work.
 const { reducedMotion, lenis, fontsReady, palette } = initShared();
@@ -97,8 +97,8 @@ fontsReady.then(() => {
   if (viaWipe) revealArrival();
   if (reducedMotion) return;
   const lightsTl = gsap.timeline({ delay: viaWipe ? 0.2 : 0.1 });
-  startLights.forEach((l, i) => lightsTl.call(() => (l.className = 'is-red'), null, i * 0.22));
-  lightsTl.call(goGreen, null, startLights.length * 0.22 + 0.35);
+  startLights.forEach((l, i) => lightsTl.call(() => ((l.className = 'is-red'), sfx('beep')), null, i * 0.22));
+  lightsTl.call(() => (goGreen(), sfx('go')), null, startLights.length * 0.22 + 0.35);
   gsap
     .timeline({ delay: viaWipe ? 0.1 : 0 })
     .to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.07 })

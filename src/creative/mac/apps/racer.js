@@ -1,5 +1,5 @@
 import { saveScore } from './scores.js';
-import { sfx } from '../../sound.js';
+import { sfx, loop } from '../../sound.js';
 import { TOP, TOP_COLORS } from '../../car.js';
 
 // RACER.DSK: top-down pixel racer. Dodge traffic, your speed climbs, score = distance + bonuses.
@@ -122,8 +122,15 @@ export function mountRacer(body, { os, reducedMotion }) {
   });
   const score = () => Math.round(g.dist + g.bonus);
 
+  let engine = null; // the engine hum, only while you drive
+  const stopEngine = () => {
+    engine?.stop();
+    engine = null;
+  };
   function start(newMode) {
     if (newMode === 'play') sfx('start');
+    stopEngine();
+    if (newMode === 'play') engine = loop('engine');
     mode = newMode;
     g = fresh();
     actions.hidden = true;
@@ -145,6 +152,7 @@ export function mountRacer(body, { os, reducedMotion }) {
       return;
     }
     mode = 'over';
+    stopEngine();
     sfx('crash');
     const s = score();
     msg.textContent = `crashed · lap ${g.lap} · ${s}m`;
@@ -223,7 +231,7 @@ export function mountRacer(body, { os, reducedMotion }) {
     if (lap > g.lap) {
       g.lap = lap;
       g.banner = 1.4;
-      if (mode === 'play') sfx('honk');
+      if (mode === 'play') sfx('lap');
     }
     // the road gets faster the longer you last, with a kick each lap
     const base = Math.min(280, 80 + g.t * 3.6 + (g.lap - 1) * 14);
@@ -237,6 +245,7 @@ export function mountRacer(body, { os, reducedMotion }) {
     }
     if (g.air > 0) boost = Math.max(boost, 1.2);
     g.speed += (base * boost - g.speed) * Math.min(1, dt * 3);
+    engine?.set(Math.min(1, (g.speed - 60) / 300));
     g.x = Math.max(ROAD_L + 8, Math.min(ROAD_R - 8, g.x + steer * (100 + g.speed * 0.15) * dt));
     g.scroll = (g.scroll + g.speed * dt) % 20;
     g.dist += (g.speed * dt) / PX_PER_M;
@@ -280,7 +289,7 @@ export function mountRacer(body, { os, reducedMotion }) {
           g.bonus += 25;
           g.air = 2.6;
           pop('+25 fuelled!', g.x);
-          sfx('score');
+          sfx('fizz');
         }
         continue;
       }
@@ -292,7 +301,7 @@ export function mountRacer(body, { os, reducedMotion }) {
         if (c.kind !== 'cone' && dx < 15) {
           g.bonus += 10;
           pop('close! +10', g.x);
-          sfx('key');
+          sfx('shave');
         }
       }
     }
@@ -448,6 +457,9 @@ export function mountRacer(body, { os, reducedMotion }) {
       if (mode === 'demo' && ['ArrowUp', 'ArrowLeft', 'ArrowRight', 'Enter', ' ', 'w', 'a', 'd'].includes(k)) start('play');
       else if (mode === 'over' && (k === 'Enter' || k === ' ')) start('play');
     },
-    unmount: () => cancelAnimationFrame(raf),
+    unmount: () => {
+      cancelAnimationFrame(raf);
+      stopEngine();
+    },
   };
 }

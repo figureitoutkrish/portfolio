@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { sfx } from '../audio/sfx.js';
 
 // Header menu: a panel that grows out of the burger button (transform-origin: top right).
 // Every open/close tweens from the panel's current on-screen state, so toggling mid-animation
@@ -19,6 +20,7 @@ export function initMenu({ reducedMotion }) {
     button.setAttribute('aria-expanded', String(open));
     const still = instant || reducedMotion;
 
+    sfx(open ? 'open' : 'close');
     if (open) {
       // Visible right away (only opacity/scale animate) so focus can move into the menu now.
       gsap.set(panel, { visibility: 'visible' });

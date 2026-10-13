@@ -8,6 +8,8 @@ import { initTheme } from './utils/theme.js';
 import { initPalette } from './sections/palette.js';
 import { initPageTransitions, navigate } from './utils/transition.js';
 import { prefersReducedMotion } from './utils/motion.js';
+import { initPlayer } from './audio/player.js';
+import './styles/player.css';
 
 // Everything every page needs: smooth scroll, header menu, tab bar, wiped page transitions.
 export function initShared() {
@@ -24,6 +26,7 @@ export function initShared() {
 
   const theme = initTheme({ reducedMotion });
   initMenu({ reducedMotion });
+  initPlayer({ reducedMotion }); // the record player in the header (and the site's sound switch)
   initPageTransitions({ reducedMotion, lenis });
   const go = (url) => navigate(url, { reducedMotion, lenis });
   initTabbar({ reducedMotion, navigate: go });

@@ -1,3 +1,4 @@
+import { sfx } from './sound.js';
 import gsap from 'gsap';
 import { project, rubberband } from '../utils/spring.js';
 
@@ -55,6 +56,7 @@ export function makeDraggable(el, { onTap, onDrop, reducedMotion, store, bounds 
       if (!moved && Math.hypot(dx, dy) > 6) {
         moved = true;
         el.classList.add('is-held');
+        sfx(el.classList.contains('sticker') ? 'peel' : 'pick');
         if (!reducedMotion) gsap.to(el, { scale: 1.07, rotation: rest * 0.4, duration: 0.18, ease: 'ui-out' });
       }
       if (moved) gsap.set(el, { x: soft(ox + dx, lim.minX, lim.maxX, 240), y: soft(oy + dy, lim.minY, lim.maxY, 240) });
@@ -78,6 +80,7 @@ export function makeDraggable(el, { onTap, onDrop, reducedMotion, store, bounds 
       const y = clamp(gsap.getProperty(el, 'y') + (reducedMotion ? 0 : project(vy, 0.99)), lim.minY, lim.maxY);
       // a little bounce only because a throw preceded it
       gsap.to(el, { x, y, scale: 1, rotation: rest, duration: reducedMotion ? 0 : 0.55, ease: 'back.out(1.6)' });
+      sfx('drop');
       const pos = { x: Math.round(x), y: Math.round(y) };
       store?.set(pos);
       onDrop?.(pos, ev);

@@ -1,6 +1,6 @@
 import { scoreCircle } from './circle-score.js';
 import { saveScore } from './scores.js';
-import { sfx } from '../../sound.js';
+import { sfx, loop } from '../../sound.js';
 
 // CIRCLE.DSK: draw a perfect circle around the dot. Mouse, pen or finger.
 // Chunky low-res canvas (scaled up, pixelated) to match the 1-bit screen.
@@ -78,6 +78,7 @@ export function mountCircle(body, { os }) {
     clear();
   }
 
+  let pencil = null; // the pencil-on-paper sound while drawing
   canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -86,6 +87,8 @@ export function mountCircle(body, { os }) {
     try { canvas.setPointerCapture(e.pointerId); } catch { /* synthetic or ended pointer */ }
     points.push(local(e));
     ctx.fillStyle = '#111';
+    pencil?.stop();
+    pencil = loop('pencil');
   });
   canvas.addEventListener('pointermove', (e) => {
     if (!drawing) return;
@@ -94,10 +97,13 @@ export function mountCircle(body, { os }) {
     if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.6) return;
     line(last, p);
     points.push(p);
+    pencil?.set(Math.hypot(p[0] - last[0], p[1] - last[1]) / 6);
   });
   const finish = () => {
     if (!drawing) return;
     drawing = false;
+    pencil?.stop();
+    pencil = null;
     const r = scoreCircle(points, center, Math.min(W, H));
     if (r.error) {
       msg.textContent = r.error.toLowerCase();
@@ -139,5 +145,6 @@ export function mountCircle(body, { os }) {
     key(key, down) {
       if (down && (key === 'Enter' || key === ' ')) reset();
     },
+    unmount: () => pencil?.stop(),
   };
 }

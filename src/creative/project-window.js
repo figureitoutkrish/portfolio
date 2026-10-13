@@ -1,3 +1,4 @@
+import { sfx } from './sound.js';
 import gsap from 'gsap';
 import { PROJECTS, projectBySlug } from './data/projects.js';
 
@@ -114,6 +115,7 @@ export function initProjectWindow({ reducedMotion, lenis }) {
     }
     opener = document.activeElement;
     fromEl = from;
+    sfx('open');
     root.hidden = false;
     document.documentElement.classList.add('is-pw-open');
     lenis?.stop();
@@ -139,6 +141,7 @@ export function initProjectWindow({ reducedMotion, lenis }) {
   function close({ push = true } = {}) {
     if (!current) return;
     current = null;
+    sfx('close');
     document.removeEventListener('keydown', onKey);
     if (push && location.hash.startsWith('#project/')) history.pushState({}, '', location.pathname);
     const done = () => {

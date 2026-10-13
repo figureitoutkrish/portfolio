@@ -1,3 +1,4 @@
+import { sfx } from '../audio/sfx.js';
 import { wipeCover, wipeReveal } from './transition.js';
 
 // Light / dark theme.
@@ -58,6 +59,7 @@ export function initTheme({ reducedMotion }) {
 
   let busy = false;
   function toggle() {
+    sfx('toggle');
     if (busy) return;
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
     save(next);

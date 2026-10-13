@@ -49,7 +49,9 @@ src/
   page.js               # Entry for the data page (placeholder)
   creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
   creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
-  shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js)
+  shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js), record player
+  audio/                # sfx.js (site-wide sound effects, a theme per page), player.js + records.js (header record player)
+  assets/music/<record>/ # the record player's tracks (picked up automatically; only music Krish has rights to)
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)

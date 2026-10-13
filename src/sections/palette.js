@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { sfx } from '../audio/sfx.js';
 
 // ⌘K / Ctrl+K: jump anywhere (bryangarage.dev's "Jump to"). Every page gets the basics (pages,
 // socials, theme, email); a page can add its own commands with registerCommands() (the creative
@@ -136,6 +137,7 @@ export function initPalette({ reducedMotion, navigate, toggleTheme }) {
   function run(i) {
     const c = items[i];
     if (!c) return;
+    sfx('tap');
     if (!c.keepOpen) close(true);
     c.run();
   }
@@ -149,6 +151,7 @@ export function initPalette({ reducedMotion, navigate, toggleTheme }) {
     render();
     input.focus({ preventScroll: true });
     document.documentElement.classList.add('is-palette-open');
+    sfx('open');
     if (animate && !reducedMotion) {
       gsap.fromTo(root.querySelector('.palette__scrim'), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.15, ease: 'ui-out' });
       gsap.fromTo(panel, { autoAlpha: 0, scale: 0.97, y: -6 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.18, ease: 'ui-out' });

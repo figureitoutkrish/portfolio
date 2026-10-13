@@ -1,3 +1,4 @@
+import { sfx } from './sound.js';
 import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
 import { PROJECTS, CATEGORIES, projectBySlug } from './data/projects.js';
@@ -31,6 +32,7 @@ export function initWork({ reducedMotion, lenis }) {
     const btn = e.target.closest('.filter');
     if (!btn || btn.dataset.filter === current) return;
     current = btn.dataset.filter;
+    sfx('tap');
     bar.querySelectorAll('.filter').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
     const state = Flip.getState(cards);
     cards.forEach((c) => (c.hidden = current !== 'All' && c.dataset.category !== current));

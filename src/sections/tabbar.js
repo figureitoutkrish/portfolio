@@ -1,3 +1,4 @@
+import { sfx } from '../audio/sfx.js';
 import gsap from 'gsap';
 import { createLiquidGlass } from '../utils/liquid-glass.js';
 import { createSpring, project, rubberband } from '../utils/spring.js';
@@ -33,6 +34,7 @@ export function initTabbar({ reducedMotion, navigate }) {
   let selected = -1;
   const select = (i) => {
     if (i === selected) return;
+    if (selected !== -1) sfx('tap'); // a tick as the capsule passes each icon
     selected = i;
     items.forEach((a, j) => a.classList.toggle('is-selected', j === i));
   };

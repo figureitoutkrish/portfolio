@@ -1,3 +1,5 @@
+import { sfx } from '../../sound.js';
+
 // Talk to Krish: a scripted chat (no AI, no server). Topics and answers come from
 // content/about.md; typed questions are matched by keywords; anything else points to Instagram.
 // Hidden: ask about "6th grade" / "first thumbnail" for the origin story.
@@ -127,10 +129,12 @@ export function mountChat(body) {
     const dots = document.createElement('p');
     dots.className = 'chat__line chat__line--krish chat__typing';
     dots.textContent = '…';
+    sfx('key');
     log.append(dots);
     log.scrollTop = log.scrollHeight;
     typing = setTimeout(() => {
       dots.remove();
+      sfx('click');
       if (topic) add('krish', topic.answer, topic.link);
       else add('krish', "Hmm, I don't have a scripted answer for that one. Ask me on Instagram?", { label: '@figureitoutwithkrish ↗', href: IG });
     }, 420);
