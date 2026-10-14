@@ -33,6 +33,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   const carEl = boxEl.querySelector('[data-hud-car]');
   const distEl = boxEl.querySelector('[data-hud-dist]');
   const pause = cockpit.querySelector('.cockpit__pause');
+  const rearEl = hud.querySelector('[data-hud-rear]');
   const touch = matchMedia('(pointer: coarse)').matches;
   root.classList.toggle('drive-touch', touch);
 
@@ -161,11 +162,16 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
         else if (ev === 'reverse') {
           sfx('clunk');
           rec.mark('reverse');
-        } else if (ev === 'forward') sfx('clunk');
+          garage.showPath(vehicle.path?.pts); // the line to follow back into the box
+        } else if (ev === 'forward') {
+          sfx('clunk');
+          garage.showPath(null);
+        }
         else if (ev === 'limiter') sfx('limiter');
         else if (ev === 'bump') sfx('clunk');
         else if (ev === 'parked') {
           rec.mark('parked', { error: s.distanceToBox });
+          garage.showPath(null);
           rec.finish();
           park();
         }
@@ -215,6 +221,15 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     if (phaseText !== lastPhaseText) phaseEl.textContent = lastPhaseText = phaseText;
     if (msg !== lastMsg) msgEl.textContent = lastMsg = msg;
 
+    // the rear camera while reversing: the 3D draws into the frame's box
+    const reversing = s.mode === 'reverse' && phase === 'driving';
+    if (rearEl.hidden === reversing) rearEl.hidden = !reversing;
+    if (reversing) {
+      const r = rearEl.getBoundingClientRect();
+      const c = cockpit.getBoundingClientRect();
+      garage.view.rear = { left: r.left - c.left, top: r.top - c.top, width: r.width, height: r.height };
+    } else garage.view.rear = null;
+
     // the parking diagram: shown once you're in the zone or reversing
     const showBox = s.mode === 'reverse' || (s.mode === 'lane' && zRel > LAYOUT.reverseZone[0] - 6);
     if (boxEl.hidden === showBox) boxEl.hidden = !showBox;
@@ -229,20 +244,26 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     garage.pose.x = s.x;
     garage.pose.z = s.z;
     garage.pose.heading = s.heading;
-    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', steer: 0, flash: false, message: '' });
+    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', steer: 0, flash: false, message: '', limiter: false });
     garage.render();
   }
 
   // ---------- the zoom into the wheel ----------
-  // Line the 3D wheel up with the HTML one: measure where the HTML wheel will sit, tell the scene,
-  // and glide the camera there; then swap and hold the 3D frame.
+  // Glide from the driver's eye to face the wheel, sized to the screen: on wide screens the whole
+  // wheel fits between the header and the tab bar; on phones its display fills the width (the
+  // outer controls go off-screen and the page's dock stands in for them). Then the page's screen
+  // and hotspots are laid over the real 3D wheel.
   let zoomAnim = null;
-  function measureWheel() {
-    wheel.prepare(); // laid out but invisible
-    const box = wheel.bodyRect();
+  let attached = false;
+  function fitWheel() {
     const c = cockpit.getBoundingClientRect();
-    garage.view.fit = box.width / c.width;
-    garage.view.offsetY = (box.top + box.height / 2 - (c.top + c.height / 2)) / c.height;
+    const size = garage.wheelSize();
+    const narrow = c.width < 760;
+    const px = narrow ? c.width * 0.94 * (size.width / size.display) : Math.min(c.width * 0.9, (c.height - 230) * (size.width / size.height));
+    garage.view.fit = px / c.width;
+    const top = 76; // the header
+    const bottom = narrow ? 190 : 130; // the tab bar (and the dock on phones)
+    garage.view.offsetY = ((top + c.height - bottom) / 2 - c.height / 2) / c.height;
   }
   function zoomTo(to, seconds, done) {
     if (reducedMotion || seconds === 0) {
@@ -263,22 +284,41 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     }
   }
   function toWheel({ delay = 0, seconds = 1.5 } = {}) {
-    measureWheel();
+    fitWheel();
     setTimeout(() => {
-      zoomTo(1, seconds, () => {
-        setPhase('wheel');
-        wheel.show();
-        garage.hold(true); // the HTML wheel covers it: stop drawing
-      });
+      garage.hands(false); // parked: hands off the wheel
+      zoomTo(1, seconds, onWheel);
     }, reducedMotion ? 0 : delay);
   }
+  function onWheel() {
+    garage.drive.blank = true; // the page's screen sits on the display
+    setPhase('wheel');
+    garage.hold(true); // nothing moves now: draw only when a button or knob does
+    if (!attached) {
+      attached = true;
+      wheel.attach({
+        layout: () => garage.wheelLayout(),
+        pressControl: (id) => garage.pressControl(id),
+        turnControl: (id, deg) => garage.turnControl(id, deg),
+        setLeds: (n) => garage.setLeds(n),
+      });
+    }
+    wheel.show();
+    wheel.layout();
+  }
+  // the window changed size while on the wheel: re-fit the zoom, then the overlay follows
+  window.addEventListener('resize', () => {
+    if (phase !== 'wheel') return;
+    fitWheel();
+    garage.render();
+  });
 
   // reduced motion runs no loop: put the car where it is and draw one frame
   function syncPose() {
     garage.pose.x = s.x;
     garage.pose.z = s.z;
     garage.pose.heading = s.heading;
-    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', steer: 0, flash: false, message: '' });
+    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', steer: 0, flash: false, message: '', limiter: false });
     garage.render();
   }
   function remember() {
@@ -336,10 +376,14 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   // PIT on the wheel: back in the car at the pit entry, engine running
   function restart() {
     wheel.hide();
+    garage.hands(true);
+    garage.drive.blank = false;
+    garage.setLeds(null);
     garage.hold(false);
     zoomAnim = null;
     garage.view.zoom = 0;
     vehicle.reset();
+    garage.showPath(null);
     cockpit.classList.add('is-driving');
     setPhase('driving');
     rec.start();
@@ -361,12 +405,11 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   if (seen === 'parked' || reducedMotion) {
     vehicle.reset({ parked: true });
     cockpit.classList.add('is-driving');
-    measureWheel();
+    fitWheel();
     garage.view.zoom = 1;
+    garage.hands(false);
     syncPose();
-    garage.hold(true);
-    setPhase('wheel');
-    wheel.show({ instant: true });
+    onWheel();
   }
 
   return {

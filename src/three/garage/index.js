@@ -36,6 +36,9 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   const lcd = createLcd();
   const car = await loadCar({ manager, lcdTexture: lcd.texture });
   // the rig is the car's pose in the world; the car model and the camera ride on it
+  // the display's real width (before the car is placed anywhere): the page sizes the zoom with it
+  const lcdBox = new THREE.Box3().setFromObject(car.lcdMesh);
+  const lcdWidth = lcdBox.max.x - lcdBox.min.x;
   const rig = new THREE.Group();
   rig.add(car.group);
   scene.add(rig);
@@ -52,6 +55,11 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   head.add(camera);
   camera.rotation.set(0, Math.PI, 0); // three cameras look down −z; the car faces +z
   const LOOK_DOWN = THREE.MathUtils.degToRad(-13);
+  // rear camera (shown while reversing): high on the airbox, looking back and down at the line
+  const rearCam = new THREE.PerspectiveCamera(62, 2.8, 0.1, 120);
+  rearCam.position.set(0, 1.45, -2.2);
+  rearCam.rotation.set(-0.42, 0, 0); // three cameras look down −z: that's backwards here
+  rig.add(rearCam);
   head.rotation.x = -LOOK_DOWN; // pitch toward the wheel (rotation is applied in the flipped frame)
 
 
@@ -64,7 +72,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   // zoom: 0 = the driver's eye, 1 = face to face with the wheel, sized so the wheel spans `fit` of
   // the screen's width and sits `offsetY` (share of the height) below the centre. The page lines
   // its HTML wheel up with this before swapping them.
-  const view = { zoom: 0, fit: 0.9, offsetY: 0 };
+  const view = { zoom: 0, fit: 0.9, offsetY: 0, rear: null }; // rear: {left, top, width, height} or null
   const ZOOM_FOV = 34;
 
   // shift lights: 5 green, 5 red, 5 blue, filling with rpm (idle ≈ 4k, limiter 12.5k)
@@ -73,8 +81,9 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   const BLUE = new THREE.Color(0x3b6bff);
   let litLeds = -1;
   function setLeds(rpm, flash) {
-    // on the pit limiter the whole strip flashes blue; otherwise it fills with the revs
-    const n = flash ? 99 : Math.max(0, Math.min(15, Math.round(((rpm - 6000) / (12000 - 6000)) * 15)));
+    // on the pit limiter the whole strip flashes blue; otherwise it fills with the revs (or, once
+    // the wheel is the page, shows whatever the page says: drive.leds)
+    const n = drive.leds != null ? drive.leds : flash ? 99 : Math.max(0, Math.min(15, Math.round(((rpm - 6000) / (12000 - 6000)) * 15)));
     if (n === litLeds) return;
     litLeds = n;
     car.leds.forEach((led, i) => {
@@ -115,6 +124,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     tickers.forEach((fn) => fn(dt));
+    const animating = car.controls.update(dt * 1000); // a button or knob still moving
     const t = clock.getElapsedTime();
     // a touch wider with speed (the lane rushes past a little more); narrow when zoomed on the wheel
     const z = view.zoom * view.zoom * (3 - 2 * view.zoom);
@@ -151,6 +161,56 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     key.intensity = 4 + 10 * out;
     rim.intensity = 1 + 3 * out;
     renderer.render(scene, camera);
+    // the rear camera, in a strip the page positions (rect in CSS px, from the HUD)
+    const r = view.rear;
+    if (r) {
+      rearCam.aspect = r.width / r.height;
+      rearCam.updateProjectionMatrix();
+      const H = canvas.clientHeight;
+      renderer.setScissorTest(true);
+      renderer.setScissor(r.left, H - r.top - r.height, r.width, r.height);
+      renderer.setViewport(r.left, H - r.top - r.height, r.width, r.height);
+      renderer.render(scene, rearCam);
+      renderer.setScissorTest(false);
+      renderer.setViewport(0, 0, canvas.clientWidth, H);
+    }
+    return animating;
+  }
+  // while held, a pressed button or a turned knob still needs a few frames to move
+  let anim = 0;
+  function animate() {
+    if (running || anim) return;
+    last = performance.now();
+    const step = () => {
+      anim = frame() ? requestAnimationFrame(step) : 0;
+    };
+    anim = requestAnimationFrame(step);
+  }
+  // the display's box on screen (CSS px), from the 3D display's corners
+  const corner = new THREE.Vector3();
+  function screenRect() {
+    const m = car.lcdMesh;
+    m.geometry.computeBoundingBox();
+    const b = m.geometry.boundingBox;
+    m.updateWorldMatrix(true, false);
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+    for (const x of [b.min.x, b.max.x]) {
+      for (const y of [b.min.y, b.max.y]) {
+        corner.set(x, y, (b.min.z + b.max.z) / 2).applyMatrix4(m.matrixWorld).project(camera);
+        const px = ((corner.x + 1) / 2) * w;
+        const py = ((1 - corner.y) / 2) * h;
+        x0 = Math.min(x0, px);
+        x1 = Math.max(x1, px);
+        y0 = Math.min(y0, py);
+        y1 = Math.max(y1, py);
+      }
+    }
+    return { left: x0, top: y0, width: x1 - x0, height: y1 - y0 };
   }
   function loop() {
     raf = requestAnimationFrame(loop);
@@ -187,6 +247,29 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     drive,
     look,
     view,
+    showPath: (points) => world.showPath(points), // the reverse line on the ground ([x, z] pairs)
+    // ---- the wheel as the page ----
+    wheelSize: () => ({ width: car.wheelWidth, height: car.wheelHeight, display: lcdWidth }),
+    // where the display and each control are on screen (CSS px, relative to the canvas)
+    wheelLayout() {
+      frame();
+      return { screen: screenRect(), controls: car.controls.project(camera, canvas.clientWidth, canvas.clientHeight) };
+    },
+    pressControl(id) {
+      car.controls.press(id);
+      animate();
+    },
+    turnControl(id, deg) {
+      car.controls.turn(id, deg);
+      animate();
+    },
+    setLeds(n) {
+      drive.leds = n;
+      animate();
+    },
+    hands(on) {
+      car.gloves.forEach((g) => (g.visible = on)); // parked: hands off the wheel
+    },
     // hold the frame (the HTML wheel covers the scene) or carry on
     hold(on) {
       held = on;

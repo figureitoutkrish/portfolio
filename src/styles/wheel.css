@@ -19,9 +19,6 @@
 .wheel [hidden] { display: none; }
 .wheel.is-on { opacity: 1; }
 .wheel:focus { outline: none; }
-/* behind the wheel the paused 3D scene goes soft and dark */
-.cockpit__gl { transition: opacity 900ms ease, filter 600ms ease; }
-html[data-drive="wheel"] .cockpit__gl { filter: blur(14px) brightness(0.32) saturate(0.7); }
 html[data-drive="wheel"] .cockpit__intro,
 html[data-drive="wheel"] .hud { display: none; }
 
@@ -241,6 +238,7 @@ html[data-drive="wheel"] .hud { display: none; }
 .cap--green { --cap: #18a957; }
 .cap--teal { --cap: #0fb3a1; }
 .cap--grey { --cap: #9aa0a6; --ink: #111; }
+.cap--blue { --cap: #2f6bff; }
 .cap--ok { --cap: #eef1f4; --ink: #0b0c0e; width: 5.6cqw; }
 .cap--red { --cap: #e23a2e; }
 .cap--orange { --cap: #f08c00; --ink: #111; }
@@ -406,4 +404,107 @@ html[data-drive="wheel"] .hud { display: none; }
   .paddle--prev { left: -0.55rem; }
   .paddle--next { right: -0.55rem; }
   .paddle:active, .paddle.is-pressed { transform: scale(0.94); }
+}
+
+/* ---------- overlay: the real 3D wheel is the device ---------- */
+/* Only the screen's content and the hotspots are HTML; the wheel, its buttons and knobs are the
+   3D model behind. Positions come from wheel.js (projected from the 3D parts). */
+.wheel__dock { display: none; }
+.wheel.is-overlay { display: block; padding: 0; }
+.wheel.is-overlay .wheel__body {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  aspect-ratio: auto;
+  filter: none;
+  transform: none;
+}
+.wheel.is-overlay :is(.wheel__shape, .leds, .cluster, .rotary, .paddle) { display: none; }
+.wheel.is-overlay .screen {
+  border: 0;
+  border-radius: 4px;
+  box-shadow: none;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px),
+    #040506;
+}
+.wheel.is-overlay .wheel__keys { position: absolute; left: 50%; bottom: 6.75rem; translate: -50% 0; }
+
+.hots { position: absolute; inset: 0; pointer-events: none; }
+.hot,
+.hot__pos {
+  position: absolute;
+  translate: -50% -50%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.hot { border-radius: 50%; }
+/* a ring lights round the real button on hover / focus */
+.hot::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgba(0, 210, 190, 0);
+  transition: box-shadow 160ms ease;
+}
+.hot:focus-visible { outline: none; }
+.hot:focus-visible::after { box-shadow: 0 0 0 2px var(--w11-teal), 0 0 16px rgba(0, 210, 190, 0.4); }
+@media (hover: hover) and (pointer: fine) {
+  .hot:hover::after { box-shadow: 0 0 0 1.5px rgba(0, 210, 190, 0.85), 0 0 14px rgba(0, 210, 190, 0.35); }
+  .hot:hover .hot__label { color: var(--w11-teal); }
+}
+/* printed labels, like the decals on a real wheel */
+.hot__label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 5px);
+  color: rgba(232, 236, 241, 0.85);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+  translate: -50% 0;
+  pointer-events: none;
+  transition: color 160ms ease;
+}
+.hot--label-up .hot__label { top: auto; bottom: calc(100% + 5px); }
+.hot--mode .hot__label { display: none; } /* its positions are printed round it instead */
+.hot--scroll { cursor: grab; touch-action: none; }
+.hot__pos {
+  min-height: 24px;
+  padding: 0 0.3rem;
+  color: rgba(232, 236, 241, 0.55);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+}
+.hot__pos[aria-checked="true"] { color: var(--w11-teal); }
+@media (hover: hover) and (pointer: fine) {
+  .hot__pos:hover { color: var(--night-ink); }
+}
+
+@media (max-width: 760px) {
+  .wheel.is-overlay .wheel__body { display: block; padding: 0; border: 0; border-radius: 0; background: none; }
+  .wheel.is-overlay .screen { position: absolute; }
+  .wheel.is-overlay .hot__pos { display: none; }
+  .wheel.is-overlay .wheel__dock {
+    position: absolute;
+    left: 50%;
+    bottom: 6.5rem;
+    display: flex;
+    gap: 0.6rem;
+    translate: -50% 0;
+  }
+  .wheel__dock .cap { width: 48px; font-size: 0.6rem; }
+  .wheel__dock .cap--ok { width: 56px; }
 }

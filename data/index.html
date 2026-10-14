@@ -82,6 +82,7 @@
         <!-- Driving HUD (src/garage/drive.js): what's happening, what to press, the box diagram. -->
         <div class="hud" aria-live="polite">
           <p class="hud__status"><span class="hud__phase" data-hud-phase>pit lane</span><span class="hud__msg" data-hud-msg></span></p>
+          <figure class="hud__rear" data-hud-rear hidden><figcaption>rear camera · follow the line</figcaption></figure>
           <figure class="hud__box" data-hud-box hidden>
             <svg viewBox="-24 -30 30 40" width="150" height="200" aria-hidden="true">
               <rect class="hud__garage" x="-23" y="-7.85" width="15" height="15.7" />
@@ -173,6 +174,14 @@
               <button class="rotary__pos" type="button" data-act="up" style="--a:-40deg" aria-label="scroll up">&uarr;</button>
               <button class="rotary__pos" type="button" data-act="down" style="--a:40deg" aria-label="scroll down">&darr;</button>
               <span class="rotary__label" aria-hidden="true">scroll</span>
+            </div>
+            <!-- phones: the wheel's outer controls are off-screen when its display fills the width -->
+            <div class="wheel__dock" role="group" aria-label="wheel controls">
+              <button class="cap cap--blue" type="button" data-act="prev" aria-label="previous">&lsaquo;</button>
+              <button class="cap cap--red" type="button" data-act="back">back</button>
+              <button class="cap cap--grey" type="button" data-act="mode" aria-label="mode: next">mode</button>
+              <button class="cap cap--ok" type="button" data-act="ok">ok</button>
+              <button class="cap cap--blue" type="button" data-act="next" aria-label="next">&rsaquo;</button>
             </div>
           </div>
           <p class="wheel__keys" aria-hidden="true"><kbd>&larr;</kbd><kbd>&rarr;</kbd> paddles <kbd>&uarr;</kbd><kbd>&darr;</kbd> scroll <kbd>enter</kbd> ok <kbd>esc</kbd> back <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> mode</p>

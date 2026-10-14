@@ -151,6 +151,10 @@ export function buildWorld({ quality = 'high' } = {}) {
   const ours = buildOurGarage(M, track);
   world.add(ours.group);
 
+  // ---------- the way in: chevrons, countdown boards, the stop box and its lollipop ----------
+  const guide = buildGuide(M, track);
+  world.add(guide.group);
+
   // ---------- lights ----------
   // a floodlit night race: bright and even, like the circuit's light towers are on
   const hemi = new THREE.HemisphereLight(0xc8d6ff, 0x30333a, 1.1);
@@ -199,10 +203,12 @@ export function buildWorld({ quality = 'high' } = {}) {
     group: world,
     stations: ours.stations,
     update,
+    showPath: guide.showPath,
     outsideAt: (x) => Math.max(0, Math.min(1, (x - gx + 1) / 4)),
     dispose() {
       disposables.forEach((d) => d.dispose());
       ours.dispose();
+      guide.dispose();
     },
   };
 }
@@ -371,6 +377,174 @@ function buildOurGarage(M, track) {
 }
 
 // A dark env map for reflections: the lane's light strips and the garage glow, prefiltered once.
+// Guidance you can see from the cockpit, so nobody needs the HUD to find the garage:
+//   teal chevrons down the lane pointing at our garage, then stopping
+//   countdown boards on the right (100 / 50 / 25 m to the stop box)
+//   the stop box painted past the garage, with a crew member holding a lollipop
+//   once you stop there, the reverse line into the box (showPath)
+function buildGuide(M, track) {
+  const g = new THREE.Group();
+  g.name = 'guide';
+  const own = [];
+  const keep = (x) => (own.push(x), x);
+  const { ours, reverseZone, laneHalf } = LAYOUT;
+  const stopFrom = ours + reverseZone[0];
+  const stopTo = ours + 18;
+
+  // chevrons on the lane, from 90 m out to the stop box
+  const chevTex = track(
+    canvasTexture(128, 128, (c, w) => {
+      c.strokeStyle = '#00d2be';
+      c.lineWidth = 18;
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      c.beginPath();
+      c.moveTo(18, 88);
+      c.lineTo(w / 2, 34);
+      c.lineTo(w - 18, 88);
+      c.stroke();
+    })
+  );
+  const chevMat = keep(new THREE.MeshBasicMaterial({ map: chevTex, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.9 }));
+  const chevGeo = keep(new THREE.PlaneGeometry(1.6, 1.6));
+  chevGeo.rotateX(-Math.PI / 2);
+  chevGeo.rotateY(Math.PI); // the point faces +z, the way you drive
+  const chevs = [];
+  for (let z = ours - 90; z < stopFrom - 2; z += 7) chevs.push(z);
+  const chev = new THREE.InstancedMesh(chevGeo, chevMat, chevs.length);
+  const m4 = new THREE.Matrix4();
+  chevs.forEach((z, i) => chev.setMatrixAt(i, m4.makeTranslation(-1.2, 0.015, z)));
+  g.add(chev);
+
+  // countdown boards on poles, right side of the lane
+  const board = (text) =>
+    track(
+      canvasTexture(256, 160, (c, w, h) => {
+        c.fillStyle = '#0b0d10';
+        c.fillRect(0, 0, w, h);
+        c.fillStyle = '#00d2be';
+        c.fillRect(0, 0, w, 14);
+        c.fillStyle = '#ffffff';
+        c.font = '700 84px "Nohemi", ui-sans-serif, system-ui';
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillText(text, w / 2, h / 2 + 10);
+      })
+    );
+  const poleGeo = keep(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 8));
+  const boardGeo = keep(new THREE.PlaneGeometry(1.2, 0.75));
+  for (const d of [100, 50, 25]) {
+    const z = stopFrom - d;
+    const pole = new THREE.Mesh(poleGeo, M.steel);
+    pole.position.set(-laneHalf - 2.2, 1.1, z);
+    g.add(pole);
+    const b = new THREE.Mesh(boardGeo, keep(new THREE.MeshBasicMaterial({ map: board(`${d}`), toneMapped: false })));
+    b.position.set(-laneHalf - 2.2, 2.4, z);
+    b.rotation.y = Math.PI; // faces the oncoming car
+    g.add(b);
+  }
+
+  // the stop box: a painted teal frame with STOP in it
+  const frame = (w, d, x, z) => {
+    const m = new THREE.Mesh(keep(new THREE.BoxGeometry(w, 0.012, d)), M.tealPaint);
+    m.position.set(x, 0.014, z);
+    g.add(m);
+  };
+  const midZ = (stopFrom + stopTo) / 2;
+  frame(laneHalf * 2 + 1.4, 0.18, 0, stopFrom);
+  frame(laneHalf * 2 + 1.4, 0.18, 0, stopTo);
+  frame(0.18, stopTo - stopFrom, -laneHalf - 0.7, midZ);
+  frame(0.18, stopTo - stopFrom, laneHalf + 0.7, midZ);
+  const word = track(
+    canvasTexture(512, 160, (c, w, h) => {
+      c.fillStyle = 'rgba(0,210,190,0.95)';
+      c.font = '800 130px "Nohemi", ui-sans-serif, system-ui';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText('STOP', w / 2, h / 2 + 6);
+    })
+  );
+  const stopWord = new THREE.Mesh(keep(new THREE.PlaneGeometry(4.2, 1.3)), keep(new THREE.MeshBasicMaterial({ map: word, transparent: true, depthWrite: false, toneMapped: false })));
+  stopWord.rotation.x = -Math.PI / 2;
+  stopWord.rotation.z = Math.PI; // reads the right way up from the car
+  stopWord.position.set(0, 0.016, stopFrom + 3);
+  g.add(stopWord);
+
+  // the lollipop: a crew member at the edge of the box holding the board out
+  const crewMan = new THREE.Group();
+  const body = new THREE.Mesh(keep(new THREE.CapsuleGeometry(0.2, 0.75, 6, 12)), M.crew);
+  body.position.y = 0.8;
+  body.scale.set(1, 1, 0.75);
+  const head = new THREE.Mesh(keep(new THREE.SphereGeometry(0.13, 16, 12)), M.crew);
+  head.position.y = 1.62;
+  const stripe = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.205, 0.205, 0.05, 16)), M.tealPaint);
+  stripe.position.y = 1.18;
+  stripe.scale.set(1, 1, 0.75);
+  const stick = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.02, 0.02, 1.5, 8)), M.steel);
+  stick.rotation.z = Math.PI / 2.6;
+  stick.position.set(-0.55, 1.45, 0);
+  const lolly = track(
+    canvasTexture(256, 256, (c, w) => {
+      c.fillStyle = '#00d2be';
+      c.beginPath();
+      c.arc(w / 2, w / 2, w / 2 - 4, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = '#05070b';
+      c.font = '800 70px "Nohemi", ui-sans-serif, system-ui';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText('KV', w / 2, w / 2 + 4);
+    })
+  );
+  const disc = new THREE.Mesh(keep(new THREE.CircleGeometry(0.36, 32)), keep(new THREE.MeshBasicMaterial({ map: lolly, toneMapped: false, side: THREE.DoubleSide })));
+  disc.position.set(-1.15, 1.75, -0.05); // (the crew member turns to face the car; the board with him)
+  crewMan.add(body, head, stripe, stick, disc);
+  crewMan.position.set(laneHalf + 1.6, 0, stopTo - 2);
+  crewMan.rotation.y = Math.PI; // faces the car coming in
+  g.add(crewMan);
+
+  // the reverse line: drawn on the ground once you've stopped in the box
+  let pathMesh = null;
+  const pathMat = keep(new THREE.MeshBasicMaterial({ color: 0x00d2be, transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false }));
+  function showPath(points) {
+    if (pathMesh) {
+      g.remove(pathMesh);
+      pathMesh.geometry.dispose();
+      pathMesh = null;
+    }
+    if (!points?.length) return;
+    // a dashed ribbon, 12 cm wide, along the curve
+    const pos = [];
+    const idx = [];
+    let along = 0;
+    for (let i = 1; i < points.length; i++) {
+      const [x0, z0] = points[i - 1];
+      const [x1, z1] = points[i];
+      const len = Math.hypot(x1 - x0, z1 - z0);
+      along += len;
+      if (Math.floor(along / 0.6) % 2) continue; // dashes
+      const nx = (-(z1 - z0) / len) * 0.06;
+      const nz = ((x1 - x0) / len) * 0.06;
+      const b = pos.length / 3;
+      pos.push(x0 + nx, 0.02, z0 + nz, x0 - nx, 0.02, z0 - nz, x1 + nx, 0.02, z1 + nz, x1 - nx, 0.02, z1 - nz);
+      idx.push(b, b + 2, b + 1, b + 1, b + 2, b + 3);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setIndex(idx);
+    pathMesh = new THREE.Mesh(geo, pathMat);
+    g.add(pathMesh);
+  }
+  return {
+    group: g,
+    showPath,
+    dispose() {
+      own.forEach((x) => x.dispose());
+      pathMesh?.geometry.dispose();
+    },
+  };
+}
+
 export function buildEnvironment(renderer) {
   const env = new THREE.Scene();
   env.background = new THREE.Color(0x05070a);

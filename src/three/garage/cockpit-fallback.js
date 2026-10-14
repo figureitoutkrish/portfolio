@@ -181,7 +181,21 @@ export function buildFallbackCar() {
       radius: 0.018,
     })),
     wheelWidth: 0.304,
+    wheelHeight: 0.17,
     wheelFace: 0.315,
+    wheelSurfaces: [wheel.body],
+    controlSpots: {
+      mode: [0.095, 0.052, 0.0085],
+      scroll: [-0.095, 0.052, 0.0085],
+      prev: [0.075, 0.012, 0.0058],
+      next: [-0.075, 0.012, 0.0058],
+      back: [0.08, -0.02, 0.006],
+      ok: [-0.08, -0.02, 0.0068],
+      talk: [0.035, -0.043, 0.0058],
+      drs: [0, -0.046, 0.0058],
+      drink: [-0.035, -0.043, 0.0058],
+      pit: [-0.1, -0.052, 0.006],
+    },
     eye: new THREE.Vector3(0, 0.99, -0.2),
     dispose() {
       car.traverse((o) => o.geometry?.dispose());
@@ -254,65 +268,7 @@ function buildWheel() {
     leds.push(m);
   }
 
-  // buttons: [x, y, colour, label]
-  const BUTTONS = [
-    [0.072, 0.048, '#18a957', 'N'], [0.092, 0.03, '#f08c00', 'PL'], [0.074, 0.026, '#2f6bff', 'BB'], [0.076, 0.004, '#9aa0a6', 'DRS'],
-    [0.078, -0.018, '#16b3a1', 'TALK'], [0.066, -0.038, '#d9d9d9', 'OK'],
-    [-0.072, 0.048, '#e8b500', 'P'], [-0.092, 0.03, '#e23a2e', '+1'], [-0.074, 0.026, '#7a4dff', '+10'], [-0.076, 0.004, '#e8b500', 'OT'],
-    [-0.078, -0.018, '#9aa0a6', 'DRINK'], [-0.066, -0.038, '#e23a2e', 'R'],
-  ];
-  const btnGeo = new THREE.CylinderGeometry(0.0075, 0.0078, 0.006, 24);
-  btnGeo.rotateX(Math.PI / 2);
-  const btnMats = [];
-  for (const [x, y, color, label] of BUTTONS) {
-    const tex = canvasTexture(64, 64, (g, w) => {
-      g.fillStyle = color;
-      g.fillRect(0, 0, w, w);
-      g.fillStyle = color === '#d9d9d9' || color === '#e8b500' || color === '#9aa0a6' ? '#111' : '#fff';
-      g.font = `700 ${label.length > 3 ? 13 : 20}px ui-sans-serif, system-ui`;
-      g.textAlign = 'center';
-      g.textBaseline = 'middle';
-      g.save();
-      g.translate(w / 2, w / 2);
-      g.scale(-1, 1); // the cap is seen from behind its +z face
-      g.fillText(label, 0, 1);
-      g.restore();
-    });
-    const capMat = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.35, clearcoat: 0.6 });
-    const sideMat = new THREE.MeshStandardMaterial({ color, roughness: 0.4 });
-    btnMats.push(capMat, sideMat);
-    // cylinder groups: 0 side, 1 top cap (+y → after rotateX, faces +z... we want −z): use both caps
-    const b = new THREE.Mesh(btnGeo, [sideMat, capMat, capMat]);
-    b.position.set(x, y, -0.011);
-    b.name = `btn_${label}`;
-    pivot.add(b);
-  }
-
-  // rotaries along the bottom, each with a coloured position ring printed round it
-  const ROTARIES = [[0.046, -0.036, '#16b3a1'], [0.018, -0.046, '#7a4dff'], [-0.018, -0.046, '#e23a2e'], [-0.046, -0.036, '#e8b500']];
-  const rotaryGeo = new THREE.CylinderGeometry(0.0095, 0.0105, 0.012, 28);
-  rotaryGeo.rotateX(Math.PI / 2);
-  for (const [x, y, color] of ROTARIES) {
-    const ring = canvasTexture(128, 128, (g, w) => {
-      const c = w / 2;
-      for (let i = 0; i < 12; i++) {
-        g.beginPath();
-        g.strokeStyle = i % 3 === 0 ? color : 'rgba(255,255,255,0.75)';
-        g.lineWidth = 12;
-        g.arc(c, c, 52, (i / 12) * Math.PI * 2 + 0.06, ((i + 1) / 12) * Math.PI * 2 - 0.06);
-        g.stroke();
-      }
-    });
-    const ringMesh = new THREE.Mesh(new THREE.RingGeometry(0.011, 0.0165, 40), new THREE.MeshBasicMaterial({ map: ring, transparent: true }));
-    ringMesh.position.set(x, y, -0.0068);
-    ringMesh.rotation.y = Math.PI;
-    pivot.add(ringMesh);
-    const knob = new THREE.Mesh(rotaryGeo, mats.alu);
-    knob.position.set(x, y, -0.012);
-    knob.name = 'rotary';
-    pivot.add(knob);
-    btnMats.push(ringMesh.material);
-  }
+  // (the buttons and rotaries are the working controls: controls.js, placed by car.controlSpots)
 
   // shift paddles behind the grips, and the column into the dash
   for (const s of [-1, 1]) {
@@ -328,16 +284,13 @@ function buildWheel() {
 
   return {
     pivot,
+    body,
     leds,
     lcd,
     dispose() {
       pivot.traverse((o) => o.geometry?.dispose());
       Object.values(mats).forEach((m) => m.dispose());
       leds.forEach((l) => l.material.dispose());
-      btnMats.forEach((m) => {
-        m.map?.dispose();
-        m.dispose();
-      });
       carbon.dispose();
     },
   };

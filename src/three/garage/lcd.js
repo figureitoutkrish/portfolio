@@ -20,12 +20,17 @@ export function createLcd() {
   function draw(s) {
     const speed = Math.round(Math.abs(s.speed || 0));
     const gear = s.gear ?? 'N';
-    const key = [speed, gear, s.limiter, s.mode, s.message, Math.round((s.rpm || 0) / 250), s.delta].join('|');
+    const key = [speed, gear, s.limiter, s.mode, s.message, Math.round((s.rpm || 0) / 250), s.delta, s.blank].join('|');
     if (key === last) return;
     last = key;
 
     g.fillStyle = '#050607';
     g.fillRect(0, 0, W, H);
+    if (s.blank) {
+      // the page's HTML screen sits over the display
+      texture.needsUpdate = true;
+      return;
+    }
     // faint pixel grid, like a real TFT up close
     g.fillStyle = 'rgba(255,255,255,0.025)';
     for (let x = 0; x < W; x += 4) g.fillRect(x, 0, 1, H);

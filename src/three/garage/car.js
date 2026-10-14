@@ -4,6 +4,7 @@ import { buildFallbackCar } from './cockpit-fallback.js';
 import { placeGlove, disposeGloves } from './gloves.js';
 import { carbonTexture } from './geometry.js';
 import { buildDriver } from './driver.js';
+import { buildControls, placeControls } from './controls.js';
 
 // The car. A real model is used when one sits in src/assets/local/ (kept out of git: the W11 there
 // is unlicensed, so it only ever runs on Krish's Mac). Without it, the cockpit built in code
@@ -27,6 +28,8 @@ export async function loadCar({ manager, lcdTexture }) {
 
   // display + gloves are shared by both cars
   car.lcdMesh.material = new THREE.MeshBasicMaterial({ map: lcdTexture, toneMapped: false });
+  // the wheel's working controls (before the gloves, so they're placed on the wheel, not a hand)
+  car.controls = buildControls(car.steer, placeControls(car.controlSpots), { surfaces: car.wheelSurfaces });
   // the driver: body in the seat, arms from the shoulders to the gloves on the grips
   const driver = buildDriver();
   car.group.add(driver.group);
@@ -40,6 +43,7 @@ export async function loadCar({ manager, lcdTexture }) {
   car.dispose = () => {
     dispose();
     car.lcdMesh.material.dispose();
+    car.controls.dispose();
     driver.dispose();
     disposeGloves();
   };
@@ -108,6 +112,10 @@ async function loadW11(manager) {
     const pick = (m) => M[m.name] || m;
     o.material = Array.isArray(o.material) ? o.material.map(pick) : pick(o.material);
   });
+  // the wheel's own printed labels (N, PL, BBAL…) would contradict ours: the page prints its own
+  root.traverse((o) => {
+    if (o.isMesh && o.material === M.SW_DECALS) o.visible = false;
+  });
   // the model carries both seat-belt states; keep them done up
   root.getObjectByName('CINTURE_OFF')?.removeFromParent();
   // no halo: it's the one thing between the driver and the view, and this is about the view.
@@ -175,7 +183,23 @@ async function loadW11(manager) {
     lcdMesh,
     grips,
     wheelWidth: box.max.x - box.min.x,
+    wheelHeight: box.max.y - box.min.y,
     wheelFace: box.min.z, // the face the driver sees (car space z)
+    wheelSurfaces: [steerNode],
+    // where the working controls sit on this wheel (pivot space, +x = the driver's left): on the
+    // wheel's own knobs and buttons, found by scanning its face for bumps
+    controlSpots: {
+      mode: [0.1136, 0.0487, 0.0068],
+      scroll: [-0.1136, 0.0487, 0.0068],
+      prev: [0.0739, 0.0235, 0.0046],
+      next: [-0.0739, 0.0235, 0.0046],
+      back: [0.0818, -0.0082, 0.0049],
+      ok: [-0.0818, -0.0082, 0.0055],
+      talk: [0.038, -0.0385, 0.0052],
+      drs: [0, -0.0377, 0.0052],
+      drink: [-0.038, -0.0385, 0.0052],
+      pit: [-0.0832, -0.0382, 0.0046],
+    },
     eye: new THREE.Vector3(0, 0.99, -0.2), // the driver's eye line (no halo, nothing in the way)
     dispose() {
       root.traverse((o) => o.geometry?.dispose());

@@ -3,7 +3,13 @@ import { lap } from './modes/lap.js';
 import { radio } from './modes/radio.js';
 import { sfx } from '../audio/sfx.js';
 
-// The steering wheel as the page. Every control is a real button with one job:
+// The steering wheel as the page. Two ways to show it:
+//   overlay  (with the 3D car) the real 3D wheel is the device: its display shows this page's
+//            screen (positioned exactly over it) and its physical buttons and knobs are the
+//            controls; each gets a focusable hotspot with a printed label over it, and pressing
+//            one presses the 3D part (attach(surface)).
+//   drawn    (no WebGL) the same controls on a wheel drawn in HTML/SVG.
+// Every control is a real button with one job:
 //   paddles − / +   previous / next (← →, or swipe the screen)
 //   MODE rotary     projects · lap · radio (1 2 3)
 //   SCROLL rotary   scroll the screen (↑ ↓, wheel, drag the knob)
@@ -35,6 +41,8 @@ export function initWheel({ root, reducedMotion, onPit }) {
 
   const state = { mode: 'projects', index: 0, detail: false };
   let visible = false;
+  let surface = null; // the 3D wheel, once attached
+  const LABELS = { mode: 'mode', scroll: 'scroll', prev: 'prev', next: 'next', back: 'back', ok: 'ok', talk: 'talk', drs: 'drs', drink: 'drink', pit: 'pit' };
 
   function render(dir = '') {
     const m = MODES[state.mode];
@@ -49,6 +57,11 @@ export function initWheel({ root, reducedMotion, onPit }) {
     modeBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.mode === state.mode)));
     const lit = m.leds(state);
     leds.forEach((l, i) => l.classList.toggle('on', i < lit));
+    root.querySelectorAll('.hot__pos').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.mode === state.mode)));
+    if (surface) {
+      surface.setLeds(lit);
+      surface.turnControl('mode', KNOB[state.mode]);
+    }
     syncScrollKnob();
   }
 
@@ -78,6 +91,8 @@ export function initWheel({ root, reducedMotion, onPit }) {
 
   function act(name) {
     const m = MODES[state.mode];
+    if (surface && LABELS[name] && name !== 'scroll' && name !== 'mode') surface.pressControl(name);
+    if (name === 'mode') return setMode(ORDER[(ORDER.indexOf(state.mode) + 1) % ORDER.length]);
     if (name === 'prev') return step(-1);
     if (name === 'next') return step(1);
     if (name === 'up' || name === 'down') return scrollBy(name === 'up' ? -1 : 1);
@@ -110,8 +125,14 @@ export function initWheel({ root, reducedMotion, onPit }) {
   function scrollBy(dir) {
     body.scrollBy({ top: dir * body.clientHeight * 0.45, behavior: reducedMotion ? 'auto' : 'smooth' });
   }
+  let knobDeg = 0;
   function syncScrollKnob() {
-    scrollKnob.style.setProperty('--knob', `${(body.scrollTop / Math.max(1, body.clientHeight)) * 120}deg`);
+    const deg = (body.scrollTop / Math.max(1, body.clientHeight)) * 120;
+    scrollKnob.style.setProperty('--knob', `${deg}deg`);
+    if (surface && Math.abs(deg - knobDeg) > 3) {
+      knobDeg = deg;
+      surface.turnControl('scroll', deg);
+    }
   }
   body.addEventListener('scroll', syncScrollKnob, { passive: true });
 
@@ -146,7 +167,8 @@ export function initWheel({ root, reducedMotion, onPit }) {
     act(b.dataset.act);
   });
   const press = (sel) => {
-    const el = root.querySelector(sel);
+    // drawn wheel: the cap; on the 3D wheel the part itself moves (act → pressControl)
+    const el = surface ? null : root.querySelector(sel);
     if (!el) return;
     el.classList.add('is-pressed');
     setTimeout(() => el.classList.remove('is-pressed'), 130);
@@ -189,9 +211,110 @@ export function initWheel({ root, reducedMotion, onPit }) {
   }
   window.addEventListener('keydown', onKey);
 
+  // ---------- overlay on the 3D wheel ----------
+  const wheelBody = root.querySelector('.wheel__body');
+  const screenEl = root.querySelector('.screen');
+  const hots = document.createElement('div');
+  hots.className = 'hots';
+  wheelBody.append(hots);
+  function attach(s) {
+    surface = s;
+    root.classList.add('is-overlay');
+    hots.innerHTML = '';
+    for (const id of Object.keys(LABELS)) {
+      const el = document.createElement(id === 'scroll' ? 'div' : 'button');
+      el.className = `hot hot--${id}`;
+      el.dataset.hot = id;
+      if (id === 'scroll') {
+        el.setAttribute('aria-hidden', 'true'); // ↑ ↓ and the screen itself scroll; this is the knob
+      } else {
+        el.type = 'button';
+        if (id === 'mode') el.setAttribute('aria-label', 'mode: next');
+        else el.dataset.act = id;
+      }
+      el.innerHTML = `<span class="hot__label">${LABELS[id]}</span>`;
+      hots.append(el);
+    }
+    // the mode positions printed round the knob (each one selects its mode)
+    ORDER.forEach((id) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'hot__pos';
+      b.dataset.mode = id;
+      b.setAttribute('role', 'radio');
+      b.textContent = id;
+      hots.append(b);
+    });
+    hots.setAttribute('role', 'group');
+    hots.setAttribute('aria-label', 'wheel controls');
+    layout();
+    render();
+  }
+  // put the screen and every hotspot where the 3D parts are
+  function layout() {
+    if (!surface) return;
+    const L = surface.layout();
+    const r = L.screen;
+    Object.assign(screenEl.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+    for (const c of L.controls) {
+      const el = hots.querySelector(`[data-hot="${c.id}"]`);
+      if (!el) continue;
+      const size = Math.max(c.r * 2, 30);
+      Object.assign(el.style, { left: `${c.x}px`, top: `${c.y}px`, width: `${size}px`, height: `${size}px` });
+      el.classList.toggle('hot--label-up', c.y > r.top + r.height * 1.25); // the row under the display: label above
+      if (c.id === 'mode') {
+        // positions printed in an arc above the knob, at the knob's pointer angles
+        const R = c.r + 16;
+        hots.querySelectorAll('.hot__pos').forEach((b) => {
+          const a = (KNOB[b.dataset.mode] * Math.PI) / 180;
+          Object.assign(b.style, { left: `${c.x + Math.sin(a) * R}px`, top: `${c.y - Math.cos(a) * R}px` });
+        });
+      }
+    }
+  }
+  let resizeT = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => surface && visible && layout(), 120);
+  });
+  // the scroll knob on the 3D wheel: drag it round, or use the wheel/trackpad over it
+  hots.addEventListener('wheel', (e) => {
+    if (!e.target.closest('.hot--scroll')) return;
+    e.preventDefault();
+    body.scrollTop += e.deltaY;
+  }, { passive: false });
+  let knobDrag = null;
+  hots.addEventListener('pointerdown', (e) => {
+    const k = e.target.closest('.hot--scroll');
+    if (!k) return;
+    const r = k.getBoundingClientRect();
+    knobDrag = { cx: r.left + r.width / 2, cy: r.top + r.height / 2, a: Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) };
+    try {
+      k.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+  });
+  hots.addEventListener('pointermove', (e) => {
+    if (!knobDrag) return;
+    const a = Math.atan2(e.clientY - knobDrag.cy, e.clientX - knobDrag.cx);
+    let d = a - knobDrag.a;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    knobDrag.a = a;
+    body.scrollTop += (d / ((Math.PI * 2) / 3)) * body.clientHeight;
+  });
+  hots.addEventListener('pointerup', () => (knobDrag = null));
+  hots.addEventListener('pointercancel', () => (knobDrag = null));
+  // the mode knob itself: a click steps to the next mode
+  hots.addEventListener('click', (e) => {
+    if (e.target.closest('.hot--mode')) act('mode');
+  });
+
   render();
 
   return {
+    attach,
+    layout,
     get visible() {
       return visible;
     },
