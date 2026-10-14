@@ -1,67 +1,68 @@
-# Data page (`/data/`): "box, box"
+# Data page (`/data/`): the wheel is the interface
 
-Overrides `MASTER.md` for the data alter ego. Plan: `.claude/plans` (Krish approved Oct 2026).
+Overrides `MASTER.md` for the data alter ego.
 
-## Concept
-First person in an F1 car on a night pit lane (2020 W11 look). The visitor drives in, reverses into
-the pit box and parks; the garage wakes up and its stations hold the data side:
+## Concept (one flow, nothing outside it)
+1. **Cockpit:** first person in an F1 car (2020 W11 look) on a floodlit night pit lane. The opening line is "every project has a starting grid.", with **take the wheel** and **skip to the garage**.
+2. **Drive in (about 20–30s):** past the garages, stop just past ours, hold S to reverse into the box, and park on the marks.
+3. **The zoom:** the camera dollies into the steering wheel, and the 3D wheel hands over to the **HTML wheel**, which is the page from then on.
+4. **Returning visits and reduced motion** land straight on the wheel. **No WebGL** gives the same wheel, without PIT. **No JS** gives a `<noscript>` list.
 
-| Station | What |
-|---|---|
-| 01 pit wall | **teach the machine**: a hand-written neural net trains live on points you place |
-| 02 garage | **projects** from `src/garage/data/projects.js` (GitHub work; add entries there) |
-| 03 debrief | **you are the dataset**: the visitor's own drive, analysed (nothing leaves the browser) |
-| 04 team radio | contact links |
+Rules that came out of Krish's review:
+- experience over visual fidelity: bright, readable, light rendering;
+- no section that can't justify itself inside the metaphor;
+- no About, numbers or skills (home has them).
 
-No About, numbers or skills: home already has them.
+## The wheel (`src/garage/wheel.js`, `modes/`, `styles/wheel.css`)
+Every control is a real button with one job:
+
+| Control | Keys | Job |
+|---|---|---|
+| paddles − / + | ← → · swipe the screen | previous / next |
+| MODE rotary | 1 2 3 | projects · lap · radio (LAB comes later) |
+| SCROLL rotary | ↑ ↓ · wheel · drag the knob | scroll the screen |
+| OK | enter | open the briefing → open the code; LAP: drive again; RADIO: open the channel |
+| BACK | esc / backspace | close the briefing |
+| PIT | – | back in the car at the pit entry |
+| DRS · TALK · DRINK | – | short radio moments on the screen bar |
+| shift lights | – | position (project n of N; on LAP, how close you parked; on RADIO, the channel) |
+
+- **PROJECTS:** `src/garage/data/projects.js`. Add a project there and the wheel picks it up.
+- **LAP:** `telemetry.js` records the drive (10 Hz in sessionStorage, never sent anywhere). The screen shows:
+  - the speed trace, with throttle and brake bands and the reverse dashed;
+  - lap time, reaction, top speed, braking point before the box, corrections, cm off the marks;
+  - a style call from five plain rules, with the rule that fired highlighted.
+- **RADIO:** a short exchange, then email, LinkedIn, GitHub, Instagram.
+- **Layout:** the wheel is drawn in a 900×400 viewBox; controls are placed in % of it and sized in container units. Phones (≤ 760px) get a tall wheel with a big screen.
 
 ## Look
-- Always dark (it's night): `--night`, `--night-2`, `--night-ink`, `--night-muted`, `--night-line`,
-  accent `--w11-teal` (#00d2be), `--carbon`. The page overrides `--bg/--fg/--accent` so shared
-  components (menu, record player) follow.
-- Labels in JetBrains Mono, uppercase, wide tracking; headings Nohemi, lowercase.
-- No team or sponsor marks in anything we publish: our garage reads **KV · Krish Viramgama · data
-  engineering team**.
+- **Colours:** always dark. Tokens `--night`, `--night-2`, `--night-ink`, `--night-muted`, `--night-line`, `--w11-teal` (#00d2be), `--carbon`.
+- **Type:** mono (JetBrains Mono) for labels and the wheel's UI; Nohemi for titles. No team or sponsor marks in anything published (our garage sign reads KV).
+- **3D:** floodlit night (hemisphere + flood + fill lights), lighter asphalt and walls, exposure 1.3, thin blue fog, no bloom, environment reflections at 0.22, little clearcoat. No halo: it's removed from the W11 at load and not built in the code car.
 
 ## 3D (`src/three/garage/`)
-- `index.js` `createGarage(canvas, { quality, reducedMotion, onProgress })` → `{ pose, drive, look, render, dispose }`.
-  The page sets `pose` (x, z, heading) and `drive` (speed, rpm, gear, steer, limiter, message);
-  the shift lights and the wheel's display follow `drive`.
-- `car.js`: uses the W11 from `src/assets/local/w11/` when present (**git-ignored, never
-  published**: it's an unlicensed game rip); otherwise the cockpit built in code
-  (`cockpit-fallback.js`). `?car=code` previews the published cockpit locally.
-- `gloves.js` / `driver.js`: generated gloves, arms (turn with the wheel), suit, lap.
-- `lcd.js`: the wheel display (canvas texture, redraws only on change).
-- `pitlane.js`: `LAYOUT` (lane along +z, garages on the driver's right at x < −8, our garage at
-  z = 0, parking box nose-out), merged static geometry, env map, lights that hop along with the car.
-- Quality: `high` = bloom + 4 spill lights + DPR 2; `low` (coarse pointer, < 768px, weak device) =
-  no bloom, 2 lights, DPR 1.5. `?q=low|high` forces one. `?nogl` shows the plain page.
-- The render loop pauses when the cockpit is scrolled away or the tab is hidden.
-
-## Camera
-Eye just behind the helmet (car space 0, 0.99, −0.48), pitched 14° down: the halo frames the top,
-the wheel and gloves sit in the lower third (as in Krish's concept image). FOV 58° (wide), 64°
-(square-ish), 78° (portrait).
+- `index.js` `createGarage()` returns `{ pose, drive, look, view, hold(on), onFrame, render }`:
+  - `view.zoom` 0…1 moves the camera from the driver's eye to face the wheel;
+  - `view.fit` / `view.offsetY` size and place it so it lines up with the HTML wheel;
+  - `hold(true)` stops drawing while the HTML wheel covers the scene.
+- `car.js` uses the W11 from `src/assets/local/w11/` when present (**git-ignored, never published**: an unlicensed game rip). Otherwise it uses `cockpit-fallback.js`. `?car=code` previews the published one.
+- `gloves.js` / `driver.js` (generated), `lcd.js` (the wheel display), `pitlane.js` (the lane; numbers in `src/garage/layout.js`).
+- Quality: `low` on touch, small or weak devices (DPR 1.5, 2 spill lights). `?q=` forces it; `?nogl` gives the plain wheel.
 
 ## The drive (`src/garage/`)
-- `layout.js`: the lane's numbers (shared with the 3D). `vehicle.js`: a guided kinematic model
-  (pure, testable in Node): pit limiter 80 km/h, auto gears, revs; near our garage the top speed
-  eases down so anyone stops in the zone past it; there, holding S (or the brake pedal) engages R
-  and the car follows a fixed curve back into the box (the wheel shows the steering); stopping
-  within 0.3 m of the marks parks it. Pulling forward out of the curve returns to the lane.
-- `drive.js`: phases on `html[data-drive]` (intro · driving · paused · parked), keys, touch pedals
-  and drag-to-steer, the HUD (phase + what to press, the parking diagram while reversing, the
-  collapsible controls), the engine (`loop('f1')`: revs, throttle load, limiter cut) and one-shots
-  (`ignition`, `shift`, `clunk`, `limiter`, `airgun`).
-- While driving: the page doesn't scroll, the tab bar steps aside, arrows/space don't scroll.
-  Esc pauses. Keys are ignored while typing or with the menu / ⌘K open.
-- Returning visitors (localStorage `krish:garage` = parked) and reduced motion land parked.
-
-## Fallbacks
-- No JS / no WebGL / 3D error → `html.no-gl`: the cockpit is hidden and the stations are the page.
-- "skip the drive" is the first focusable element and jumps to the stations.
-- Reduced motion: no drive; the page opens parked in the garage on a still frame, no engine shake.
+- `vehicle.js`: a guided kinematic model, pure and testable in Node:
+  - 80 km/h limiter;
+  - 4 gears, revving to about 11.8k;
+  - eased stop past our garage;
+  - hold S to reverse along a fixed curve into the box;
+  - parked within 0.3 m.
+- `drive.js`:
+  - phases on `html[data-drive]`: intro · driving · paused · parked · wheel;
+  - keys, touch pedals and drag-to-steer;
+  - the HUD (status, the parking diagram, the controls);
+  - the engine (`loop('f1')`) and one-shots;
+  - the zoom handover to the wheel.
+- While driving: no page scroll, the tab bar steps aside, Esc pauses. Shake is light, and none once parked.
 
 ## Converting a model
-`node scripts/fbx-to-glb.mjs in.fbx out.glb` (geometry + names only; textures are assigned by
-material name in `car.js`).
+`node scripts/fbx-to-glb.mjs in.fbx out.glb` (geometry and names only; materials are assigned by name in `car.js`).
