@@ -71,18 +71,23 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   const pose = { x: 0, z: LAYOUT.startZ, heading: 0 };
   const drive = { speed: 0, rpm: 3800, gear: 'N', steer: 0, limiter: true, message: '', mode: 'P', modeLabel: 'MODE' };
   const look = { yaw: 0, pitch: 0 };
+  const tickers = new Set(); // called every frame with dt (s), before the scene is drawn
+  let baseFov = 58;
 
   // shift lights: 5 green, 5 red, 5 blue, filling with rpm (idle ≈ 4k, limiter 12.5k)
   const LED_COLOURS = [...Array(5).fill(0x19e35b), ...Array(5).fill(0xff2a2a), ...Array(5).fill(0x3b6bff)].map((c) => new THREE.Color(c));
   const black = new THREE.Color(0x000000);
+  const BLUE = new THREE.Color(0x3b6bff);
   let litLeds = -1;
-  function setLeds(rpm) {
-    const n = Math.max(0, Math.min(15, Math.round(((rpm - 6000) / (12000 - 6000)) * 15)));
+  function setLeds(rpm, flash) {
+    // on the pit limiter the whole strip flashes blue; otherwise it fills with the revs
+    const n = flash ? 99 : Math.max(0, Math.min(15, Math.round(((rpm - 6000) / (12000 - 6000)) * 15)));
     if (n === litLeds) return;
     litLeds = n;
     car.leds.forEach((led, i) => {
-      led.material.emissive.copy(i < n ? LED_COLOURS[i] : black);
-      led.material.emissiveIntensity = i < n ? 3 : 0;
+      const on = flash || i < n;
+      led.material.emissive.copy(flash ? BLUE : on ? LED_COLOURS[i] : black);
+      led.material.emissiveIntensity = on ? 3 : 0;
     });
   }
 
@@ -92,7 +97,8 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     const aspect = w / h;
     camera.aspect = aspect;
     // portrait screens need a wider vertical view to keep the wheel and the garage in frame
-    camera.fov = aspect >= 1.4 ? 58 : aspect >= 1 ? 64 : 78;
+    baseFov = aspect >= 1.4 ? 58 : aspect >= 1 ? 64 : 78;
+    camera.fov = baseFov;
     camera.updateProjectionMatrix();
     renderer.setPixelRatio(dpr());
     renderer.setSize(w, h, false);
@@ -109,8 +115,19 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   let visible = true;
   let running = false;
   const pos = new THREE.Vector3();
+  let last = performance.now();
   function frame() {
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    tickers.forEach((fn) => fn(dt));
     const t = clock.getElapsedTime();
+    // a touch wider with speed (the lane rushes past a little more)
+    const fov = baseFov + (reducedMotion ? 0 : Math.min(1, Math.abs(drive.speed) / 80) * 4);
+    if (Math.abs(camera.fov - fov) > 0.01) {
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+    }
     rig.position.set(pose.x, 0, pose.z);
     rig.rotation.y = pose.heading;
     car.steer.rotation.z = drive.steer * 1.1; // a little more turn on the wheel than the road angle
@@ -118,10 +135,14 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     const buzz = reducedMotion ? 0 : 0.0006 + (drive.rpm / 12000) * 0.0012;
     head.position.set(car.eye.x + Math.sin(t * 61) * buzz, car.eye.y + Math.sin(t * 47 + 1) * buzz + Math.sin(t * 1.3) * 0.002, car.eye.z);
     head.rotation.set(-LOOK_DOWN + look.pitch, look.yaw - drive.steer * 0.12, -drive.steer * 0.02);
-    setLeds(drive.rpm);
+    setLeds(drive.rpm, drive.flash);
     lcd.draw(drive);
     pos.set(pose.x, 0, pose.z);
     world.update(pos);
+    // the car's own key light is for the dark lane; in the garage it would double up
+    const out = world.outsideAt(pose.x);
+    key.intensity = 4 + 10 * out;
+    rim.intensity = 1 + 3 * out;
     if (composer) composer.render();
     else renderer.render(scene, camera);
   }
@@ -159,6 +180,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     pose,
     drive,
     look,
+    onFrame: (fn) => (tickers.add(fn), () => tickers.delete(fn)),
     render: frame,
     info: () => renderer.info.render,
     debug: { scene, camera, head, car, THREE }, // for tuning in the console (dev only)

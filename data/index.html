@@ -76,6 +76,47 @@
           <p class="cockpit__eyebrow">alter ego 01 &middot; data</p>
           <h1 class="cockpit__title"><span class="line"><span>every project has</span></span> <span class="line"><span>a starting grid.</span></span></h1>
           <button class="cockpit__start" type="button" data-start><span>take the wheel</span></button>
+          <button class="cockpit__skip" type="button" data-skip>skip to the garage</button>
+        </div>
+
+        <!-- Driving HUD (src/garage/drive.js): what's happening, what to press, the box diagram. -->
+        <div class="hud" aria-live="polite">
+          <p class="hud__status"><span class="hud__phase" data-hud-phase>pit lane</span><span class="hud__msg" data-hud-msg></span></p>
+          <figure class="hud__box" data-hud-box hidden>
+            <svg viewBox="-24 -30 30 40" width="150" height="200" aria-hidden="true">
+              <rect class="hud__garage" x="-23" y="-7.85" width="15" height="15.7" />
+              <line class="hud__lane" x1="-2" y1="-30" x2="-2" y2="10" />
+              <rect class="hud__mark" x="-15.55" y="-1.05" width="5.9" height="2.1" />
+              <g data-hud-car><rect class="hud__car" x="-1" y="-2.66" width="2" height="5.7" rx="0.6" /><path class="hud__nose" d="M-0.7 -2.2 L0 -3.3 L0.7 -2.2Z" /></g>
+            </svg>
+            <figcaption data-hud-dist></figcaption>
+          </figure>
+          <details class="hud__keys" open>
+            <summary>controls</summary>
+            <dl>
+              <div><dt><kbd>W</kbd><kbd>↑</kbd></dt><dd>accelerate</dd></div>
+              <div><dt><kbd>S</kbd><kbd>↓</kbd></dt><dd>brake · hold to reverse</dd></div>
+              <div><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>steer</dd></div>
+              <div><dt><kbd>space</kbd></dt><dd>brake</dd></div>
+              <div><dt><kbd>esc</kbd></dt><dd>pause</dd></div>
+            </dl>
+          </details>
+          <button class="hud__skip" type="button" data-skip>skip to the garage</button>
+          <div class="hud__pedals">
+            <button class="hud__pedal hud__pedal--back" type="button" data-pedal="back" aria-label="brake, hold to reverse">brake<small>hold: R</small></button>
+            <button class="hud__pedal hud__pedal--go" type="button" data-pedal="throttle" aria-label="accelerate">go</button>
+          </div>
+        </div>
+
+        <div class="cockpit__parked" hidden>
+          <a href="#pits" data-explore>explore the garage</a>
+          <button type="button" data-restart>drive in again</button>
+        </div>
+
+        <div class="cockpit__pause" role="dialog" aria-label="paused" hidden>
+          <p>paused</p>
+          <button type="button" data-resume>resume</button>
+          <button type="button" data-skip>skip to the garage</button>
         </div>
       </section>
 
@@ -105,6 +146,7 @@
         <section class="station" id="radio" aria-labelledby="radio-title">
           <p class="station__label">station 04 &middot; team radio</p>
           <h2 class="station__title" id="radio-title">box, box. let&rsquo;s build something.</h2>
+          <p class="radio__mail"><a href="mailto:krishviramgamatir@gmail.com">krishviramgamatir@gmail.com</a></p>
           <ul class="radio__links">
             <li><a href="https://www.linkedin.com/in/krish-viramgama-27951927a/" target="_blank" rel="noopener">linkedin</a></li>
             <li><a href="https://github.com/figureitoutkrish" target="_blank" rel="noopener">github</a></li>

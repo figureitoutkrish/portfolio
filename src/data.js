@@ -3,13 +3,14 @@ import './styles/data.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
 import gsap from 'gsap';
 import { initShared } from './shared.js';
+import { initDrive } from './garage/drive.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
 import { PROJECTS } from './garage/data/projects.js';
 
 // Data page (alter ego 01): first person in the car on a night pit lane (src/three/garage/), then
 // the garage's stations. The stations are plain HTML too: that's the page without WebGL or JS, and
 // what "skip the drive" jumps to. Plan: design-system/pages/data.md
-const { reducedMotion, fontsReady } = initShared();
+const { reducedMotion, fontsReady, lenis } = initShared();
 const viaWipe = arrivedViaWipe();
 
 const cockpit = document.querySelector('.cockpit');
@@ -41,8 +42,29 @@ fontsReady.then(async () => {
   if (import.meta.env.DEV) window.__garage = garage;
   if (!reducedMotion) gsap.to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.08, delay: 0.25 });
 
-  // M1: the start button only clears the intro; driving arrives with the vehicle model
-  cockpit.querySelector('[data-start]').addEventListener('click', () => cockpit.classList.add('is-driving'));
+  const parked = cockpit.querySelector('.cockpit__parked');
+  const drive = initDrive({
+    garage,
+    cockpit,
+    reducedMotion,
+    lenis,
+    onParked: ({ skipped }) => {
+      // the garage reveal arrives next; for now: the way in, and a way to drive again
+      setTimeout(() => (parked.hidden = false), skipped ? 0 : 1600);
+    },
+  });
+  if (import.meta.env.DEV) window.__drive = drive;
+  parked.querySelector('[data-restart]').addEventListener('click', () => {
+    parked.hidden = true;
+    drive.restart();
+  });
+  parked.querySelector('[data-explore]').addEventListener('click', (e) => {
+    e.preventDefault();
+    const pits = document.getElementById('pits');
+    if (lenis) lenis.scrollTo(pits, { duration: 1.2 });
+    else pits.scrollIntoView();
+    pits.focus({ preventScroll: true });
+  });
 });
 
 function progress(p) {

@@ -142,6 +142,37 @@ const THEMES = {
     close: () => [1320, 880].forEach((f, i) => tone({ freq: f, type: 'square', dur: 0.03, vol: 0.022, delay: i * 0.035 })),
     toggle: () => tone({ freq: 2000, type: 'square', dur: 0.02, vol: 0.02 }),
     whoosh: () => noise({ dur: 0.6, vol: 0.04, type: 'lowpass', freq: 200, to: 5000, q: 6, attack: 0.2 }),
+    // the data page's car
+    ignition: () => {
+      // starter motor whirr, then the engine catches
+      noise({ dur: 0.55, vol: 0.05, type: 'bandpass', freq: 900, to: 1600, q: 3, attack: 0.05 });
+      tone({ freq: 70, to: 140, type: 'sawtooth', dur: 0.5, vol: 0.05, attack: 0.05 });
+      tone({ freq: 180, to: 95, type: 'sawtooth', dur: 0.35, vol: 0.07, delay: 0.5 });
+      noise({ dur: 0.25, vol: 0.06, type: 'lowpass', freq: 600, delay: 0.5 });
+    },
+    shift: () => {
+      // a quick cut and a crack from the exhaust
+      noise({ dur: 0.05, vol: 0.06, type: 'bandpass', freq: 1800, q: 1.4 });
+      tone({ freq: 140, to: 90, type: 'square', dur: 0.05, vol: 0.03 });
+    },
+    clunk: () => {
+      tone({ freq: 95, to: 60, type: 'triangle', dur: 0.09, vol: 0.09 });
+      noise({ dur: 0.05, vol: 0.04, type: 'bandpass', freq: 2400, q: 2 });
+    },
+    limiter: () => tone({ freq: 1760, type: 'square', dur: 0.04, vol: 0.016 }),
+    airgun: () => {
+      // a wheel gun: a hard rattle, then the hiss
+      for (let i = 0; i < 6; i++) noise({ dur: 0.03, vol: 0.07, type: 'bandpass', freq: 2600, q: 2, delay: i * 0.035 });
+      noise({ dur: 0.3, vol: 0.03, type: 'highpass', freq: 4000, delay: 0.22 });
+    },
+    lightbank: () => {
+      tone({ freq: 60, type: 'sine', dur: 0.18, vol: 0.06 });
+      noise({ dur: 0.06, vol: 0.05, type: 'bandpass', freq: 3000, q: 3 });
+    },
+    radio: () => {
+      noise({ dur: 0.18, vol: 0.05, type: 'bandpass', freq: 1800, q: 1 });
+      tone({ freq: 1200, type: 'sine', dur: 0.06, vol: 0.025, delay: 0.16 });
+    },
   },
   retro: {
     tap: () => tone({ freq: 1800, type: 'square', dur: 0.025, vol: 0.03 }),
@@ -233,7 +264,8 @@ export function sfx(name) {
   }
 }
 
-// Continuous sounds (the racer's engine, a pencil on paper). Returns { set(0…1), stop() }.
+// Continuous sounds (the racer's engine, the data page's F1 car, a pencil on paper).
+// Returns { set(value), stop() }.
 export function loop(name) {
   const a = on ? audio() : null;
   if (!a) return { set() {}, stop() {} };
@@ -262,6 +294,52 @@ export function loop(name) {
       f.frequency.setTargetAtTime(400 + v * 1400, now, 0.1);
     };
     g.gain.exponentialRampToValueAtTime(0.025, t + 0.3);
+  } else if (name === 'f1') {
+    // a V6 turbo, roughly: firing frequency = rpm / 60 × 3. Saw + sub square through a soft
+    // clipper and a lowpass that opens with load, plus a little intake noise.
+    // set({ rpm, load 0…1, cut }) — cut = the pit limiter chopping the ignition
+    const o = a.createOscillator();
+    const o2 = a.createOscillator();
+    const sub = a.createOscillator();
+    const clip = a.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) {
+      const x = (i / 255) * 2 - 1;
+      curve[i] = Math.tanh(x * 2.2);
+    }
+    clip.curve = curve;
+    const f = a.createBiquadFilter();
+    f.type = 'lowpass';
+    f.Q.value = 2;
+    const src = a.createBufferSource();
+    src.buffer = whiteNoise(a);
+    src.loop = true;
+    const nf = a.createBiquadFilter();
+    nf.type = 'bandpass';
+    nf.Q.value = 1.2;
+    const ng = a.createGain();
+    ng.gain.value = 0.25;
+    o.type = 'sawtooth';
+    o2.type = 'sawtooth';
+    o2.detune.value = 14;
+    sub.type = 'square';
+    const mix = a.createGain();
+    mix.gain.value = 0.5;
+    [o, o2, sub].forEach((n) => n.connect(mix));
+    mix.connect(clip).connect(f).connect(g);
+    src.connect(nf).connect(ng).connect(g);
+    nodes = [o, o2, sub, src];
+    set = ({ rpm = 4000, load = 0, cut = false } = {}) => {
+      const now = a.currentTime;
+      const fire = (rpm / 60) * 3;
+      o.frequency.setTargetAtTime(fire, now, 0.04);
+      o2.frequency.setTargetAtTime(fire * 1.5, now, 0.04);
+      sub.frequency.setTargetAtTime(fire / 2, now, 0.04);
+      f.frequency.setTargetAtTime(500 + load * 2600 + rpm * 0.12, now, 0.06);
+      nf.frequency.setTargetAtTime(fire * 4, now, 0.06);
+      g.gain.setTargetAtTime(cut ? 0.008 : 0.022 + load * 0.03, now, cut ? 0.008 : 0.05);
+    };
+    g.gain.exponentialRampToValueAtTime(0.022, t + 0.4);
   } else if (name === 'pencil') {
     const src = a.createBufferSource();
     src.buffer = whiteNoise(a);

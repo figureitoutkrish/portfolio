@@ -43,10 +43,24 @@ Eye just behind the helmet (car space 0, 0.99, −0.48), pitched 14° down: the 
 the wheel and gloves sit in the lower third (as in Krish's concept image). FOV 58° (wide), 64°
 (square-ish), 78° (portrait).
 
+## The drive (`src/garage/`)
+- `layout.js`: the lane's numbers (shared with the 3D). `vehicle.js`: a guided kinematic model
+  (pure, testable in Node): pit limiter 80 km/h, auto gears, revs; near our garage the top speed
+  eases down so anyone stops in the zone past it; there, holding S (or the brake pedal) engages R
+  and the car follows a fixed curve back into the box (the wheel shows the steering); stopping
+  within 0.3 m of the marks parks it. Pulling forward out of the curve returns to the lane.
+- `drive.js`: phases on `html[data-drive]` (intro · driving · paused · parked), keys, touch pedals
+  and drag-to-steer, the HUD (phase + what to press, the parking diagram while reversing, the
+  collapsible controls), the engine (`loop('f1')`: revs, throttle load, limiter cut) and one-shots
+  (`ignition`, `shift`, `clunk`, `limiter`, `airgun`).
+- While driving: the page doesn't scroll, the tab bar steps aside, arrows/space don't scroll.
+  Esc pauses. Keys are ignored while typing or with the menu / ⌘K open.
+- Returning visitors (localStorage `krish:garage` = parked) and reduced motion land parked.
+
 ## Fallbacks
 - No JS / no WebGL / 3D error → `html.no-gl`: the cockpit is hidden and the stations are the page.
 - "skip the drive" is the first focusable element and jumps to the stations.
-- Reduced motion: no engine shake; a still frame (drive sequence gets its own path in M2).
+- Reduced motion: no drive; the page opens parked in the garage on a still frame, no engine shake.
 
 ## Converting a model
 `node scripts/fbx-to-glb.mjs in.fbx out.glb` (geometry + names only; textures are assigned by

@@ -238,3 +238,267 @@ html.no-gl .site-header--over { position: relative; inset: auto; margin: 1.25rem
 @media (hover: hover) and (pointer: fine) {
   .radio__links a:hover { color: var(--w11-teal); }
 }
+
+.cockpit__skip {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 0;
+  background: none;
+  color: var(--night-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: var(--weight-body);
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .cockpit__skip:hover { color: var(--night-ink); }
+}
+
+/* ---------- driving: HUD ---------- */
+/* the tab bar steps aside while you drive (it would sit on the wheel) */
+/* (!important: the tab bar's own reveal sets opacity/visibility inline) */
+html[data-drive="driving"] .tabbar,
+html[data-drive="paused"] .tabbar {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none;
+  transition: opacity 300ms ease, visibility 0s linear 300ms;
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 500ms ease 300ms, visibility 0s linear 800ms;
+  font-family: var(--font-mono);
+}
+html[data-drive="driving"] .hud,
+html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: opacity 500ms ease 300ms; }
+.hud > :not(.hud__status) { pointer-events: auto; }
+
+.hud__status {
+  position: absolute;
+  top: 5.25rem;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--gutter));
+  text-align: center;
+  translate: -50% 0;
+}
+.hud__phase {
+  color: var(--w11-teal);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.hud__msg {
+  color: var(--night-ink);
+  font-family: var(--font);
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+  font-weight: var(--weight-body);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
+}
+
+.hud__box {
+  position: absolute;
+  top: 50%;
+  right: var(--gutter);
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--night-line);
+  border-radius: 16px;
+  background: rgba(5, 7, 11, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  translate: 0 -50%;
+}
+.hud__box[hidden] { display: none; }
+.hud__box svg { width: clamp(110px, 11vw, 150px); height: auto; }
+.hud__garage { fill: rgba(232, 236, 241, 0.05); stroke: rgba(232, 236, 241, 0.35); stroke-width: 0.15; }
+.hud__lane { stroke: rgba(232, 236, 241, 0.3); stroke-width: 0.12; stroke-dasharray: 1 1; }
+.hud__mark { fill: rgba(0, 210, 190, 0.12); stroke: var(--w11-teal); stroke-width: 0.15; }
+.hud__car { fill: var(--night-ink); }
+.hud__nose { fill: var(--w11-teal); }
+.hud__box figcaption {
+  color: var(--night-ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud__keys {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 1.5rem;
+  min-width: 13rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--night-line);
+  border-radius: 14px;
+  background: rgba(5, 7, 11, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--night-muted);
+  font-size: 0.72rem;
+}
+.hud__keys summary {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--night-ink);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.hud__keys dl { display: grid; gap: 0.4rem; margin-top: 0.35rem; }
+.hud__keys dl > div { display: grid; grid-template-columns: 5.5rem 1fr; align-items: center; gap: 0.5rem; }
+.hud__keys dt { display: flex; gap: 0.25rem; }
+.hud__keys kbd {
+  min-width: 1.6rem;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid rgba(232, 236, 241, 0.25);
+  border-radius: 6px;
+  color: var(--night-ink);
+  font: inherit;
+  text-align: center;
+}
+
+.hud__skip {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 1.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--night-line);
+  border-radius: 999px;
+  background: rgba(5, 7, 11, 0.55);
+  color: var(--night-ink);
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), border-color 200ms ease;
+}
+.hud__skip:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .hud__skip:hover { border-color: var(--w11-teal); }
+}
+
+/* touch: pedals instead of the key guide */
+.hud__pedals { display: none; }
+.drive-touch .hud__keys { display: none; }
+.drive-touch .hud__skip { top: 4.5rem; bottom: auto; }
+.drive-touch .hud__status { top: 8.25rem; }
+.drive-touch .hud__box { top: auto; bottom: 8.5rem; translate: none; }
+.drive-touch .hud__pedals { display: block; }
+.hud__pedal {
+  position: absolute;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  display: grid;
+  place-content: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border: 1px solid rgba(232, 236, 241, 0.3);
+  border-radius: 50%;
+  background: rgba(5, 7, 11, 0.6);
+  color: var(--night-ink);
+  font: inherit;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 120ms var(--ease-out), background-color 120ms ease;
+}
+.hud__pedal small { font-size: 0.6rem; color: var(--night-muted); }
+.hud__pedal--back { left: var(--gutter); }
+.hud__pedal--go { right: var(--gutter); border-color: rgba(0, 210, 190, 0.6); }
+.hud__pedal.is-down { transform: scale(0.94); background: rgba(0, 210, 190, 0.22); }
+
+/* pause */
+.cockpit__pause {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  background: rgba(5, 7, 11, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cockpit__pause[hidden] { display: none; }
+.cockpit__pause p {
+  color: var(--w11-teal);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.cockpit__pause button {
+  min-height: 48px;
+  min-width: 12rem;
+  border: 1px solid var(--night-line);
+  border-radius: 999px;
+  background: rgba(232, 236, 241, 0.06);
+  color: var(--night-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+.cockpit__pause button:active { transform: scale(0.97); }
+
+/* parked: the way into the garage */
+.cockpit__parked {
+  position: absolute;
+  left: 50%;
+  bottom: 6.75rem; /* above the tab bar, which is back once parked */
+  z-index: 5;
+  display: flex;
+  gap: 0.5rem;
+  translate: -50% 0;
+}
+.cockpit__parked[hidden] { display: none; }
+.cockpit__parked a,
+.cockpit__parked button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 1.4rem;
+  border: 1px solid rgba(0, 210, 190, 0.6);
+  border-radius: 999px;
+  background: rgba(5, 7, 11, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--night-ink);
+  font: inherit;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), background-color 200ms ease;
+}
+.cockpit__parked button { border-color: var(--night-line); }
+@media (hover: hover) and (pointer: fine) {
+  .cockpit__parked a:hover { background: rgba(0, 210, 190, 0.16); }
+  .cockpit__parked button:hover { background: rgba(232, 236, 241, 0.08); }
+}
+.cockpit__parked :active { transform: scale(0.97); }
+
+.radio__mail a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--w11-teal);
+  font-size: clamp(1.1rem, 2.6vw, 1.75rem);
+  overflow-wrap: anywhere;
+}

@@ -2,24 +2,14 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { canvasTexture } from './geometry.js';
+import { LAYOUT } from '../../garage/layout.js';
 
 // The night pit lane: a row of garages on the driver's right (−x), the pit wall and its stand on
 // the left, the main straight and grandstands beyond. Ours is the garage at z = 0, drawn in full;
 // the rest share merged geometry (one draw per material) so the lane stays cheap.
-//
-// World: the lane runs along +z (the car starts at START_Z heading +z). Metres.
-export const LAYOUT = {
-  startZ: -150,
-  laneHalf: 3.2, // the car's centre may drift ±3.2m across the lane
-  garageFront: -8, // x of the garage openings
-  garageDepth: 15,
-  garageWidth: 14,
-  pitch: 16, // garage spacing along z
-  ours: 0, // z of our garage's centre
-  // where the car ends up parked: nose out toward the lane
-  box: { x: -12.6, z: 0, heading: Math.PI / 2 },
-  pitWall: 9.5,
-};
+// World and numbers: src/garage/layout.js (shared with the vehicle model).
+
+export { LAYOUT };
 const TEAL = 0x00d2be;
 
 export function buildWorld({ quality = 'high' } = {}) {
@@ -169,7 +159,7 @@ export function buildWorld({ quality = 'high' } = {}) {
   world.add(moon);
   // our garage's ceiling: two big soft panels
   for (const dx of [-5, -11]) {
-    const panel = new THREE.RectAreaLight(0xf2f6ff, 9, 4, 9);
+    const panel = new THREE.RectAreaLight(0xf2f6ff, 2.6, 4, 9);
     panel.position.set(gx + dx, 4.85, LAYOUT.ours);
     panel.lookAt(gx + dx, 0, LAYOUT.ours);
     world.add(panel);
@@ -183,16 +173,19 @@ export function buildWorld({ quality = 'high' } = {}) {
     spills.push(l);
   }
   // a cool overhead light from the canopy that rides with the car
-  const canopy = new THREE.SpotLight(0xe8efff, 40, 30, 0.9, 0.6, 1.4);
+  const canopy = new THREE.SpotLight(0xe8efff, 16, 30, 0.9, 0.7, 1.4);
   world.add(canopy, canopy.target);
 
   function update(carPos) {
+    // the lane's lights fade out as the car backs into the garage (its own panels take over)
+    const outside = Math.max(0, Math.min(1, (carPos.x - gx + 1) / 4));
     const nearest = Math.round((carPos.z - LAYOUT.ours) / pitch);
     spills.forEach((l, i) => {
       const k = nearest + i - Math.floor(nSpill / 2);
       l.position.set(gx + 1.5, 3.6, LAYOUT.ours + k * pitch);
-      l.intensity = k === 0 ? 30 : 14;
+      l.intensity = (k === 0 ? 30 : 14) * outside;
     });
+    canopy.intensity = 16 * outside;
     canopy.position.set(gx + 3, 5.6, carPos.z + 2);
     canopy.target.position.set(carPos.x, 0.6, carPos.z + 1);
     ours.update?.();
@@ -202,6 +195,7 @@ export function buildWorld({ quality = 'high' } = {}) {
     group: world,
     stations: ours.stations,
     update,
+    outsideAt: (x) => Math.max(0, Math.min(1, (x - gx + 1) / 4)),
     dispose() {
       disposables.forEach((d) => d.dispose());
       ours.dispose();
