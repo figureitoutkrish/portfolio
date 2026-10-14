@@ -1,8 +1,4 @@
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { loadCar } from './car.js';
 import { createLcd } from './lcd.js';
 import { buildWorld, buildEnvironment, LAYOUT } from './pitlane.js';
@@ -18,15 +14,15 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   const dpr = () => Math.min(window.devicePixelRatio, quality === 'high' ? 2 : 1.5);
   renderer.setPixelRatio(dpr());
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.3;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x05070b);
-  scene.fog = new THREE.FogExp2(0x070a10, 0.011);
+  scene.background = new THREE.Color(0x0c1733); // a floodlit night: deep blue, not black
+  scene.fog = new THREE.FogExp2(0x15213f, 0.0055);
   const envRT = buildEnvironment(renderer);
   scene.environment = envRT.texture;
-  scene.environmentIntensity = 0.55;
+  scene.environmentIntensity = 0.22; // a hint of reflection, no more
 
   const camera = new THREE.PerspectiveCamera(60, 1, 0.03, 600);
 
@@ -55,17 +51,9 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   rig.add(head);
   head.add(camera);
   camera.rotation.set(0, Math.PI, 0); // three cameras look down −z; the car faces +z
-  const LOOK_DOWN = THREE.MathUtils.degToRad(-14);
+  const LOOK_DOWN = THREE.MathUtils.degToRad(-13);
   head.rotation.x = -LOOK_DOWN; // pitch toward the wheel (rotation is applied in the flipped frame)
 
-  // post: bloom on the lamps and LEDs (desktop only)
-  let composer = null;
-  if (quality === 'high') {
-    composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.5, 0.82));
-    composer.addPass(new OutputPass());
-  }
 
   // ---------- state the rest of the page drives ----------
   const pose = { x: 0, z: LAYOUT.startZ, heading: 0 };
@@ -73,6 +61,11 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   const look = { yaw: 0, pitch: 0 };
   const tickers = new Set(); // called every frame with dt (s), before the scene is drawn
   let baseFov = 58;
+  // zoom: 0 = the driver's eye, 1 = face to face with the wheel, sized so the wheel spans `fit` of
+  // the screen's width and sits `offsetY` (share of the height) below the centre. The page lines
+  // its HTML wheel up with this before swapping them.
+  const view = { zoom: 0, fit: 0.9, offsetY: 0 };
+  const ZOOM_FOV = 34;
 
   // shift lights: 5 green, 5 red, 5 blue, filling with rpm (idle ≈ 4k, limiter 12.5k)
   const LED_COLOURS = [...Array(5).fill(0x19e35b), ...Array(5).fill(0xff2a2a), ...Array(5).fill(0x3b6bff)].map((c) => new THREE.Color(c));
@@ -102,8 +95,6 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     camera.updateProjectionMatrix();
     renderer.setPixelRatio(dpr());
     renderer.setSize(w, h, false);
-    composer?.setSize(w, h);
-    composer?.setPixelRatio(dpr());
   }
   resize();
   const ro = new ResizeObserver(resize);
@@ -115,6 +106,9 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   let visible = true;
   let running = false;
   const pos = new THREE.Vector3();
+  const close = new THREE.Vector3();
+  const lerp = (a, b, k) => a + (b - a) * k;
+  let held = false; // the page's wheel is up: stop drawing until it isn't
   let last = performance.now();
   function frame() {
     const now = performance.now();
@@ -122,8 +116,9 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     last = now;
     tickers.forEach((fn) => fn(dt));
     const t = clock.getElapsedTime();
-    // a touch wider with speed (the lane rushes past a little more)
-    const fov = baseFov + (reducedMotion ? 0 : Math.min(1, Math.abs(drive.speed) / 80) * 4);
+    // a touch wider with speed (the lane rushes past a little more); narrow when zoomed on the wheel
+    const z = view.zoom * view.zoom * (3 - 2 * view.zoom);
+    const fov = lerp(baseFov + (reducedMotion ? 0 : Math.min(1, Math.abs(drive.speed) / 80) * 4), ZOOM_FOV, z);
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();
@@ -132,9 +127,21 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     rig.rotation.y = pose.heading;
     car.steer.rotation.z = drive.steer * 1.1; // a little more turn on the wheel than the road angle
     // engine vibration: a fine buzz that grows with rpm, plus a slow breathing sway
-    const buzz = reducedMotion ? 0 : 0.0006 + (drive.rpm / 12000) * 0.0012;
-    head.position.set(car.eye.x + Math.sin(t * 61) * buzz, car.eye.y + Math.sin(t * 47 + 1) * buzz + Math.sin(t * 1.3) * 0.002, car.eye.z);
+    // engine shake: barely there at idle, a fine buzz at speed, nothing once parked
+    const moving = Math.min(1, Math.abs(drive.speed) / 30);
+    const buzz = reducedMotion || drive.gear === 'N' ? 0 : 0.00008 + moving * 0.00028;
+    head.position.set(car.eye.x + Math.sin(t * 61) * buzz, car.eye.y + Math.sin(t * 47 + 1) * buzz, car.eye.z);
     head.rotation.set(-LOOK_DOWN + look.pitch, look.yaw - drive.steer * 0.12, -drive.steer * 0.02);
+    if (z > 0) {
+      // distance that makes the wheel span `fit` of the width at the zoomed fov
+      const vHalf = THREE.MathUtils.degToRad(ZOOM_FOV / 2);
+      const hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
+      const d = car.wheelWidth / 2 / (view.fit * Math.tan(hHalf));
+      const dy = view.offsetY * 2 * d * Math.tan(vHalf); // move the camera so the wheel sits lower/higher
+      close.set(car.steer.position.x, car.steer.position.y + dy, car.wheelFace - d);
+      head.position.lerp(close, z);
+      head.rotation.set(lerp(head.rotation.x, 0, z), lerp(head.rotation.y, 0, z), lerp(head.rotation.z, 0, z));
+    }
     setLeds(drive.rpm, drive.flash);
     lcd.draw(drive);
     pos.set(pose.x, 0, pose.z);
@@ -143,15 +150,14 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     const out = world.outsideAt(pose.x);
     key.intensity = 4 + 10 * out;
     rim.intensity = 1 + 3 * out;
-    if (composer) composer.render();
-    else renderer.render(scene, camera);
+    renderer.render(scene, camera);
   }
   function loop() {
     raf = requestAnimationFrame(loop);
     frame();
   }
   function start() {
-    if (running || !visible || document.hidden) return;
+    if (running || !visible || held || document.hidden) return;
     running = true;
     clock.start();
     loop();
@@ -180,6 +186,16 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     pose,
     drive,
     look,
+    view,
+    // hold the frame (the HTML wheel covers the scene) or carry on
+    hold(on) {
+      held = on;
+      if (on) stop();
+      else {
+        last = performance.now();
+        start();
+      }
+    },
     onFrame: (fn) => (tickers.add(fn), () => tickers.delete(fn)),
     render: frame,
     info: () => renderer.info.render,
@@ -193,7 +209,6 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
       car.dispose();
       lcd.dispose();
       envRT.dispose();
-      composer?.dispose();
       renderer.dispose();
     },
   };

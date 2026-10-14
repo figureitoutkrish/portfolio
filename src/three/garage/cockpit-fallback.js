@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { loft, superRing, taperedTube, canvasTexture, carbonTexture } from './geometry.js';
 
 // The cockpit built in code (what the published site shows; a real model replaces it when one is
-// present, see car.js). Only what the driver can see is modelled: the tub and its rim, halo, nose,
+// present, see car.js). Only what the driver can see is modelled: the tub and its rim, nose,
 // front tyres and arms, mirrors and the steering wheel. Car space: +z forward, +x the driver's
 // left, y up, ground at 0, in metres (sized like a 2020 car).
 const TEAL = 0x00d2be;
@@ -12,14 +12,12 @@ export function buildFallbackCar() {
   car.name = 'car';
   const carbon = carbonTexture();
   const mats = {
-    paint: new THREE.MeshPhysicalMaterial({ color: 0x0a0b0d, roughness: 0.28, metalness: 0.35, clearcoat: 1, clearcoatRoughness: 0.12 }),
+    paint: new THREE.MeshPhysicalMaterial({ color: 0x15171b, roughness: 0.45, metalness: 0.2, clearcoat: 0.25, clearcoatRoughness: 0.35 }),
     carbon: new THREE.MeshPhysicalMaterial({ color: 0x1a1c20, map: carbon, roughness: 0.38, metalness: 0.25, clearcoat: 0.8, clearcoatRoughness: 0.2 }),
     matte: new THREE.MeshStandardMaterial({ color: 0x0d0e10, roughness: 0.75 }),
     teal: new THREE.MeshPhysicalMaterial({ color: TEAL, roughness: 0.3, clearcoat: 1, emissive: TEAL, emissiveIntensity: 0.06 }),
     silver: new THREE.MeshStandardMaterial({ color: 0xb9bec6, roughness: 0.3, metalness: 1 }),
     mirror: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.04, metalness: 1 }),
-    // the halo is satin, not gloss: it sits right in the eyeline and a mirror finish blooms
-    halo: new THREE.MeshPhysicalMaterial({ color: 0x0c0d10, roughness: 0.55, metalness: 0.2, clearcoat: 0.2, clearcoatRoughness: 0.5 }),
   };
 
   // ---- nose: lofted forward from the front bulkhead to the tip ----
@@ -91,20 +89,7 @@ export function buildFallbackCar() {
     car.add(new THREE.Mesh(pod, mats.paint));
   }
 
-  // ---- halo: a titanium hoop over the cockpit, one pillar in the middle of the view ----
-  const halfHoop = (s) => [
-    new THREE.Vector3(s * 0.3, 0.8, -0.55),
-    new THREE.Vector3(s * 0.31, 0.95, -0.28),
-    new THREE.Vector3(s * 0.25, 1.01, 0.08),
-    new THREE.Vector3(s * 0.11, 1.03, 0.33),
-  ];
-  const hoopPts = [...halfHoop(1), new THREE.Vector3(0, 1.032, 0.4), ...halfHoop(-1).reverse()];
-  const hoop = new THREE.CatmullRomCurve3(hoopPts, false, 'centripetal');
-  car.add(new THREE.Mesh(taperedTube(hoop, { segments: 80, radial: 14, radiusAt: () => 0.024, roundTip: false }), mats.halo));
-  const pillar = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 1.03, 0.4), new THREE.Vector3(0, 0.99, 0.6), new THREE.Vector3(0, 0.86, 0.78), new THREE.Vector3(0, 0.74, 0.86)]);
-  const pillarMesh = new THREE.Mesh(taperedTube(pillar, { segments: 24, radial: 12, radiusAt: (t) => 0.028 - t * 0.006, roundTip: false }), mats.halo);
-  pillarMesh.scale.x = 0.7; // a blade, narrower side-on
-  car.add(pillarMesh);
+  // (no halo: it's the one thing between the driver and the view; the view comes first)
 
   // ---- front tyres, rims and suspension ----
   const sidewall = canvasTexture(512, 512, (g, w) => {
@@ -195,7 +180,9 @@ export function buildFallbackCar() {
       back: new THREE.Vector3(0, 0, 1),
       radius: 0.018,
     })),
-    eye: new THREE.Vector3(0, 0.99, -0.48),
+    wheelWidth: 0.304,
+    wheelFace: 0.315,
+    eye: new THREE.Vector3(0, 0.99, -0.2),
     dispose() {
       car.traverse((o) => o.geometry?.dispose());
       Object.values(mats).forEach((m) => m.dispose());

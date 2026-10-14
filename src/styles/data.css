@@ -47,11 +47,12 @@
   background: var(--night);
   isolation: isolate;
 }
-/* no JS or no WebGL: the stations are the page */
-html:not(.js) .cockpit,
-html.no-gl .cockpit { display: none; }
-html:not(.js) .site-header--over,
-html.no-gl .site-header--over { position: relative; inset: auto; margin: 1.25rem var(--gutter) 0; }
+/* no WebGL: no car, just the wheel. No JS: the <noscript> list. */
+html.no-gl :is(.cockpit__gl, .cockpit__load, .cockpit__intro, .hud) { display: none; }
+html:not(.js) .cockpit { display: none; }
+html:not(.js) .site-header--over { position: relative; inset: auto; margin: 1.25rem var(--gutter) 0; }
+.nojs-list { display: grid; gap: 1rem; padding: 4rem var(--gutter); }
+.nojs-list a { color: var(--night-ink); }
 
 .cockpit__gl {
   position: absolute;
@@ -150,93 +151,6 @@ html.no-gl .site-header--over { position: relative; inset: auto; margin: 1.25rem
 .cockpit__start:active { transform: scale(0.97); }
 @media (hover: hover) and (pointer: fine) {
   .cockpit__start:hover { background: rgba(0, 210, 190, 0.18); border-color: var(--w11-teal); }
-}
-
-/* ---------- stations (plain version) ---------- */
-.pits {
-  display: grid;
-  gap: clamp(5rem, 12vw, 9rem);
-  padding: clamp(5rem, 10vw, 8rem) var(--gutter) 9rem;
-  background: linear-gradient(var(--night), var(--night-2));
-}
-.pits:focus { outline: none; }
-.station { display: grid; gap: 1rem; max-width: 72rem; width: 100%; margin: 0 auto; }
-.station__label {
-  color: var(--w11-teal);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.station__title {
-  --tracking: var(--tracking-heading);
-  max-width: 20ch;
-  font-size: clamp(2rem, 5vw, 3.75rem);
-  font-weight: var(--weight-heading);
-  line-height: 1.02;
-  letter-spacing: var(--tracking);
-  text-wrap: balance;
-}
-.station__lede {
-  max-width: 46ch;
-  color: var(--night-muted);
-  font-size: clamp(1rem, 1.4vw, 1.15rem);
-  font-weight: var(--weight-body);
-  line-height: 1.5;
-  text-wrap: pretty;
-}
-.station__slot:empty { display: none; }
-
-/* projects as briefing cards */
-.briefs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-  gap: 1px;
-  margin-top: 1.5rem;
-  border: 1px solid var(--night-line);
-  background: var(--night-line);
-  list-style: none;
-}
-.brief { display: grid; align-content: start; gap: 0.75rem; padding: 1.5rem; background: var(--night); }
-.brief__meta {
-  display: flex;
-  justify-content: space-between;
-  color: var(--night-muted);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.brief__title { --tracking: var(--tracking-heading); font-size: 1.5rem; line-height: 1.1; letter-spacing: var(--tracking); }
-.brief__summary { color: var(--night-muted); font-weight: var(--weight-body); line-height: 1.5; }
-.brief__stack { display: flex; flex-wrap: wrap; gap: 0.35rem; list-style: none; }
-.brief__stack li {
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--night-line);
-  border-radius: 999px;
-  color: var(--night-muted);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-.brief__links { display: flex; gap: 1rem; margin-top: 0.25rem; }
-.brief__links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--night-ink); font-weight: var(--weight-body); }
-@media (hover: hover) and (pointer: fine) {
-  .brief__links a:hover { color: var(--w11-teal); }
-}
-
-.radio__links { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; list-style: none; }
-.radio__links a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--night-ink);
-  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
-}
-@media (hover: hover) and (pointer: fine) {
-  .radio__links a:hover { color: var(--w11-teal); }
 }
 
 .cockpit__skip {
@@ -457,48 +371,3 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
   transition: transform 160ms var(--ease-out);
 }
 .cockpit__pause button:active { transform: scale(0.97); }
-
-/* parked: the way into the garage */
-.cockpit__parked {
-  position: absolute;
-  left: 50%;
-  bottom: 6.75rem; /* above the tab bar, which is back once parked */
-  z-index: 5;
-  display: flex;
-  gap: 0.5rem;
-  translate: -50% 0;
-}
-.cockpit__parked[hidden] { display: none; }
-.cockpit__parked a,
-.cockpit__parked button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 48px;
-  padding: 0 1.4rem;
-  border: 1px solid rgba(0, 210, 190, 0.6);
-  border-radius: 999px;
-  background: rgba(5, 7, 11, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: var(--night-ink);
-  font: inherit;
-  font-size: 0.95rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), background-color 200ms ease;
-}
-.cockpit__parked button { border-color: var(--night-line); }
-@media (hover: hover) and (pointer: fine) {
-  .cockpit__parked a:hover { background: rgba(0, 210, 190, 0.16); }
-  .cockpit__parked button:hover { background: rgba(232, 236, 241, 0.08); }
-}
-.cockpit__parked :active { transform: scale(0.97); }
-
-.radio__mail a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--w11-teal);
-  font-size: clamp(1.1rem, 2.6vw, 1.75rem);
-  overflow-wrap: anywhere;
-}

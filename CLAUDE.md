@@ -33,7 +33,7 @@ npm run preview   # serve the production build
 
 ```
 index.html              # Home (pamidordesign.co-style hero) + intro overlay + gradient wipe
-data/index.html         # Data alter-ego page: first-person F1 cockpit → pit garage stations (design-system/pages/data.md)
+data/index.html         # Data alter-ego page: drive into the pit box, then the steering wheel is the page (design-system/pages/data.md)
 creative/index.html     # Creative alter-ego page: green grid, Mac windows, bento work (design-system/pages/creative.md)
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
@@ -47,7 +47,7 @@ public/assets/
 src/
   main.js               # Home entry (intro, home reveal)
   data.js               # Entry for the data page (+ src/garage/ modules, styles/data.css)
-  garage/               # Data page logic, no three.js: data/projects.js (the projects list; add entries here)
+  garage/               # Data page logic, no three.js: drive.js, vehicle.js, telemetry.js, wheel.js + modes/, data/projects.js (add projects here)
   creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
   creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
   shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js), record player

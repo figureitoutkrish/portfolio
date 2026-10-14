@@ -21,12 +21,12 @@ export function buildWorld({ quality = 'high' } = {}) {
 
   // ---------- materials ----------
   const M = {
-    asphalt: track(new THREE.MeshStandardMaterial({ color: 0x121417, roughness: 0.36, metalness: 0.05 })),
-    concrete: track(new THREE.MeshStandardMaterial({ color: 0x24272b, roughness: 0.4 })),
-    epoxy: track(new THREE.MeshStandardMaterial({ color: 0x8f949b, roughness: 0.22, metalness: 0.1 })),
-    wall: track(new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.8 })),
-    wallLight: track(new THREE.MeshStandardMaterial({ color: 0xd9dde3, roughness: 0.7 })),
-    facade: track(new THREE.MeshStandardMaterial({ color: 0x0d0f12, roughness: 0.5, metalness: 0.3 })),
+    asphalt: track(new THREE.MeshStandardMaterial({ color: 0x34383f, roughness: 0.85 })),
+    concrete: track(new THREE.MeshStandardMaterial({ color: 0x5a5f67, roughness: 0.8 })),
+    epoxy: track(new THREE.MeshStandardMaterial({ color: 0xb4b9c0, roughness: 0.45 })),
+    wall: track(new THREE.MeshStandardMaterial({ color: 0x4a4f58, roughness: 0.85 })),
+    wallLight: track(new THREE.MeshStandardMaterial({ color: 0xeef1f4, roughness: 0.8 })),
+    facade: track(new THREE.MeshStandardMaterial({ color: 0x1c2027, roughness: 0.7 })),
     steel: track(new THREE.MeshStandardMaterial({ color: 0x2a2e34, roughness: 0.35, metalness: 0.8 })),
     cabinet: track(new THREE.MeshStandardMaterial({ color: 0x121417, roughness: 0.3, metalness: 0.6 })),
     paint: track(new THREE.MeshStandardMaterial({ color: 0xe9ecef, roughness: 0.6 })),
@@ -152,14 +152,18 @@ export function buildWorld({ quality = 'high' } = {}) {
   world.add(ours.group);
 
   // ---------- lights ----------
-  const hemi = new THREE.HemisphereLight(0x7f98bd, 0x0b0c10, 0.35);
+  // a floodlit night race: bright and even, like the circuit's light towers are on
+  const hemi = new THREE.HemisphereLight(0xc8d6ff, 0x30333a, 1.1);
   world.add(hemi);
-  const moon = new THREE.DirectionalLight(0x9db6ff, 0.35);
-  moon.position.set(30, 40, -20);
-  world.add(moon);
+  const flood = new THREE.DirectionalLight(0xfff6e8, 1.6);
+  flood.position.set(40, 60, -30);
+  world.add(flood);
+  const fill = new THREE.DirectionalLight(0xbfd2ff, 0.5);
+  fill.position.set(-30, 25, 40);
+  world.add(fill);
   // our garage's ceiling: two big soft panels
   for (const dx of [-5, -11]) {
-    const panel = new THREE.RectAreaLight(0xf2f6ff, 2.6, 4, 9);
+    const panel = new THREE.RectAreaLight(0xf2f6ff, 3.2, 4, 9);
     panel.position.set(gx + dx, 4.85, LAYOUT.ours);
     panel.lookAt(gx + dx, 0, LAYOUT.ours);
     world.add(panel);

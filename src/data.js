@@ -1,15 +1,16 @@
 import './styles/main.css';
 import './styles/data.css';
+import './styles/wheel.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
 import gsap from 'gsap';
 import { initShared } from './shared.js';
 import { initDrive } from './garage/drive.js';
+import { initWheel } from './garage/wheel.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
-import { PROJECTS } from './garage/data/projects.js';
 
-// Data page (alter ego 01): first person in the car on a night pit lane (src/three/garage/), then
-// the garage's stations. The stations are plain HTML too: that's the page without WebGL or JS, and
-// what "skip the drive" jumps to. Plan: design-system/pages/data.md
+// Data page (alter ego 01): first person in an F1 car on a floodlit pit lane (src/three/garage/).
+// Drive in, park, and the camera zooms into the steering wheel: the wheel (src/garage/wheel.js) is
+// the page from then on. Without WebGL it's just the wheel. Plan: design-system/pages/data.md
 const { reducedMotion, fontsReady, lenis } = initShared();
 const viaWipe = arrivedViaWipe();
 
@@ -18,8 +19,7 @@ const canvas = cockpit.querySelector('.cockpit__gl');
 const pct = cockpit.querySelector('.cockpit__load-pct');
 const bar = cockpit.querySelector('.cockpit__load-track');
 const lines = cockpit.querySelectorAll('.cockpit__title .line > span');
-
-renderProjects();
+const wheelEl = document.getElementById('wheel');
 
 const gl = webglAvailable();
 if (!gl) document.documentElement.classList.add('no-gl');
@@ -27,44 +27,25 @@ if (!reducedMotion) gsap.set(lines, { yPercent: 110 });
 
 fontsReady.then(async () => {
   if (viaWipe) revealArrival();
-  if (!gl) return;
+  if (!gl) return plainWheel();
   let garage;
   try {
     const { createGarage } = await import('./three/garage/index.js');
     garage = await createGarage(canvas, { quality: pickQuality(), reducedMotion, onProgress: progress });
   } catch (err) {
-    console.error('[garage] 3D failed, showing the plain page', err);
+    console.error('[garage] 3D failed, showing the plain wheel', err);
     document.documentElement.classList.add('no-gl');
-    return;
+    return plainWheel();
   }
   progress(1);
   cockpit.classList.add('is-ready');
   if (import.meta.env.DEV) window.__garage = garage;
   if (!reducedMotion) gsap.to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.08, delay: 0.25 });
 
-  const parked = cockpit.querySelector('.cockpit__parked');
-  const drive = initDrive({
-    garage,
-    cockpit,
-    reducedMotion,
-    lenis,
-    onParked: ({ skipped }) => {
-      // the garage reveal arrives next; for now: the way in, and a way to drive again
-      setTimeout(() => (parked.hidden = false), skipped ? 0 : 1600);
-    },
-  });
-  if (import.meta.env.DEV) window.__drive = drive;
-  parked.querySelector('[data-restart]').addEventListener('click', () => {
-    parked.hidden = true;
-    drive.restart();
-  });
-  parked.querySelector('[data-explore]').addEventListener('click', (e) => {
-    e.preventDefault();
-    const pits = document.getElementById('pits');
-    if (lenis) lenis.scrollTo(pits, { duration: 1.2 });
-    else pits.scrollIntoView();
-    pits.focus({ preventScroll: true });
-  });
+  let drive = null;
+  const wheel = initWheel({ root: wheelEl, reducedMotion, onPit: () => drive?.restart() });
+  drive = initDrive({ garage, cockpit, wheel, reducedMotion, lenis });
+  if (import.meta.env.DEV) Object.assign(window, { __drive: drive, __wheel: wheel });
 });
 
 function progress(p) {
@@ -92,24 +73,10 @@ function webglAvailable() {
   }
 }
 
-function renderProjects() {
-  const list = document.querySelector('[data-projects]');
-  if (!list) return;
-  list.innerHTML = PROJECTS.map(
-    (p) => `<li class="brief" id="project-${p.slug}">
-      <p class="brief__meta"><span></span><span>${p.year}</span></p>
-      <h3 class="brief__title"></h3>
-      <p class="brief__summary"></p>
-      <ul class="brief__stack">${p.stack.map(() => '<li></li>').join('')}</ul>
-      <p class="brief__links">${p.links.repo ? `<a href="${p.links.repo}" target="_blank" rel="noopener">code ↗</a>` : ''}${p.links.live ? `<a href="${p.links.live}" target="_blank" rel="noopener">live ↗</a>` : ''}</p>
-    </li>`
-  ).join('');
-  // text goes in as text
-  [...list.children].forEach((li, i) => {
-    const p = PROJECTS[i];
-    li.querySelector('.brief__meta span').textContent = p.kind;
-    li.querySelector('.brief__title').textContent = p.title;
-    li.querySelector('.brief__summary').textContent = p.summary;
-    li.querySelectorAll('.brief__stack li').forEach((el, k) => (el.textContent = p.stack[k]));
-  });
+// no WebGL (or it failed): the wheel on its own is the page; PIT has nowhere to drive to
+function plainWheel() {
+  const wheel = initWheel({ root: wheelEl, reducedMotion, onPit: () => {} });
+  wheelEl.querySelector('[data-act="pit"]').hidden = true;
+  document.documentElement.dataset.drive = 'wheel';
+  wheel.show({ instant: true });
 }

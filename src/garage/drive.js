@@ -1,10 +1,13 @@
 import { createVehicle } from './vehicle.js';
+import { createRecorder } from './telemetry.js';
 import { LAYOUT } from './layout.js';
 import { sfx, loop, soundOn, onSoundChange } from '../audio/sfx.js';
 
-// The drive: start → pit lane → stop past the garage → reverse into the box → parked.
+// The drive: start → pit lane → stop past the garage → reverse into the box → parked → the camera
+// zooms into the steering wheel and the HTML wheel (wheel.js) takes over as the page.
 // Runs inside the garage's frame loop (garage.onFrame) so the car, the wheel display, the HUD and
-// the sound move in the same frame. Phases (html data-drive): intro · driving · paused · parked.
+// the sound move in the same frame. Phases (html data-drive): intro · driving · paused · parked ·
+// wheel. The drive is recorded (telemetry.js) for the wheel's LAP mode.
 //
 // Controls (only while driving; never while typing, and never over the menu/palette):
 //   W ↑ throttle · S ↓ brake, then hold to reverse · A D ← → steer · Space brake · Esc pause
@@ -18,10 +21,11 @@ const KEYS = {
 };
 const STORE = 'krish:garage';
 
-export function initDrive({ garage, cockpit, reducedMotion, lenis, onParked }) {
+export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   const root = document.documentElement;
   const vehicle = createVehicle();
   const s = vehicle.state;
+  const rec = createRecorder();
   const hud = cockpit.querySelector('.hud');
   const phaseEl = hud.querySelector('[data-hud-phase]');
   const msgEl = hud.querySelector('[data-hud-msg]');
@@ -151,15 +155,23 @@ export function initDrive({ garage, cockpit, reducedMotion, lenis, onParked }) {
     if (phase === 'driving') {
       readInput();
       vehicle.step(dt, input);
+      rec.frame(dt, s, input);
       for (const ev of s.events) {
         if (ev === 'shift') sfx('shift');
-        else if (ev === 'reverse') sfx('clunk');
-        else if (ev === 'forward') sfx('clunk');
+        else if (ev === 'reverse') {
+          sfx('clunk');
+          rec.mark('reverse');
+        } else if (ev === 'forward') sfx('clunk');
         else if (ev === 'limiter') sfx('limiter');
         else if (ev === 'bump') sfx('clunk');
-        else if (ev === 'parked') park();
+        else if (ev === 'parked') {
+          rec.mark('parked', { error: s.distanceToBox });
+          rec.finish();
+          park();
+        }
       }
     } else if (phase === 'parked') vehicle.step(dt, {});
+    tickZoom(dt);
 
     // hand the car's state to the scene
     garage.pose.x = s.x;
@@ -221,11 +233,68 @@ export function initDrive({ garage, cockpit, reducedMotion, lenis, onParked }) {
     garage.render();
   }
 
+  // ---------- the zoom into the wheel ----------
+  // Line the 3D wheel up with the HTML one: measure where the HTML wheel will sit, tell the scene,
+  // and glide the camera there; then swap and hold the 3D frame.
+  let zoomAnim = null;
+  function measureWheel() {
+    wheel.prepare(); // laid out but invisible
+    const box = wheel.bodyRect();
+    const c = cockpit.getBoundingClientRect();
+    garage.view.fit = box.width / c.width;
+    garage.view.offsetY = (box.top + box.height / 2 - (c.top + c.height / 2)) / c.height;
+  }
+  function zoomTo(to, seconds, done) {
+    if (reducedMotion || seconds === 0) {
+      garage.view.zoom = to;
+      garage.render();
+      return done?.();
+    }
+    zoomAnim = { from: garage.view.zoom, to, t: 0, seconds, done };
+  }
+  function tickZoom(dt) {
+    if (!zoomAnim) return;
+    zoomAnim.t = Math.min(1, zoomAnim.t + dt / zoomAnim.seconds);
+    garage.view.zoom = zoomAnim.from + (zoomAnim.to - zoomAnim.from) * zoomAnim.t;
+    if (zoomAnim.t >= 1) {
+      const done = zoomAnim.done;
+      zoomAnim = null;
+      done?.();
+    }
+  }
+  function toWheel({ delay = 0, seconds = 1.5 } = {}) {
+    measureWheel();
+    setTimeout(() => {
+      zoomTo(1, seconds, () => {
+        setPhase('wheel');
+        wheel.show();
+        garage.hold(true); // the HTML wheel covers it: stop drawing
+      });
+    }, reducedMotion ? 0 : delay);
+  }
+
+  // reduced motion runs no loop: put the car where it is and draw one frame
+  function syncPose() {
+    garage.pose.x = s.x;
+    garage.pose.z = s.z;
+    garage.pose.heading = s.heading;
+    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', steer: 0, flash: false, message: '' });
+    garage.render();
+  }
+  function remember() {
+    try {
+      localStorage.setItem(STORE, 'parked');
+    } catch {
+      /* ignore */
+    }
+  }
+
   // ---------- phases ----------
   function start() {
     if (phase !== 'intro') return;
     setPhase('driving');
     cockpit.classList.add('is-driving');
+    rec.start();
     sfx('ignition');
     setTimeout(startEngine, 650);
     hud.querySelector('.hud__keys summary')?.focus({ preventScroll: true });
@@ -241,19 +310,17 @@ export function initDrive({ garage, cockpit, reducedMotion, lenis, onParked }) {
       pause.querySelector('[data-resume]')?.focus();
     }
   }
+  // parked on the marks: idle, the wheel gun, then into the wheel
   function park() {
     setPhase('parked');
-    try {
-      localStorage.setItem(STORE, 'parked');
-    } catch {
-      /* ignore */
-    }
+    remember();
     setTimeout(() => sfx('airgun'), 450);
     setTimeout(() => {
       engine?.stop();
       engine = null;
-    }, 2200);
-    onParked?.({ skipped: false });
+    }, 1800);
+    wheel.refresh(); // the new lap
+    toWheel({ delay: 1100, seconds: 1.6 });
   }
   function skip() {
     vehicle.reset({ parked: true });
@@ -262,18 +329,20 @@ export function initDrive({ garage, cockpit, reducedMotion, lenis, onParked }) {
     pause.hidden = true;
     setPhase('parked');
     cockpit.classList.add('is-driving');
-    try {
-      localStorage.setItem(STORE, 'parked');
-    } catch {
-      /* ignore */
-    }
+    remember();
     syncPose();
-    onParked?.({ skipped: true });
+    toWheel({ seconds: 1.1 });
   }
+  // PIT on the wheel: back in the car at the pit entry, engine running
   function restart() {
+    wheel.hide();
+    garage.hold(false);
+    zoomAnim = null;
+    garage.view.zoom = 0;
     vehicle.reset();
     cockpit.classList.add('is-driving');
     setPhase('driving');
+    rec.start();
     sfx('ignition');
     setTimeout(startEngine, 650);
   }
@@ -291,10 +360,13 @@ export function initDrive({ garage, cockpit, reducedMotion, lenis, onParked }) {
   }
   if (seen === 'parked' || reducedMotion) {
     vehicle.reset({ parked: true });
-    setPhase('parked');
     cockpit.classList.add('is-driving');
+    measureWheel();
+    garage.view.zoom = 1;
     syncPose();
-    onParked?.({ skipped: true, returning: true });
+    garage.hold(true);
+    setPhase('wheel');
+    wheel.show({ instant: true });
   }
 
   return {

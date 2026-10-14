@@ -19,7 +19,7 @@ const ACCEL = 6.5; // m/s² at low speed
 const BRAKE = 13;
 const COAST = 0.9; // rolling + aero drag at pit speed, m/s²
 const REVERSE_MAX = 2.6; // m/s ≈ 9 km/h
-const GEARS = [0, 22, 38, 54, 68, 999]; // km/h at which each gear tops out (1st…5th)
+const GEARS = [0, 34, 52, 68, 999]; // km/h at which each gear tops out (1st…4th): rev it out, then shift
 const IDLE = 4000;
 
 export function createVehicle(layout = LAYOUT) {
@@ -91,7 +91,7 @@ export function createVehicle(layout = LAYOUT) {
       const g = Number(gear);
       const lo = GEARS[g - 1];
       const hi = Math.min(GEARS[g], layout.speedLimit + 2);
-      rpm = 6200 + ((s.kph - lo) / Math.max(1, hi - lo)) * 5300 + throttle * 600;
+      rpm = 7200 + ((s.kph - lo) / Math.max(1, hi - lo)) * 4600 + throttle * 300;
     } else if (gear === 'R') rpm = IDLE + (Math.abs(s.speed) / REVERSE_MAX) * 3500 + throttle * 300;
     else rpm = IDLE + throttle * 7000; // blipping in neutral
     s.rpm += (rpm - s.rpm) * Math.min(1, dt * 10);

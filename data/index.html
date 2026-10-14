@@ -44,7 +44,7 @@
     </script>
   </head>
   <body>
-    <a class="skip-link" href="#pits">skip the drive</a>
+    <a class="skip-link" href="#wheel">skip to the wheel</a>
     <main class="garage-page">
         <header class="site-header site-header--over">
           <a class="logo" href="/">krish.</a>
@@ -63,8 +63,8 @@
           </nav>
         </header>
 
-      <!-- The cockpit: a WebGL scene (src/three/garage/), first person on a night pit lane. Without
-           WebGL or JS it is hidden and the stations below are the page. -->
+      <!-- The cockpit: a WebGL scene (src/three/garage/), first person on a night pit lane. Drive in,
+           park, and the steering wheel (below) becomes the page. Without WebGL only the wheel shows. -->
       <section class="cockpit" id="cockpit" aria-label="cockpit">
         <canvas class="cockpit__gl" aria-hidden="true"></canvas>
         <div class="cockpit__load" role="status">
@@ -108,10 +108,75 @@
           </div>
         </div>
 
-        <div class="cockpit__parked" hidden>
-          <a href="#pits" data-explore>explore the garage</a>
-          <button type="button" data-restart>drive in again</button>
-        </div>
+        <!-- The wheel is the page (src/garage/wheel.js): once parked the camera zooms into the
+             steering wheel and this takes over, lined up with the 3D one. Without WebGL it's
+             simply the page. Every control does something; nothing is decoration. -->
+        <section class="wheel" id="wheel" aria-label="steering wheel" tabindex="-1" hidden>
+          <div class="wheel__body">
+            <svg class="wheel__shape" viewBox="0 0 900 400" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <pattern id="wheel-weave" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <rect width="10" height="10" fill="#15171b" />
+                  <rect width="5" height="5" fill="#1d2025" />
+                  <rect x="5" y="5" width="5" height="5" fill="#1d2025" />
+                </pattern>
+                <pattern id="wheel-rubber" width="6" height="6" patternUnits="userSpaceOnUse">
+                  <rect width="6" height="6" fill="#0b0c0e" />
+                  <circle cx="3" cy="3" r="1.1" fill="#16181b" />
+                </pattern>
+                <linearGradient id="wheel-sheen" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#fff" stop-opacity="0.09" />
+                  <stop offset="0.35" stop-color="#fff" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path class="wheel__plate" d="M170 30C300 18 600 18 730 30C800 36 845 60 862 110C880 170 884 260 868 330C858 372 812 392 776 372C748 356 736 330 712 322L600 330C540 360 360 360 300 330L188 322C164 330 152 356 124 372C88 392 42 372 32 330C16 260 20 170 38 110C55 60 100 36 170 30Z" fill="url(#wheel-weave)" />
+              <path d="M38 112C24 170 20 262 34 330C44 372 88 392 124 372C150 356 160 334 168 318C150 250 146 170 158 112C120 96 70 96 38 112Z" fill="url(#wheel-rubber)" />
+              <path d="M862 112C876 170 880 262 866 330C856 372 812 392 776 372C750 356 740 334 732 318C750 250 754 170 742 112C780 96 830 96 862 112Z" fill="url(#wheel-rubber)" />
+              <path d="M170 30C300 18 600 18 730 30C800 36 845 60 862 110C880 170 884 260 868 330C858 372 812 392 776 372C748 356 736 330 712 322L600 330C540 360 360 360 300 330L188 322C164 330 152 356 124 372C88 392 42 372 32 330C16 260 20 170 38 110C55 60 100 36 170 30Z" fill="url(#wheel-sheen)" stroke="#2c3036" stroke-width="2" />
+            </svg>
+
+            <button class="paddle paddle--prev" type="button" data-act="prev" aria-label="previous"><span aria-hidden="true">&minus;</span></button>
+            <button class="paddle paddle--next" type="button" data-act="next" aria-label="next"><span aria-hidden="true">+</span></button>
+
+            <div class="leds" aria-hidden="true"></div>
+
+            <div class="cluster cluster--l">
+              <button class="cap cap--green" type="button" data-act="drs">drs</button>
+              <button class="cap cap--teal" type="button" data-act="talk">talk</button>
+              <button class="cap cap--grey" type="button" data-act="drink">drink</button>
+            </div>
+
+            <div class="screen" role="region" aria-label="display">
+              <header class="screen__bar">
+                <span class="screen__mode" data-screen-mode>projects</span>
+                <span class="screen__toast" data-screen-toast aria-live="polite"></span>
+                <span class="screen__count" data-screen-count></span>
+              </header>
+              <div class="screen__body" data-screen-body tabindex="0"></div>
+              <footer class="screen__hints" data-screen-hints aria-hidden="true"></footer>
+            </div>
+
+            <div class="cluster cluster--r">
+              <button class="cap cap--ok" type="button" data-act="ok">ok</button>
+              <button class="cap cap--red" type="button" data-act="back">back</button>
+              <button class="cap cap--orange" type="button" data-act="pit" aria-label="pit exit: drive in again">pit</button>
+            </div>
+
+            <div class="rotary rotary--mode" role="radiogroup" aria-label="mode">
+              <span class="rotary__knob" aria-hidden="true"></span>
+              <button class="rotary__pos" type="button" role="radio" data-mode="projects" style="--a:-50deg">projects</button>
+              <button class="rotary__pos" type="button" role="radio" data-mode="lap" style="--a:0deg">lap</button>
+              <button class="rotary__pos" type="button" role="radio" data-mode="radio" style="--a:50deg">radio</button>
+            </div>
+            <div class="rotary rotary--scroll">
+              <span class="rotary__knob" data-scroll-knob aria-hidden="true"></span>
+              <button class="rotary__pos" type="button" data-act="up" style="--a:-40deg" aria-label="scroll up">&uarr;</button>
+              <button class="rotary__pos" type="button" data-act="down" style="--a:40deg" aria-label="scroll down">&darr;</button>
+              <span class="rotary__label" aria-hidden="true">scroll</span>
+            </div>
+          </div>
+          <p class="wheel__keys" aria-hidden="true"><kbd>&larr;</kbd><kbd>&rarr;</kbd> paddles <kbd>&uarr;</kbd><kbd>&darr;</kbd> scroll <kbd>enter</kbd> ok <kbd>esc</kbd> back <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> mode</p>
+        </section>
 
         <div class="cockpit__pause" role="dialog" aria-label="paused" hidden>
           <p>paused</p>
@@ -120,40 +185,6 @@
         </div>
       </section>
 
-      <!-- The garage's stations, as plain sections: the accessible / no-WebGL version of the page
-           and what the 3D stations open. -->
-      <div class="pits" id="pits" tabindex="-1">
-        <section class="station" id="pit-wall" aria-labelledby="pit-wall-title">
-          <p class="station__label">station 01 &middot; pit wall</p>
-          <h2 class="station__title" id="pit-wall-title">teach the machine</h2>
-          <p class="station__lede">place points, pick a dataset, and watch a small neural network learn where one class ends and the other begins. it trains live, in your browser.</p>
-          <div class="station__slot" data-playground></div>
-        </section>
-
-        <section class="station" id="garage" aria-labelledby="garage-title">
-          <p class="station__label">station 02 &middot; garage</p>
-          <h2 class="station__title" id="garage-title">the projects</h2>
-          <ol class="briefs" data-projects></ol>
-        </section>
-
-        <section class="station" id="debrief" aria-labelledby="debrief-title">
-          <p class="station__label">station 03 &middot; debrief</p>
-          <h2 class="station__title" id="debrief-title">you are the dataset</h2>
-          <p class="station__lede">your drive in was recorded: throttle, braking, steering, how close you parked. here is what the data says about you. nothing leaves your browser.</p>
-          <div class="station__slot" data-debrief></div>
-        </section>
-
-        <section class="station" id="radio" aria-labelledby="radio-title">
-          <p class="station__label">station 04 &middot; team radio</p>
-          <h2 class="station__title" id="radio-title">box, box. let&rsquo;s build something.</h2>
-          <p class="radio__mail"><a href="mailto:krishviramgamatir@gmail.com">krishviramgamatir@gmail.com</a></p>
-          <ul class="radio__links">
-            <li><a href="https://www.linkedin.com/in/krish-viramgama-27951927a/" target="_blank" rel="noopener">linkedin</a></li>
-            <li><a href="https://github.com/figureitoutkrish" target="_blank" rel="noopener">github</a></li>
-            <li><a href="https://www.instagram.com/figureitoutwithkrish/" target="_blank" rel="noopener">instagram</a></li>
-          </ul>
-        </section>
-      </div>
     </main>
 
     <!-- Liquid glass tab bar: the main way between pages (src/sections/tabbar.js). -->

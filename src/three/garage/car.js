@@ -73,12 +73,12 @@ async function loadW11(manager) {
   const phys = (o) => new THREE.MeshPhysicalMaterial(o);
   const decal = (file) => phys({ map: map(file), transparent: true, alphaTest: 0.35, roughness: 0.35, clearcoat: 1, polygonOffset: true, polygonOffsetFactor: -2 });
   const M = {
-    mercedes_paint: phys({ map: map('mercedes_paint_d.png'), roughness: 0.35, metalness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.22 }),
+    mercedes_paint: phys({ map: map('mercedes_paint_d.png'), roughness: 0.45, metalness: 0.2, clearcoat: 0.25, clearcoatRoughness: 0.35 }),
     decals: decal('mercedes_decal_da.png'),
     EXT_Decals: decal('ext_decals.png'),
     SW_DECALS: decal('mercedes_steering_wheel_decal_da.png'),
     number: decal('mercedes_driver_44.png'),
-    mercedes_carbon1: phys({ color: 0x24262b, map: carbon, roughness: 0.4, metalness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.3 }),
+    mercedes_carbon1: phys({ color: 0x2a2d33, map: carbon, roughness: 0.55, metalness: 0.2 }),
     mercedes_detail: phys({ map: map('mercedes_detail_d.png'), roughness: 0.4, metalness: 0.3, clearcoat: 0.6 }),
     // the seat and cockpit internals: the atlas they point at doesn't line up, so plain dark trim
     generics: new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.7, metalness: 0.2 }),
@@ -110,6 +110,14 @@ async function loadW11(manager) {
   });
   // the model carries both seat-belt states; keep them done up
   root.getObjectByName('CINTURE_OFF')?.removeFromParent();
+  // no halo: it's the one thing between the driver and the view, and this is about the view.
+  // Its hoop and pillar share meshes with the chassis, so drop just those triangles.
+  root.updateMatrixWorld(true);
+  ['safetycell_SUB2_001_001', 'safetycell_SUB2_002_001', 'safetycell_SUB2_003_001', 'safetycell_SUB3_001_001'].forEach((n) => root.getObjectByName(n)?.removeFromParent());
+  const isHalo = (p) => (p.y > 0.86 && p.z > -0.42 && p.z < 1.2) || (p.y > 0.72 && Math.abs(p.x) < 0.07 && p.z > 0.46 && p.z < 1.05);
+  root.traverse((o) => {
+    if (o.isMesh && /^(safetycell_SUB[01]|driver_surroun)/.test(o.name)) dropTriangles(o, (a, b, c) => isHalo(a) && isHalo(b) && isHalo(c));
+  });
 
   // steering: wrap STEER_HR in a pivot at the wheel's centre, turning about the column (≈ car −z)
   root.updateMatrixWorld(true);
@@ -166,7 +174,9 @@ async function loadW11(manager) {
     leds,
     lcdMesh,
     grips,
-    eye: new THREE.Vector3(0, 0.99, -0.48), // just behind the helmet, like an onboard shot
+    wheelWidth: box.max.x - box.min.x,
+    wheelFace: box.min.z, // the face the driver sees (car space z)
+    eye: new THREE.Vector3(0, 0.99, -0.2), // the driver's eye line (no halo, nothing in the way)
     dispose() {
       root.traverse((o) => o.geometry?.dispose());
       new Set(Object.values(M)).forEach((m) => m.dispose());
@@ -174,6 +184,29 @@ async function loadW11(manager) {
       textures.forEach((t) => t.dispose());
     },
   };
+}
+
+// remove the triangles of a mesh for which test(a, b, c) is true (vertices in the model's space)
+function dropTriangles(mesh, test) {
+  const g = mesh.geometry;
+  const pos = g.attributes.position;
+  const idx = g.index;
+  if (!idx) return;
+  const m = mesh.matrixWorld;
+  const a = new THREE.Vector3();
+  const b = new THREE.Vector3();
+  const c = new THREE.Vector3();
+  const keep = [];
+  for (let i = 0; i < idx.count; i += 3) {
+    const ia = idx.getX(i);
+    const ib = idx.getX(i + 1);
+    const ic = idx.getX(i + 2);
+    a.fromBufferAttribute(pos, ia).applyMatrix4(m);
+    b.fromBufferAttribute(pos, ib).applyMatrix4(m);
+    c.fromBufferAttribute(pos, ic).applyMatrix4(m);
+    if (!test(a, b, c)) keep.push(ia, ib, ic);
+  }
+  g.setIndex(keep);
 }
 
 const worldX = (o) => new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()).x;
