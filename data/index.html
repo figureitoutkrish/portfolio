@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#f7f7f7" />
+    <meta name="theme-color" content="#05070b" />
     <title>Data — Krish Viramgama</title>
     <meta name="description" content="The data science and engineering side of Krish Viramgama." />
     <!-- Share previews (WhatsApp, LinkedIn, iMessage, X). __SITE_URL__ is filled in at build time (vite.config.js). -->
@@ -44,8 +44,9 @@
     </script>
   </head>
   <body>
-    <main class="page page--data">
-        <header class="site-header" data-fade>
+    <a class="skip-link" href="#pits">skip the drive</a>
+    <main class="garage-page">
+        <header class="site-header site-header--over">
           <a class="logo" href="/">krish.</a>
           <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-menu"><span></span><span></span></button>
           <nav id="site-menu" class="menu glass glass--regular" aria-label="Find me online">
@@ -62,11 +63,55 @@
           </nav>
         </header>
 
-      <section class="page-hero" aria-labelledby="page-title">
-        <p class="page-hero__eyebrow" data-fade>alter ego 01</p>
-        <h1 id="page-title" class="page-hero__title"><span class="line"><span>data</span></span></h1>
-        <p class="page-hero__note" data-fade>this side is still being built &mdash; projects, notebooks and experiments are on the way.</p>
+      <!-- The cockpit: a WebGL scene (src/three/garage/), first person on a night pit lane. Without
+           WebGL or JS it is hidden and the stations below are the page. -->
+      <section class="cockpit" id="cockpit" aria-label="cockpit">
+        <canvas class="cockpit__gl" aria-hidden="true"></canvas>
+        <div class="cockpit__load" role="status">
+          <span class="cockpit__load-label">warming the tyres</span>
+          <span class="cockpit__load-track" aria-hidden="true"><i></i></span>
+          <span class="cockpit__load-pct">0%</span>
+        </div>
+        <div class="cockpit__intro">
+          <p class="cockpit__eyebrow">alter ego 01 &middot; data</p>
+          <h1 class="cockpit__title"><span class="line"><span>every project has</span></span> <span class="line"><span>a starting grid.</span></span></h1>
+          <button class="cockpit__start" type="button" data-start><span>take the wheel</span></button>
+        </div>
       </section>
+
+      <!-- The garage's stations, as plain sections: the accessible / no-WebGL version of the page
+           and what the 3D stations open. -->
+      <div class="pits" id="pits" tabindex="-1">
+        <section class="station" id="pit-wall" aria-labelledby="pit-wall-title">
+          <p class="station__label">station 01 &middot; pit wall</p>
+          <h2 class="station__title" id="pit-wall-title">teach the machine</h2>
+          <p class="station__lede">place points, pick a dataset, and watch a small neural network learn where one class ends and the other begins. it trains live, in your browser.</p>
+          <div class="station__slot" data-playground></div>
+        </section>
+
+        <section class="station" id="garage" aria-labelledby="garage-title">
+          <p class="station__label">station 02 &middot; garage</p>
+          <h2 class="station__title" id="garage-title">the projects</h2>
+          <ol class="briefs" data-projects></ol>
+        </section>
+
+        <section class="station" id="debrief" aria-labelledby="debrief-title">
+          <p class="station__label">station 03 &middot; debrief</p>
+          <h2 class="station__title" id="debrief-title">you are the dataset</h2>
+          <p class="station__lede">your drive in was recorded: throttle, braking, steering, how close you parked. here is what the data says about you. nothing leaves your browser.</p>
+          <div class="station__slot" data-debrief></div>
+        </section>
+
+        <section class="station" id="radio" aria-labelledby="radio-title">
+          <p class="station__label">station 04 &middot; team radio</p>
+          <h2 class="station__title" id="radio-title">box, box. let&rsquo;s build something.</h2>
+          <ul class="radio__links">
+            <li><a href="https://www.linkedin.com/in/krish-viramgama-27951927a/" target="_blank" rel="noopener">linkedin</a></li>
+            <li><a href="https://github.com/figureitoutkrish" target="_blank" rel="noopener">github</a></li>
+            <li><a href="https://www.instagram.com/figureitoutwithkrish/" target="_blank" rel="noopener">instagram</a></li>
+          </ul>
+        </section>
+      </div>
     </main>
 
     <!-- Liquid glass tab bar: the main way between pages (src/sections/tabbar.js). -->
@@ -80,6 +125,6 @@
 
     <div class="wipe" aria-hidden="true"></div>
 
-    <script type="module" src="/src/page.js"></script>
+    <script type="module" src="/src/data.js"></script>
   </body>
 </html>

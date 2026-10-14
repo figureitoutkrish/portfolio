@@ -53,6 +53,16 @@
   --underline-thickness: 0.07em;
 
   /* Motion curves (mirrored in src/utils/ease.js as ui-out / ui-in-out / drawer). */
+  /* The data page's night pit lane (2020 W11 colours): always dark, whatever the theme. */
+  --night: #05070b;
+  --night-2: #0b0e14;
+  --night-ink: #e8ecf1;
+  --night-muted: rgba(232, 236, 241, 0.62); /* 9.6:1 on --night */
+  --night-line: rgba(232, 236, 241, 0.14);
+  --w11-teal: #00d2be;
+  --carbon: #0b0c0f;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, Menlo, monospace;
+
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);

@@ -1,0 +1,240 @@
+/* Data page (alter ego 01): first person in the car on a night pit lane, then the garage's
+   stations. Always dark (it's night in the pit lane), whatever the site theme.
+   Design rules: design-system/pages/data.md */
+
+:root:has(.garage-page) {
+  color-scheme: dark;
+  --bg: var(--night);
+  --fg: var(--night-ink);
+  --muted: var(--night-muted);
+  --line: var(--night-line);
+  --accent: var(--w11-teal);
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--night-ink);
+  color: var(--night);
+  font-size: 0.9rem;
+  font-weight: var(--weight-body);
+  translate: -50% -200%;
+  transition: translate 200ms var(--ease-out);
+}
+.skip-link:focus-visible { translate: -50% 0; }
+
+.garage-page { position: relative; }
+
+.site-header--over {
+  position: absolute;
+  top: 1.25rem;
+  left: var(--gutter);
+  right: var(--gutter);
+  z-index: 20;
+  color: var(--night-ink);
+}
+
+/* ---------- cockpit ---------- */
+.cockpit {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: clip;
+  background: var(--night);
+  isolation: isolate;
+}
+/* no JS or no WebGL: the stations are the page */
+html:not(.js) .cockpit,
+html.no-gl .cockpit { display: none; }
+html:not(.js) .site-header--over,
+html.no-gl .site-header--over { position: relative; inset: auto; margin: 1.25rem var(--gutter) 0; }
+
+.cockpit__gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+.cockpit.is-ready .cockpit__gl { opacity: 1; }
+
+/* loader: a telemetry bar with the real progress */
+.cockpit__load {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(5rem, 14svh, 9rem);
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 10rem auto;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--night-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  translate: -50% 0;
+  transition: opacity 400ms ease;
+}
+.cockpit.is-ready .cockpit__load { opacity: 0; pointer-events: none; }
+.cockpit__load-track { height: 2px; background: var(--night-line); overflow: hidden; }
+.cockpit__load-track i {
+  display: block;
+  height: 100%;
+  background: var(--w11-teal);
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+  transition: transform 200ms linear;
+}
+.cockpit__load-pct { min-width: 3.5ch; color: var(--night-ink); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* intro: the line, then the start button */
+.cockpit__intro {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.25rem;
+  padding: 0 var(--gutter);
+  text-align: center;
+  background: radial-gradient(120% 70% at 50% 40%, rgba(5, 7, 11, 0.15), rgba(5, 7, 11, 0.7));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 500ms ease, visibility 0s linear 500ms;
+}
+.cockpit.is-ready .cockpit__intro { opacity: 1; visibility: visible; transition: opacity 700ms ease; }
+.cockpit.is-driving .cockpit__intro { opacity: 0; visibility: hidden; transition: opacity 400ms ease, visibility 0s linear 400ms; }
+.cockpit__eyebrow {
+  color: var(--w11-teal);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cockpit__title {
+  --tracking: var(--tracking-display);
+  max-width: 16ch;
+  font-size: clamp(2.4rem, 7vw, 6rem);
+  font-weight: var(--weight-heading);
+  line-height: 0.98;
+  letter-spacing: var(--tracking);
+  text-wrap: balance;
+}
+.cockpit__title .line { display: block; overflow: hidden; padding-bottom: 0.06em; }
+.cockpit__title .line > span { display: block; }
+.cockpit__start {
+  min-height: 52px;
+  margin-top: 0.75rem;
+  padding: 0 1.75rem;
+  border: 1px solid rgba(0, 210, 190, 0.6);
+  border-radius: 999px;
+  background: rgba(0, 210, 190, 0.08);
+  color: var(--night-ink);
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 160ms var(--ease-out), background-color 200ms ease, border-color 200ms ease;
+}
+.cockpit__start:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .cockpit__start:hover { background: rgba(0, 210, 190, 0.18); border-color: var(--w11-teal); }
+}
+
+/* ---------- stations (plain version) ---------- */
+.pits {
+  display: grid;
+  gap: clamp(5rem, 12vw, 9rem);
+  padding: clamp(5rem, 10vw, 8rem) var(--gutter) 9rem;
+  background: linear-gradient(var(--night), var(--night-2));
+}
+.pits:focus { outline: none; }
+.station { display: grid; gap: 1rem; max-width: 72rem; width: 100%; margin: 0 auto; }
+.station__label {
+  color: var(--w11-teal);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.station__title {
+  --tracking: var(--tracking-heading);
+  max-width: 20ch;
+  font-size: clamp(2rem, 5vw, 3.75rem);
+  font-weight: var(--weight-heading);
+  line-height: 1.02;
+  letter-spacing: var(--tracking);
+  text-wrap: balance;
+}
+.station__lede {
+  max-width: 46ch;
+  color: var(--night-muted);
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  font-weight: var(--weight-body);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.station__slot:empty { display: none; }
+
+/* projects as briefing cards */
+.briefs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 1px;
+  margin-top: 1.5rem;
+  border: 1px solid var(--night-line);
+  background: var(--night-line);
+  list-style: none;
+}
+.brief { display: grid; align-content: start; gap: 0.75rem; padding: 1.5rem; background: var(--night); }
+.brief__meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--night-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.brief__title { --tracking: var(--tracking-heading); font-size: 1.5rem; line-height: 1.1; letter-spacing: var(--tracking); }
+.brief__summary { color: var(--night-muted); font-weight: var(--weight-body); line-height: 1.5; }
+.brief__stack { display: flex; flex-wrap: wrap; gap: 0.35rem; list-style: none; }
+.brief__stack li {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--night-line);
+  border-radius: 999px;
+  color: var(--night-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+.brief__links { display: flex; gap: 1rem; margin-top: 0.25rem; }
+.brief__links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--night-ink); font-weight: var(--weight-body); }
+@media (hover: hover) and (pointer: fine) {
+  .brief__links a:hover { color: var(--w11-teal); }
+}
+
+.radio__links { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; list-style: none; }
+.radio__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--night-ink);
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+}
+@media (hover: hover) and (pointer: fine) {
+  .radio__links a:hover { color: var(--w11-teal); }
+}

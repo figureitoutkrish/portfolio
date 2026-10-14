@@ -33,7 +33,7 @@ npm run preview   # serve the production build
 
 ```
 index.html              # Home (pamidordesign.co-style hero) + intro overlay + gradient wipe
-data/index.html         # Data alter-ego page (placeholder)
+data/index.html         # Data alter-ego page: first-person F1 cockpit → pit garage stations (design-system/pages/data.md)
 creative/index.html     # Creative alter-ego page: green grid, Mac windows, bento work (design-system/pages/creative.md)
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
@@ -46,7 +46,8 @@ public/assets/
   fonts/                # Self-hosted web fonts
 src/
   main.js               # Home entry (intro, home reveal)
-  page.js               # Entry for the data page (placeholder)
+  data.js               # Entry for the data page (+ src/garage/ modules, styles/data.css)
+  garage/               # Data page logic, no three.js: data/projects.js (the projects list; add entries here)
   creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
   creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
   shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js), record player
@@ -55,6 +56,9 @@ src/
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)
+  three/garage/         # The data page's 3D: cockpit (car.js, gloves.js, driver.js, lcd.js), pit lane (pitlane.js)
+  assets/local/         # git-ignored, never published: unlicensed models used only on Krish's Mac (the W11)
+scripts/fbx-to-glb.mjs  # converts an FBX car to a geometry-only GLB
   sections/             # One JS module per page section (home, intro, menu, tabbar, trail, about, journey)
   utils/                # motion.js, spring.js, liquid-glass.js, transition.js (page wipe)
 ```

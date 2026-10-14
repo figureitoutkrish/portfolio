@@ -19,3 +19,6 @@ content/*.HEIC
 content/*.webp
 content/*.zip
 content/*/
+
+# Models that must not be published (game rips, unlicensed): only used on this Mac
+src/assets/local/
