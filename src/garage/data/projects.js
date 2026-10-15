@@ -26,8 +26,7 @@ export const PROJECTS = [
     approach: "fine-tuned facebook's denoiser (dns48: 18.9m parameters, causal, so it could run live) on librispeech voices mixed with real gunfire, engine and ambient noise from −5 to 15 db, split so no test voice is ever heard in training. five versions, each fixing the last one's failure. on the 97 gunfire test clips the snr goes from −1.1 to +8.9 db on average, where hand-built spectral subtraction barely moves. then pytorch → onnx → core ml int8 (72 → 18 mb): about 54 ms per 4 s of audio on an iphone. it misses the brief's absolute targets (15 db snr), and the readme says so.",
     learned: '',
     stack: ['python', 'pytorch', 'denoiser (dns48)', 'onnx', 'core ml', 'swiftui', 'streamlit'],
-    // the team's original repo (Arnav's); swap to `${GH}defence-speech-enhancement` once Krish's copy is up
-    links: { repo: 'https://github.com/Arnav-3012/ai-ml-based-active-noise-cancellation' },
+    links: { repo: `${GH}defence-speech-enhancement` }, // full history kept; the README credits the team and links Arnav's original
     check: [
       { id: 'clean-break', says: "it's got to be a clean break, hilda.", raw: -3.8, model: 15.0 },
       { id: 'snake', says: 'a snake of his size in fighting trim would be more than any boy could handle.', raw: 1.8, model: 17.9 },
