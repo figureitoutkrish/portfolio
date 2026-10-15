@@ -7,10 +7,33 @@
 //   stack    tools, in order of importance
 //   links    { repo, live } (either can be missing)
 //   image    optional, /assets/garage/<slug>.webp (a screenshot)
+//   team     optional, a credit line for team builds (shown in the briefing)
+//   check    optional, radio-check clips (radio-check.js): { id, says, raw, model } where id names
+//            public/assets/audio/radio-check/<id>-raw.m4a + <id>-model.m4a and raw / model are the
+//            clip's SNR in dB before and after; checkNote credits the audio
 // Drafted from the GitHub READMEs: Krish, fill in the `learned` lines and fix anything off.
 const GH = 'https://github.com/figureitoutkrish/';
 
 export const PROJECTS = [
+  {
+    slug: 'voice-through-gunfire',
+    title: 'a voice through gunfire',
+    kind: 'deep learning · speech enhancement',
+    year: 2026,
+    team: 'team gradient descent · smart india hackathon 2026 (sih26052)',
+    summary: 'a radio voice recorded next to gunfire, pulled back out by a fine-tuned neural network that runs on an iphone. open it, then turn the dial and hear it.',
+    problem: 'defence radios pick up speech and gunfire as one waveform. classical noise suppression assumes the noise is steady; a gunshot is the opposite, so it fails exactly where it matters. can a model rebuild the voice instead?',
+    approach: "fine-tuned facebook's denoiser (dns48: 18.9m parameters, causal, so it could run live) on librispeech voices mixed with real gunfire, engine and ambient noise from −5 to 15 db, split so no test voice is ever heard in training. five versions, each fixing the last one's failure. on the 97 gunfire test clips the snr goes from −1.1 to +8.9 db on average, where hand-built spectral subtraction barely moves. then pytorch → onnx → core ml int8 (72 → 18 mb): about 54 ms per 4 s of audio on an iphone. it misses the brief's absolute targets (15 db snr), and the readme says so.",
+    learned: '',
+    stack: ['python', 'pytorch', 'denoiser (dns48)', 'onnx', 'core ml', 'swiftui', 'streamlit'],
+    links: { repo: `${GH}defence-speech-enhancement` },
+    check: [
+      { id: 'clean-break', says: "it's got to be a clean break, hilda.", raw: -3.8, model: 15.0 },
+      { id: 'snake', says: 'a snake of his size in fighting trim would be more than any boy could handle.', raw: 1.8, model: 17.9 },
+      { id: 'pages', says: 'i cannot hope that these pages will be altogether free from anachronisms and errors.', raw: 2.2, model: 16.1 },
+    ],
+    checkNote: 'unseen voices · librispeech + kabealo & wyatt, cc by 4.0',
+  },
   {
     slug: 'fruit-ninja-two-ways',
     title: 'fruit ninja, two ways',

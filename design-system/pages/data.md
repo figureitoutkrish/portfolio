@@ -28,14 +28,20 @@ Every control is a real button with one job:
 |---|---|---|
 | paddles − / + | ← → · swipe the screen | previous / next |
 | MODE rotary | 1 2 3 | projects · lap · radio (LAB comes later) |
-| SCROLL rotary | ↑ ↓ · wheel · drag the knob | scroll the screen |
-| OK | enter | open the briefing → open the code; LAP: drive again; RADIO: open the channel |
+| SCROLL rotary | ↑ ↓ · wheel · drag the knob | scroll the screen; in the radio check it's the model dial (relabelled **model**) |
+| OK | enter | open the briefing → open the code (or the radio check); LAP: drive again; RADIO: open the channel |
 | BACK | esc / backspace | close the briefing |
 | PIT | – | back in the car at the pit entry |
-| DRS · TALK · DRINK | – | short radio moments on the screen bar |
+| DRS · TALK · DRINK | – | short radio moments on the screen bar; TALK plays a radio call over gunfire that the noise model cleans up after a second |
 | shift lights | – | position (project n of N; on LAP, how close you parked; on RADIO, the channel) |
 
 - **PROJECTS:** `src/garage/data/projects.js`. Add a project there and the wheel picks it up.
+- **The radio check** (`src/garage/radio-check.js` + `src/audio/radio-check.js`): project 01, the speech-enhancement build, has a third level instead of "open the code". Card → OK → briefing → OK → check.
+  - A real test-set clip (a voice the model never trained on, under gunfire) loops on the display. The raw recording and the model's output play in lockstep, and the dial crossfades them (equal power).
+  - The waveform's gunshot spikes shrink to the voice as you turn; what was removed stays as a red ghost. The shift lights fill with the model's share. Paddles change clip (3), OK plays / stops, BACK returns to the briefing.
+  - On phones the slider on the display is the dial (the hint says "slide"); a drag on it is never a swipe.
+  - Clips: `public/assets/audio/radio-check/<id>-raw.m4a` / `-model.m4a` (16 kHz AAC, ~25 KB each), listed in the project's `check` field with their SNR before/after. Speech from LibriSpeech, gunfire from Kabealo & Wyatt's dataset, both CC BY 4.0 (credited on the screen).
+  - Each new check opens raw (0%) so the first turn is the reveal; leaving the level, switching mode or PIT stops the audio.
 - **LAP:** `telemetry.js` records the drive (10 Hz in sessionStorage, never sent anywhere). The screen shows:
   - the speed trace, with throttle and brake bands and the reverse dashed;
   - lap time, reaction, top speed, braking point before the box, corrections, cm off the marks;

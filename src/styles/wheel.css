@@ -113,6 +113,8 @@ html[data-drive="wheel"] .hud { display: none; }
   text-transform: uppercase;
 }
 .screen__hints b { color: #f2f5f7; font-weight: 500; }
+.screen__hints .h-compact, .wheel.is-compact .screen__hints .h-wide { display: none; }
+.wheel.is-compact .screen__hints .h-compact { display: inline; }
 
 /* content swaps: a short slide in the direction you went */
 .screen__body > * { animation: screen-in 160ms var(--ease-out) both; } /* paddles get pressed a lot: keep it quick */
@@ -152,6 +154,65 @@ html[data-drive="wheel"] .hud { display: none; }
 @media (hover: hover) and (pointer: fine) {
   .p-links a:hover { background: rgba(0, 210, 190, 0.14); }
 }
+.p-team { margin-top: -0.8cqi; color: rgba(242, 245, 247, 0.55); font-size: 2.4cqi; letter-spacing: 0.04em; }
+.p-check {
+  display: inline-flex;
+  gap: 1.6cqi;
+  margin-top: 2.6cqi;
+  padding: 1cqi 2.4cqi;
+  border-radius: 99px;
+  background: rgba(0, 210, 190, 0.12);
+  color: #f2f5f7;
+  font-size: 2.6cqi;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.p-check b { color: var(--w11-teal); font-weight: 500; }
+
+/* --- the radio check (radio-check.js): sized to fit the display without scrolling --- */
+.rc { display: grid; grid-template-rows: auto minmax(10cqi, 1fr) auto auto auto; gap: 1.4cqi; height: 100%; }
+.rc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 2cqi; }
+.rc-snr { color: rgba(242, 245, 247, 0.6); font-size: 2.4cqi; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rc-snr b { color: var(--w11-teal); font-weight: 500; }
+.rc-wave { display: block; width: 100%; height: 100%; min-height: 0; }
+.rc-says {
+  font-family: var(--font);
+  font-size: 3.2cqi;
+  font-weight: var(--weight-body);
+  line-height: 1.25;
+  text-wrap: balance;
+  text-align: center;
+}
+.rc-dial { display: grid; grid-template-columns: auto 1fr 8cqi; align-items: center; gap: 2.4cqi; font-size: 2.4cqi; letter-spacing: 0.1em; text-transform: uppercase; }
+.rc-dial span { color: var(--w11-teal); }
+.rc-dial output { color: #f2f5f7; text-align: right; font-variant-numeric: tabular-nums; }
+/* the slider: a full-height touch target, a thin track that fills teal with the model's share */
+.rc-dial input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: max(5cqi, 28px);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+.rc-dial input::-webkit-slider-runnable-track { height: 0.9cqi; border-radius: 99px; background: linear-gradient(90deg, var(--w11-teal) var(--fill, 0%), rgba(255, 255, 255, 0.16) var(--fill, 0%)); }
+.rc-dial input::-moz-range-track { height: 0.9cqi; border-radius: 99px; background: rgba(255, 255, 255, 0.16); }
+.rc-dial input::-moz-range-progress { height: 0.9cqi; border-radius: 99px; background: var(--w11-teal); }
+.rc-dial input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 3.6cqi;
+  height: 3.6cqi;
+  margin-top: -1.35cqi;
+  border: 0;
+  border-radius: 50%;
+  background: var(--w11-teal);
+  box-shadow: 0 0 0 0.6cqi rgba(0, 210, 190, 0.18);
+}
+.rc-dial input::-moz-range-thumb { width: 3.6cqi; height: 3.6cqi; border: 0; border-radius: 50%; background: var(--w11-teal); }
+.rc-dial input:focus-visible { outline: 2px solid var(--w11-teal); outline-offset: 2px; border-radius: 4px; }
+.rc-credit { overflow: hidden; color: rgba(242, 245, 247, 0.45); font-size: 2cqi; line-height: 1.3; letter-spacing: 0.02em; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
 
 /* --- lap --- */
 .lap-verdict { display: grid; gap: 1cqi; }

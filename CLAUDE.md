@@ -47,11 +47,11 @@ public/assets/
 src/
   main.js               # Home entry (intro, home reveal)
   data.js               # Entry for the data page (+ src/garage/ modules, styles/data.css)
-  garage/               # Data page logic, no three.js: drive.js, vehicle.js, telemetry.js, wheel.js + modes/, data/projects.js (add projects here)
+  garage/               # Data page logic, no three.js: drive.js, vehicle.js, telemetry.js, wheel.js + modes/, radio-check.js (the noise project heard on the wheel), data/projects.js (add projects here)
   creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
   creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
   shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js), record player
-  audio/                # sfx.js (site-wide sound effects, a theme per page), player.js + records.js (header record player)
+  audio/                # sfx.js (site-wide sound effects, a theme per page), player.js + records.js (header record player), radio-check.js (paired-clip crossfade player)
   assets/music/<record>/ # the record player's tracks (picked up automatically; only music Krish has rights to)
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)

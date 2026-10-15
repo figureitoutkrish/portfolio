@@ -2,6 +2,7 @@ import { projects } from './modes/projects.js';
 import { lap } from './modes/lap.js';
 import { radio } from './modes/radio.js';
 import { sfx } from '../audio/sfx.js';
+import { radioCall } from './radio-check.js';
 
 // The steering wheel as the page. Two ways to show it:
 //   overlay  (with the 3D car) the real 3D wheel is the device: its display shows this page's
@@ -15,8 +16,10 @@ import { sfx } from '../audio/sfx.js';
 //   SCROLL rotary   scroll the screen (↑ ↓, wheel, drag the knob)
 //   OK / BACK       open / back (enter / esc)
 //   PIT             drive in again
-//   DRS TALK DRINK  little radio moments
+//   DRS TALK DRINK  little radio moments (TALK: a radio call the noise model cleans up)
 //   shift lights    where you are (project 3 of 6; on LAP: how close you parked)
+// A mode can take a control over for one of its levels: step (paddles), turn (the SCROLL dial,
+// as the radio check's model dial does), labels (renamed hotspots) and leave (stop its audio).
 const MODES = { projects, lap, radio };
 const ORDER = ['projects', 'lap', 'radio'];
 const KNOB = { projects: -50, lap: 0, radio: 50 };
@@ -44,15 +47,33 @@ export function initWheel({ root, reducedMotion, onPit }) {
   let surface = null; // the 3D wheel, once attached
   const LABELS = { mode: 'mode', scroll: 'scroll', prev: 'prev', next: 'next', back: 'back', ok: 'ok', talk: 'talk', drs: 'drs', drink: 'drink', pit: 'pit' };
 
+  // what a mode may drive directly while it's on screen
+  const ui = {
+    setLeds(n) {
+      leds.forEach((l, i) => l.classList.toggle('on', i < n));
+      surface?.setLeds(n);
+    },
+    setKnob: (deg) => turnScrollKnob(deg),
+    toast: (text) => toast(text),
+  };
+  // the mode has the SCROLL dial (it isn't scrolling the screen)
+  const dialTaken = () => !!MODES[state.mode].labels?.(state)?.scroll;
+
   function render(dir = '') {
     const m = MODES[state.mode];
     body.classList.remove('from-prev', 'from-next');
     if (dir && !reducedMotion) body.classList.add(dir === 'prev' ? 'from-prev' : 'from-next');
-    m.render(body, state);
+    m.render(body, state, ui);
     body.scrollTop = 0;
     modeEl.textContent = state.mode;
     countEl.textContent = m.count(state);
     hintsEl.innerHTML = m.hints(state);
+    const lab = m.labels?.(state) || {};
+    hots.querySelectorAll('[data-hot]').forEach((el) => {
+      const t = lab[el.dataset.hot] || LABELS[el.dataset.hot];
+      if (el.firstElementChild.textContent !== t) el.firstElementChild.textContent = t;
+    });
+    root.querySelector('.rotary__label').textContent = lab.scroll || 'scroll';
     modeKnob.style.setProperty('--knob', `${KNOB[state.mode]}deg`);
     modeBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.mode === state.mode)));
     const lit = m.leds(state);
@@ -62,11 +83,12 @@ export function initWheel({ root, reducedMotion, onPit }) {
       surface.setLeds(lit);
       surface.turnControl('mode', KNOB[state.mode]);
     }
-    syncScrollKnob();
+    if (!dialTaken()) syncScrollKnob();
   }
 
   function setMode(id) {
     if (!MODES[id] || id === state.mode) return;
+    MODES[state.mode].leave?.();
     Object.assign(state, { mode: id, index: 0, detail: false });
     sfx('toggle');
     render();
@@ -74,6 +96,12 @@ export function initWheel({ root, reducedMotion, onPit }) {
 
   function step(delta) {
     const m = MODES[state.mode];
+    const patch = m.step?.(state, delta);
+    if (patch) {
+      Object.assign(state, patch);
+      sfx('shift');
+      return render(delta < 0 ? 'prev' : 'next');
+    }
     const n = m.size(state);
     if (n < 2) return;
     state.index = (state.index + delta + n) % n;
@@ -96,6 +124,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
     if (name === 'next') return step(1);
     if (name === 'up' || name === 'down') return scrollBy(name === 'up' ? -1 : 1);
     if (name === 'pit') return onPit?.();
+    if (name === 'talk' && radioCall(ui)) return;
     if (TOASTS[name]) {
       sfx(name === 'talk' ? 'radio' : 'tap');
       return toast(TOASTS[name]);
@@ -122,18 +151,28 @@ export function initWheel({ root, reducedMotion, onPit }) {
 
   // scroll the screen, and turn the knob with it (a turn per screenful, roughly)
   function scrollBy(dir) {
+    if (MODES[state.mode].turn?.(state, dir * 0.1)) return;
     body.scrollBy({ top: dir * body.clientHeight * 0.45, behavior: reducedMotion ? 'auto' : 'smooth' });
   }
   let knobDeg = 0;
-  function syncScrollKnob() {
-    const deg = (body.scrollTop / Math.max(1, body.clientHeight)) * 120;
+  function turnScrollKnob(deg) {
     scrollKnob.style.setProperty('--knob', `${deg}deg`);
     if (surface && Math.abs(deg - knobDeg) > 3) {
       knobDeg = deg;
       surface.turnControl('scroll', deg);
     }
   }
-  body.addEventListener('scroll', syncScrollKnob, { passive: true });
+  const syncScrollKnob = () => turnScrollKnob((body.scrollTop / Math.max(1, body.clientHeight)) * 120);
+  body.addEventListener('scroll', () => dialTaken() || syncScrollKnob(), { passive: true });
+  // a turn of the dial (radians): the mode's dial if it has one (240° = all the way), else scrolling
+  function dialBy(rad) {
+    if (MODES[state.mode].turn?.(state, rad / ((Math.PI * 4) / 3))) return;
+    body.scrollTop += (rad / ((Math.PI * 2) / 3)) * body.clientHeight;
+  }
+  // the trackpad / mouse wheel over the screen turns a taken dial too
+  body.addEventListener('wheel', (e) => {
+    if (dialTaken() && MODES[state.mode].turn(state, e.deltaY / 500)) e.preventDefault();
+  }, { passive: false });
 
   // dragging the scroll knob round scrolls the screen
   let drag = null;
@@ -152,7 +191,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
     let d = a - drag.a;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     drag.a = a;
-    body.scrollTop += (d / (Math.PI * 2 / 3)) * body.clientHeight;
+    dialBy(d);
   });
   const endDrag = () => (drag = null);
   scrollKnob.addEventListener('pointerup', endDrag);
@@ -182,7 +221,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
 
   // swipe the screen sideways = paddles (touch)
   let sw = null;
-  body.addEventListener('touchstart', (e) => (sw = { x: e.touches[0].clientX, y: e.touches[0].clientY }), { passive: true });
+  body.addEventListener('touchstart', (e) => (sw = e.target.closest('input') ? null : { x: e.touches[0].clientX, y: e.touches[0].clientY }), { passive: true }); // (not while dragging a slider)
   body.addEventListener('touchend', (e) => {
     if (!sw) return;
     const dx = e.changedTouches[0].clientX - sw.x;
@@ -289,7 +328,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
   hots.addEventListener('wheel', (e) => {
     if (!e.target.closest('.hot--scroll')) return;
     e.preventDefault();
-    body.scrollTop += e.deltaY;
+    if (!MODES[state.mode].turn?.(state, e.deltaY / 500)) body.scrollTop += e.deltaY;
   }, { passive: false });
   let knobDrag = null;
   hots.addEventListener('pointerdown', (e) => {
@@ -309,7 +348,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
     let d = a - knobDrag.a;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     knobDrag.a = a;
-    body.scrollTop += (d / ((Math.PI * 2) / 3)) * body.clientHeight;
+    dialBy(d);
   });
   hots.addEventListener('pointerup', () => (knobDrag = null));
   hots.addEventListener('pointercancel', () => (knobDrag = null));
@@ -354,6 +393,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
     },
     hide() {
       visible = false;
+      MODES[state.mode].leave?.();
       root.classList.remove('is-on');
       setTimeout(() => {
         if (!visible) root.hidden = true;
