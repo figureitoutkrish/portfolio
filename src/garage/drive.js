@@ -258,12 +258,21 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   function fitWheel() {
     const c = cockpit.getBoundingClientRect();
     const size = garage.wheelSize();
-    const narrow = c.width < 760;
-    const px = narrow ? c.width * 0.94 * (size.width / size.display) : Math.min(c.width * 0.9, (c.height - 230) * (size.width / size.height));
+    const narrow = c.width < 760 || c.height > c.width * 1.15; // phones, and tablets held upright
+    wheel.setCompact(narrow);
+    // phones: the display fills the width; upright tablets: 72% (it's big enough, and the row of
+    // buttons under it stays clear of the dock); wide screens: the whole wheel
+    const fill = c.width < 760 ? 0.94 : 0.72;
+    const px = narrow ? c.width * fill * (size.width / size.display) : Math.min(c.width * 0.9, (c.height - 230) * (size.width / size.height));
     garage.view.fit = px / c.width;
     const top = 76; // the header
-    const bottom = narrow ? 190 : 130; // the tab bar (and the dock on phones)
-    garage.view.offsetY = ((top + c.height - bottom) / 2 - c.height / 2) / c.height;
+    let centre;
+    if (narrow) {
+      // the display is what matters here: put it just under the header, the wheel follows
+      const ppm = px / size.width; // pixels per metre at this zoom
+      centre = top + 0.016 * ppm + (size.displayHeight * ppm) / 2 + size.displayLift * ppm; // (room for the shift lights above it)
+    } else centre = (top + c.height - 130) / 2; // the whole wheel, between the header and the tab bar
+    garage.view.offsetY = (centre - c.height / 2) / c.height;
   }
   function zoomTo(to, seconds, done) {
     if (reducedMotion || seconds === 0) {

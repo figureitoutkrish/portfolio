@@ -234,7 +234,7 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
   position: relative;
   display: grid;
   place-items: center;
-  width: 22px;
+  width: 26px; /* the dot is 13px; the target stays above the 24px minimum */
   height: 44px;
   padding: 0;
   border: 0;

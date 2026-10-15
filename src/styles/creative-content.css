@@ -106,7 +106,7 @@
 .lap__thumb img { width: 100%; height: 100%; object-fit: cover; }
 .lap__name { grid-area: name; display: grid; min-width: 0; }
 .lap__title { overflow: hidden; font-size: 0.875rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
-.lap__team { font-family: var(--f-mono); font-size: 0.5625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--team); }
+.lap__team { font-family: var(--f-mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: color-mix(in srgb, var(--team) 72%, #fff); } /* team colour, lifted to 4.5:1+ on the dark board */
 .lap__bar { grid-area: bar; height: 6px; overflow: hidden; border-radius: 3px; background: rgba(255, 255, 255, 0.08); }
 .lap__bar i { display: block; width: calc(var(--w) * 100%); height: 100%; border-radius: 3px; background: var(--team); transform-origin: left; }
 .lap__views { grid-area: views; justify-self: end; font-size: 0.75rem; color: rgba(255, 255, 255, 0.7); white-space: nowrap; }
@@ -129,6 +129,7 @@
 .works__card--amber { --tone: #ffe08a; }
 .content__foot { margin-top: 1.5rem; font-family: var(--f-mono); font-size: 0.6875rem; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.8); }
 .content__foot a { display: inline-flex; align-items: center; gap: 0.25rem; min-height: 32px; color: var(--c-lime); }
+@media (pointer: coarse) { .tele__bar a, .content__foot a { min-height: 44px; } } /* full-size touch targets */
 
 @media (prefers-reduced-motion: reduce) { .tele__live i { animation: none; } .phone, .lap__thumb { transition: none; } }
 

@@ -39,6 +39,8 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   // the display's real width (before the car is placed anywhere): the page sizes the zoom with it
   const lcdBox = new THREE.Box3().setFromObject(car.lcdMesh);
   const lcdWidth = lcdBox.max.x - lcdBox.min.x;
+  const lcdHeight = lcdBox.max.y - lcdBox.min.y;
+  const lcdLift = (lcdBox.min.y + lcdBox.max.y) / 2 - car.steer.getWorldPosition(new THREE.Vector3()).y; // display centre above the wheel's
   const rig = new THREE.Group();
   rig.add(car.group);
   scene.add(rig);
@@ -249,7 +251,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     view,
     showPath: (points) => world.showPath(points), // the reverse line on the ground ([x, z] pairs)
     // ---- the wheel as the page ----
-    wheelSize: () => ({ width: car.wheelWidth, height: car.wheelHeight, display: lcdWidth }),
+    wheelSize: () => ({ width: car.wheelWidth, height: car.wheelHeight, display: lcdWidth, displayHeight: lcdHeight, displayLift: lcdLift }),
     // where the display and each control are on screen (CSS px, relative to the canvas)
     wheelLayout() {
       frame();

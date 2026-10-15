@@ -16,7 +16,10 @@
   top: 0.75rem;
   left: 50%;
   z-index: 100;
-  padding: 0.6rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
   border-radius: 999px;
   background: var(--night-ink);
   color: var(--night);
@@ -72,8 +75,9 @@ html:not(.js) .site-header--over { position: relative; inset: auto; margin: 1.25
   bottom: clamp(5rem, 14svh, 9rem);
   z-index: 2;
   display: grid;
-  grid-template-columns: auto 10rem auto;
+  grid-template-columns: auto clamp(5rem, 28vw, 10rem) auto;
   align-items: center;
+  white-space: nowrap;
   gap: 0.9rem;
   color: var(--night-muted);
   font-family: var(--font-mono);
@@ -397,3 +401,12 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
   transition: transform 160ms var(--ease-out);
 }
 .cockpit__pause button:active { transform: scale(0.97); }
+
+/* reduced transparency: the frosted panels go solid */
+@media (prefers-reduced-transparency: reduce) {
+  :is(.cockpit__start, .hud__box, .hud__keys, .hud__skip, .hud__pedal, .cockpit__pause) {
+    background: rgba(5, 7, 11, 0.94);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

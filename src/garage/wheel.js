@@ -91,7 +91,6 @@ export function initWheel({ root, reducedMotion, onPit }) {
 
   function act(name) {
     const m = MODES[state.mode];
-    if (surface && LABELS[name] && name !== 'scroll' && name !== 'mode') surface.pressControl(name);
     if (name === 'mode') return setMode(ORDER[(ORDER.indexOf(state.mode) + 1) % ORDER.length]);
     if (name === 'prev') return step(-1);
     if (name === 'next') return step(1);
@@ -160,6 +159,13 @@ export function initWheel({ root, reducedMotion, onPit }) {
   scrollKnob.addEventListener('pointercancel', endDrag);
 
   // buttons (a press shows on the cap even when it came from the keyboard)
+  // the 3D part goes down the moment you press (pointer-down / key-down), not when you let go
+  const PRESSABLE = new Set(['prev', 'next', 'back', 'ok', 'talk', 'drs', 'drink', 'pit']);
+  const pressPart = (id) => surface && PRESSABLE.has(id) && surface.pressControl(id);
+  root.addEventListener('pointerdown', (e) => pressPart(e.target.closest('[data-act]')?.dataset.act));
+  root.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) pressPart(e.target.closest?.('[data-act]')?.dataset.act);
+  });
   root.addEventListener('click', (e) => {
     const b = e.target.closest('[data-act], [data-mode]');
     if (!b || !root.contains(b)) return;
@@ -207,6 +213,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
     if (e.key === 'Enter' && document.activeElement?.closest?.('button, a')) return;
     e.preventDefault();
     press(hit[1]);
+    pressPart(hit[0]);
     act(hit[0]);
   }
   window.addEventListener('keydown', onKey);
@@ -259,8 +266,9 @@ export function initWheel({ root, reducedMotion, onPit }) {
     for (const c of L.controls) {
       const el = hots.querySelector(`[data-hot="${c.id}"]`);
       if (!el) continue;
-      const size = Math.max(c.r * 2, 30);
+      const size = Math.max(c.r * 2, 44); // a full 44px target, whatever the button's size on screen
       Object.assign(el.style, { left: `${c.x}px`, top: `${c.y}px`, width: `${size}px`, height: `${size}px` });
+      el.style.setProperty('--ring', `${Math.round(c.r * 2)}px`);
       el.classList.toggle('hot--label-up', c.y > r.top + r.height * 1.25); // the row under the display: label above
       if (c.id === 'mode') {
         // positions printed in an arc above the knob, at the knob's pointer angles
@@ -352,6 +360,8 @@ export function initWheel({ root, reducedMotion, onPit }) {
       }, reducedMotion ? 0 : 420);
     },
     setMode,
+    // compact framing (display full width + the dock): phones and upright tablets
+    setCompact: (on) => root.classList.toggle('is-compact', on),
     refresh: () => render(),
     destroy: () => window.removeEventListener('keydown', onKey),
   };

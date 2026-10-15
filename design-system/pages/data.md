@@ -43,7 +43,8 @@ Every control is a real button with one job:
 - **RADIO:** a short exchange, then email, LinkedIn, GitHub, Instagram.
 - **Overlay (with 3D):** `src/three/garage/controls.js` builds the physical controls per car from `car.controlSpots`. On the W11 they sit on the wheel's own knobs and buttons, found by scanning its face for bumps.
   - `garage.wheelLayout()` projects the display and each control to CSS px; `wheel.attach(surface)` lays the screen and the hotspots over them.
-  - Phones: the display fills the width and a dock of caps (‹ back mode ok ›) stands in for the controls off-screen.
+  - Compact framing (phones, and tablets held upright: `wheel.setCompact`): the display fills the width (94% on phones, 72% on tablets), sits just under the header, and a dock of caps (‹ back mode ok ›) stands in for the controls off-screen.
+  - Hotspots are always 44px targets; the hover/focus ring hugs the real button (`--ring`). The 3D part presses on pointer-down / key-down, the action fires on release.
 - **Drawn (no WebGL):** a 900×400 SVG wheel with the controls placed in % of it; phones get a tall layout.
 
 ## Look

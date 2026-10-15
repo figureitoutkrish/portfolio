@@ -767,9 +767,12 @@ kbd { font-family: var(--f-mono); font-size: 0.75em; opacity: 0.7; }
 }
 .mac3d__power { position: absolute; }
 .mac3d__knob { position: absolute; }
-/* Touch screens: the traffic lights get a full-size target each. */
+/* Touch screens: every control gets a 44px target (the lights, the work filters, the Koach chips,
+   the content links: creative-content.css), without changing how they look. */
 @media (pointer: coarse) {
-  .lights__btn { width: 34px; }
+  .lights__btn { width: 44px; }
+  .filter { min-height: 44px; }
+  .koach__chip { min-height: 44px; }
 }
 /* Phones: visitors' notes line up under the Mac instead of covering it. */
 @media (max-width: 767px) {
