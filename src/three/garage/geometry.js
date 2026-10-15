@@ -35,6 +35,17 @@ export function taperedTube(curve, { segments = 24, radial = 12, radiusAt = () =
       idx.push(a, b, a + 1, b, b + 1, a + 1);
     }
   }
+  // The Frenet frames can come out left-handed for some curves (e.g. one heading down), which
+  // winds every triangle inward: the outside would be culled. Check one face against its outward
+  // direction and flip the winding if needed.
+  const P = (i) => new THREE.Vector3(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]);
+  const mid = Math.floor(segments / 2) * (radial + 1);
+  const [i0, i1, i2] = [mid, mid + radial + 1, mid + 1];
+  const faceN = P(i1).sub(P(i0)).cross(P(i2).sub(P(i0)));
+  const outward = new THREE.Vector3(nor[i0 * 3], nor[i0 * 3 + 1], nor[i0 * 3 + 2]);
+  if (faceN.dot(outward) < 0) {
+    for (let i = 0; i < idx.length; i += 3) [idx[i + 1], idx[i + 2]] = [idx[i + 2], idx[i + 1]];
+  }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));

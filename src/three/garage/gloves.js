@@ -16,10 +16,10 @@ function materials() {
   const bump = fabricTexture();
   shared = {
     fabric: new THREE.MeshPhysicalMaterial({
-      color: 0x0b0c0e,
-      roughness: 0.88,
-      sheen: 0.45,
-      sheenColor: new THREE.Color(0x2b2e34),
+      color: 0x08090b,
+      roughness: 0.9,
+      sheen: 0.22,
+      sheenColor: new THREE.Color(0x24272d),
       sheenRoughness: 0.5,
       bumpMap: bump,
       bumpScale: 0.6,

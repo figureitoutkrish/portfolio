@@ -9,9 +9,9 @@ export function buildDriver() {
   group.name = 'driver';
   const bump = fabricTexture();
   const suit = new THREE.MeshPhysicalMaterial({
-    color: 0x0d0e11,
-    roughness: 0.85,
-    sheen: 0.4,
+    color: 0x0b0c0f,
+    roughness: 0.88,
+    sheen: 0.2,
     sheenColor: new THREE.Color(0x2a2e35),
     bumpMap: bump,
     bumpScale: 0.4,
@@ -29,10 +29,10 @@ export function buildDriver() {
 
   // thighs: from the hips (low, behind) up to the knees just under the wheel, then shins forward
   for (const s of [-1, 1]) {
-    tube([V(s * 0.1, 0.17, -0.3), V(s * 0.095, 0.3, 0.1), V(s * 0.085, 0.43, 0.48)], 0.085, 0.062);
-    tube([V(s * 0.085, 0.43, 0.48), V(s * 0.08, 0.36, 0.85), V(s * 0.075, 0.3, 1.15)], 0.058, 0.045);
+    tube([V(s * 0.1, 0.17, -0.3), V(s * 0.095, 0.28, 0.1), V(s * 0.085, 0.37, 0.5)], 0.085, 0.062);
+    tube([V(s * 0.085, 0.37, 0.5), V(s * 0.08, 0.32, 0.85), V(s * 0.075, 0.28, 1.15)], 0.058, 0.045);
     // the suit's side stripe along each thigh
-    tube([V(s * 0.183, 0.18, -0.28), V(s * 0.178, 0.3, 0.08), V(s * 0.146, 0.42, 0.44)], 0.006, 0.006, teal);
+    tube([V(s * 0.183, 0.18, -0.28), V(s * 0.178, 0.28, 0.08), V(s * 0.146, 0.36, 0.46)], 0.006, 0.006, teal);
   }
   // pelvis and the torso reclining back to the shoulders
   tube([V(0, 0.2, -0.32), V(0, 0.42, -0.5), V(0, 0.63, -0.66)], 0.17, 0.2);

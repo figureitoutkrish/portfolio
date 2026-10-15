@@ -57,7 +57,10 @@ Every control is a real button with one job:
   - `view.zoom` 0…1 moves the camera from the driver's eye to face the wheel;
   - `view.fit` / `view.offsetY` size and place it so it lines up with the HTML wheel;
   - `hold(true)` stops drawing while the HTML wheel covers the scene.
-- `car.js` uses the W11 from `src/assets/local/w11/` when present (**git-ignored, never published**: an unlicensed game rip). Otherwise it uses `cockpit-fallback.js`. `?car=code` previews the published one.
+- `car.js` uses the W11 from `src/assets/local/w11/` when present (**git-ignored, never published**: an unlicensed game rip). Otherwise it uses `cockpit-fallback.js`, built from scratch to read like the local W11 (the W11 is only a visual reference; nothing of it is copied):
+  - `wheel-model.js`: carbon body with raised top corners, sculpted rubber grips, a gloss bezel with the display, a domed shift-light slot, unassigned buttons and a KV emblem. The controls sit at the same `controlSpots` as the W11, so the overlay is identical.
+  - `chassisRing()`: one lofted chassis, an open U-tub around the driver closing into a low front deck and the nose, with teal pinstripes on the cockpit rim and the nose.
+  - `?car=code` previews the published one locally.
 - `gloves.js` / `driver.js` (generated), `lcd.js` (the wheel display), `pitlane.js` (the lane; numbers in `src/garage/layout.js`).
 - Quality: `low` on touch, small or weak devices (DPR 1.5, 2 spill lights). `?q=` forces it; `?nogl` gives the plain wheel.
 

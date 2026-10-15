@@ -91,7 +91,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     car.leds.forEach((led, i) => {
       const on = flash || i < n;
       led.material.emissive.copy(flash ? BLUE : on ? LED_COLOURS[i] : black);
-      led.material.emissiveIntensity = on ? 3 : 0;
+      led.material.emissiveIntensity = on ? 2.2 : 0;
     });
   }
 
