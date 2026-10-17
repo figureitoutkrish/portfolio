@@ -1,8 +1,8 @@
 import { LAYOUT } from './layout.js';
 
 // The visitor's drive in, recorded like a real lap: 10 samples a second plus the moments that
-// matter (first throttle, first brake into the box, stop, reverse, parked). The wheel's LAP mode
-// shows it. Nothing leaves the browser: it lives in sessionStorage for this visit only.
+// matter (the pit entry line, the limiter, the stop at the box). The wheel's LAP mode shows it.
+// Nothing leaves the browser: it lives in sessionStorage for this visit only.
 // Pure (no DOM besides storage), so summarize() can be checked in Node.
 const KEY = 'krish:lap';
 const RATE = 0.1; // seconds between samples
@@ -17,12 +17,11 @@ export function createRecorder() {
     },
     // called every frame while driving
     frame(dt, s, input) {
-      if (!rec) return;
+      if (!rec || s.mode !== 'drive') return;
       rec.t += dt;
       const t = rec.t;
-      if (input.throttle > 0 && rec.marks.throttle == null) rec.marks.throttle = t;
-      const braking = input.brake > 0 || (input.back > 0 && s.mode === 'lane' && s.speed > 0.2);
-      if (braking && s.mode === 'lane' && s.z > LAYOUT.ours - LAYOUT.approach - 30 && rec.marks.brake == null) rec.marks.brake = { t, z: s.z };
+      const braking = input.brake > 0;
+      if (braking && rec.marks.brake == null) rec.marks.brake = { t, z: s.z, kph: s.kph };
       // a correction = the steering changes side with some intent
       const st = input.steer;
       if (Math.abs(st) > 0.3 && Math.sign(st) !== Math.sign(rec.lastSteer)) rec.corrections++;
@@ -30,15 +29,15 @@ export function createRecorder() {
       since += dt;
       if (since >= RATE) {
         since = 0;
-        rec.samples.push([+t.toFixed(2), +s.z.toFixed(1), +s.kph.toFixed(1), input.throttle ? 1 : 0, braking ? 1 : 0, s.mode === 'reverse' ? 1 : 0]);
+        rec.samples.push([+t.toFixed(2), +s.z.toFixed(1), +s.kph.toFixed(1), input.throttle ? 1 : 0, braking ? 1 : 0, s.limiter ? 1 : 0]);
       }
     },
     mark(name, extra = {}) {
-      if (rec) rec.marks[name] = { t: rec.t, ...extra };
+      if (rec && rec.marks[name] == null) rec.marks[name] = { t: rec.t, ...extra };
     },
     finish() {
       if (!rec) return null;
-      const lap = { ...rec, at: Date.now() };
+      const lap = { ...rec, at: Date.now(), v: 2 };
       delete lap.lastSteer;
       try {
         sessionStorage.setItem(KEY, JSON.stringify(lap));
@@ -53,43 +52,44 @@ export function createRecorder() {
 
 export function loadLap() {
   try {
-    return JSON.parse(sessionStorage.getItem(KEY));
+    const lap = JSON.parse(sessionStorage.getItem(KEY));
+    return lap?.v === 2 ? lap : null; // (laps from the old reverse-in drive don't read the same)
   } catch {
     return null;
   }
 }
 
 // The numbers, and a driving style from five plain rules (a tiny decision list, shown as such).
+export const RULES = [
+  'stopped within 50 cm of the marks',
+  'over 80 km/h in the pit lane',
+  'crossed the line at 74–80 km/h',
+  '2 or fewer steering corrections',
+  'crossed the line under 60 km/h',
+];
 export function summarize(lap) {
   if (!lap || !lap.samples?.length) return null;
-  const S = lap.samples;
-  const lane = S.filter((r) => !r[5]);
-  const top = Math.max(...S.map((r) => r[2]));
-  const throttleShare = lane.length ? lane.filter((r) => r[3]).length / lane.length : 0;
-  const zoneStart = LAYOUT.ours + LAYOUT.reverseZone[0];
-  const brake = lap.marks.brake;
-  const brakeBefore = brake ? Math.round(zoneStart - brake.z) : null; // metres before the stop zone
-  const parked = lap.marks.parked;
-  const errCm = parked ? Math.round((parked.error || 0) * 100) : null;
+  const m = lap.marks;
+  const limit = LAYOUT.speedLimit;
+  const lineKph = m.line ? Math.round(m.line.kph) : null;
+  const maxPit = Math.round(m.stopped?.maxPit ?? Math.max(0, ...lap.samples.filter((r) => r[1] >= LAYOUT.entryLine).map((r) => r[2])));
+  const offCm = m.stopped ? Math.round(m.stopped.error * 100) : null;
   const stats = {
-    time: parked ? parked.t : lap.t,
-    reaction: typeof lap.marks.throttle === 'number' ? lap.marks.throttle : null,
-    top: Math.round(top),
-    throttleShare,
-    brakeBefore,
+    time: m.stopped ? m.stopped.t : lap.t,
+    lineKph,
+    limiterAt: m.limiter ? Math.round(m.limiter.dz) : null, // metres after the line (− = before)
+    maxPit,
     corrections: lap.corrections,
-    errCm,
-    reverseTime: lap.marks.reverse && parked ? parked.t - lap.marks.reverse.t : null,
+    offCm,
   };
-  // first rule that fits wins; each says why
-  const RULES = [
-    { id: 'precise', test: () => errCm != null && errCm <= 8, label: 'precise', why: `parked ${errCm} cm from the marks` },
-    { id: 'late', test: () => brakeBefore == null || brakeBefore < 10, label: 'late braker', why: brakeBefore == null ? 'never touched the brakes: the limiter stopped you' : `first brake ${Math.max(0, brakeBefore)} m before the box` },
-    { id: 'flat', test: () => throttleShare > 0.85, label: 'flat out', why: `throttle on for ${Math.round(throttleShare * 100)}% of the lane` },
-    { id: 'smooth', test: () => stats.corrections <= 2, label: 'smooth', why: `${stats.corrections === 0 ? 'no' : stats.corrections} steering correction${stats.corrections === 1 ? '' : 's'} all the way in` },
-    { id: 'careful', test: () => top < 55, label: 'careful', why: `top speed ${stats.top} km/h under an 80 limit` },
+  const fired = [
+    offCm != null && offCm <= 50 && { label: 'precise', why: `stopped ${offCm} cm from the marks` },
+    maxPit > limit + 0.9 && { label: 'pit lane speeder', why: `${maxPit} km/h in an ${limit} zone: that's a fine` },
+    lineKph != null && lineKph >= 74 && lineKph <= limit && { label: 'late braker', why: `${lineKph} km/h at the line: right on the limit` },
+    stats.corrections <= 2 && { label: 'smooth', why: `${stats.corrections === 0 ? 'no' : stats.corrections} steering correction${stats.corrections === 1 ? '' : 's'} all the way in` },
+    lineKph != null && lineKph < 60 && { label: 'careful', why: `crossed the line at ${lineKph} km/h` },
   ];
-  const hit = RULES.find((r) => r.test());
-  const style = hit ? { label: hit.label, why: hit.why, rule: RULES.indexOf(hit) + 1 } : { label: 'steady', why: 'no rule fired: a tidy, ordinary lap', rule: null };
-  return { stats, style, samples: S };
+  const i = fired.findIndex(Boolean);
+  const style = i >= 0 ? { ...fired[i], rule: i + 1 } : { label: 'steady', why: 'no rule fired: a tidy, ordinary stop', rule: null };
+  return { stats, style, samples: lap.samples };
 }

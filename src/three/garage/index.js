@@ -66,8 +66,8 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
 
 
   // ---------- state the rest of the page drives ----------
-  const pose = { x: 0, z: LAYOUT.startZ, heading: 0 };
-  const drive = { speed: 0, rpm: 3800, gear: 'N', steer: 0, limiter: true, message: '', mode: 'P', modeLabel: 'MODE' };
+  const pose = { x: 3, z: LAYOUT.startZ, heading: 0, lift: 0 };
+  const drive = { speed: 0, rpm: 3800, gear: 'N', wheel: 0, road: 0, spin: 0, limiter: false, message: '', mode: 'P', modeLabel: 'MODE' };
   const look = { yaw: 0, pitch: 0 };
   const tickers = new Set(); // called every frame with dt (s), before the scene is drawn
   let baseFov = 58;
@@ -135,15 +135,18 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
       camera.fov = fov;
       camera.updateProjectionMatrix();
     }
-    rig.position.set(pose.x, 0, pose.z);
-    rig.rotation.y = pose.heading;
-    car.steer.rotation.z = drive.steer * 1.1; // a little more turn on the wheel than the road angle
+    // the jack lifts the nose a few centimetres at the box
+    rig.position.set(pose.x, (pose.lift || 0) * 0.05, pose.z);
+    rig.rotation.set(-(pose.lift || 0) * 0.025, pose.heading, 0, 'YXZ');
+    car.steer.rotation.z = drive.wheel; // the steering wheel: ten times the front wheels' angle
+    car.wheels?.steer.forEach((p) => (p.rotation.y = -drive.road)); // + road = turning right (−x)
+    car.wheels?.spin.forEach((p) => (p.rotation.x = drive.spin));
     // engine vibration: a fine buzz that grows with rpm, plus a slow breathing sway
     // engine shake: barely there at idle, a fine buzz at speed, nothing once parked
     const moving = Math.min(1, Math.abs(drive.speed) / 30);
     const buzz = reducedMotion || drive.gear === 'N' ? 0 : 0.00008 + moving * 0.00028;
     head.position.set(car.eye.x + Math.sin(t * 61) * buzz, car.eye.y + Math.sin(t * 47 + 1) * buzz, car.eye.z);
-    head.rotation.set(-LOOK_DOWN + look.pitch, look.yaw - drive.steer * 0.12, -drive.steer * 0.02);
+    head.rotation.set(-LOOK_DOWN + look.pitch, look.yaw - drive.road * 0.9, -drive.road * 0.12); // eyes into the turn
     if (z > 0) {
       // distance that makes the wheel span `fit` of the width at the zoomed fov
       const vHalf = THREE.MathUtils.degToRad(ZOOM_FOV / 2);
@@ -249,7 +252,6 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     drive,
     look,
     view,
-    showPath: (points) => world.showPath(points), // the reverse line on the ground ([x, z] pairs)
     // ---- the wheel as the page ----
     wheelSize: () => ({ width: car.wheelWidth, height: car.wheelHeight, display: lcdWidth, displayHeight: lcdHeight, displayLift: lcdLift }),
     // where the display and each control are on screen (CSS px, relative to the canvas)
@@ -269,6 +271,8 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
       drive.leds = n;
       animate();
     },
+    // the crew at the box: 'ready' (at their stations) or 'push' (round the back, pushing)
+    crew: (state) => world.setCrew(state),
     hands(on) {
       car.gloves.forEach((g) => (g.visible = on)); // parked: hands off the wheel
     },

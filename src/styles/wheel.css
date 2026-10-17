@@ -223,6 +223,7 @@ html[data-drive="wheel"] .hud { display: none; }
 .lap-trace .rev { fill: none; stroke: #ff3b30; stroke-width: 1.4; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
 .lap-trace .brk { fill: rgba(255, 59, 48, 0.22); }
 .lap-trace .thr { fill: rgba(25, 227, 91, 0.16); }
+.lap-trace .lim { fill: rgba(59, 107, 255, 0.55); }
 .lap-trace .grid { stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .lap-legend { display: flex; gap: 3cqi; color: rgba(242, 245, 247, 0.55); font-size: 2.2cqi; letter-spacing: 0.06em; text-transform: uppercase; }
 .lap-legend i { display: inline-block; width: 2cqi; height: 0.6cqi; margin-right: 1cqi; vertical-align: middle; background: var(--c); }

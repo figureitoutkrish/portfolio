@@ -157,19 +157,36 @@ html:not(.js) .site-header--over { position: relative; inset: auto; margin: 1.25
   .cockpit__start:hover { background: rgba(0, 210, 190, 0.18); border-color: var(--w11-teal); }
 }
 
+/* a quieter second choice, but a real button: a dark pill that reads over the car's bodywork */
 .cockpit__skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   min-height: 44px;
-  padding: 0 1rem;
-  border: 0;
-  background: none;
-  color: var(--night-muted);
+  padding: 0 1.25rem;
+  border: 1px solid var(--night-line);
+  border-radius: 999px;
+  background: rgba(5, 7, 11, 0.62);
+  color: var(--night-ink);
   font: inherit;
   font-size: 0.875rem;
   font-weight: var(--weight-body);
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 160ms var(--ease-out), border-color 200ms ease;
 }
+.cockpit__skip:active { transform: scale(0.97); }
 @media (hover: hover) and (pointer: fine) {
-  .cockpit__skip:hover { color: var(--night-ink); }
+  .cockpit__skip:hover { border-color: rgba(232, 236, 241, 0.4); }
+}
+.cockpit__brief {
+  max-width: 34ch;
+  color: var(--night-ink);
+  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
+  line-height: 1.45;
+  text-wrap: balance;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85);
 }
 
 /* ---------- driving: HUD ---------- */
@@ -224,6 +241,50 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
 }
 
+/* the goal: what you're aiming for, how far, your speed against the limit, the limiter */
+.hud__goal {
+  position: absolute;
+  top: 50%;
+  left: var(--gutter);
+  display: grid;
+  gap: 0.3rem;
+  min-width: 10.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--night-line);
+  border-radius: 16px;
+  background: rgba(5, 7, 11, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  translate: 0 -50%;
+  transition: border-color 200ms ease;
+}
+.hud__goal[hidden] { display: none; }
+.hud__goal.is-warn { border-color: rgba(255, 159, 10, 0.75); }
+.hud__goal-label { color: var(--w11-teal); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.hud__goal-dist {
+  font-family: var(--font);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: var(--weight-heading);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.hud__goal-speed { color: var(--night-muted); font-size: 0.75rem; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+.hud__goal-speed b { color: var(--night-ink); font-size: 1rem; font-weight: 500; }
+.hud__goal.is-over .hud__goal-speed b { color: #ff453a; }
+.hud__goal-lim {
+  justify-self: start;
+  margin-top: 0.2rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--night-line);
+  border-radius: 999px;
+  color: var(--night-muted);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hud__goal-lim.is-on { border-color: var(--w11-teal); color: var(--w11-teal); }
+
 .hud__box {
   position: absolute;
   top: 50%;
@@ -239,8 +300,11 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
   translate: 0 -50%;
 }
 .hud__box[hidden] { display: none; }
-.hud__box svg { width: clamp(110px, 11vw, 150px); height: auto; }
-.hud__garage { fill: rgba(232, 236, 241, 0.05); stroke: rgba(232, 236, 241, 0.35); stroke-width: 0.15; }
+.hud__box svg { width: clamp(84px, 8vw, 120px); height: auto; }
+.hud__garage { fill: rgba(232, 236, 241, 0.18); }
+.hud__work { fill: rgba(232, 236, 241, 0.06); }
+.hud__wall { fill: rgba(232, 236, 241, 0.3); }
+.hud__t { stroke: var(--night-ink); stroke-width: 0.15; }
 .hud__lane { stroke: rgba(232, 236, 241, 0.3); stroke-width: 0.12; stroke-dasharray: 1 1; }
 .hud__mark { fill: rgba(0, 210, 190, 0.12); stroke: var(--w11-teal); stroke-width: 0.15; }
 .hud__car { fill: var(--night-ink); }
@@ -310,38 +374,13 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
   .hud__skip:hover { border-color: var(--w11-teal); }
 }
 
-/* rear camera: the 3D view renders into this frame while reversing */
-.hud__rear {
-  position: absolute;
-  top: 9rem;
-  left: 50%;
-  width: min(36vw, 460px);
-  aspect-ratio: 2.8;
-  border: 1px solid rgba(232, 236, 241, 0.35);
-  border-radius: 10px;
-  translate: -50% 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
-}
-.hud__rear[hidden] { display: none; }
-.hud__rear figcaption {
-  position: absolute;
-  left: 0.6rem;
-  bottom: 0.4rem;
-  color: var(--night-ink);
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
-}
-.drive-touch .hud__rear { top: 11rem; width: min(80vw, 360px); }
-
 /* touch: pedals instead of the key guide */
 .hud__pedals { display: none; }
 .drive-touch .hud__keys { display: none; }
 .drive-touch .hud__skip { top: 4.5rem; bottom: auto; }
 .drive-touch .hud__status { top: 8.25rem; }
 .drive-touch .hud__box { top: auto; bottom: 8.5rem; translate: none; }
+.drive-touch .hud__goal { top: 12rem; translate: none; min-width: 0; padding: 0.65rem 0.8rem; }
 .drive-touch .hud__pedals { display: block; }
 .hud__pedal {
   position: absolute;
@@ -367,6 +406,26 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
 .hud__pedal--back { left: var(--gutter); }
 .hud__pedal--go { right: var(--gutter); border-color: rgba(0, 210, 190, 0.6); }
 .hud__pedal.is-down { transform: scale(0.94); background: rgba(0, 210, 190, 0.22); }
+/* touch: the pit limiter, between the pedals (orange, like the PIT button on the wheel) */
+.hud__limiter {
+  position: absolute;
+  left: 50%;
+  bottom: max(2.25rem, calc(env(safe-area-inset-bottom) + 1rem));
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid rgba(255, 159, 10, 0.7);
+  border-radius: 50%;
+  background: rgba(5, 7, 11, 0.6);
+  color: #ff9f0a;
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  translate: -50% 0;
+  touch-action: manipulation;
+  transition: transform 120ms var(--ease-out);
+}
+.hud__limiter:active { transform: scale(0.94); }
 
 /* pause */
 .cockpit__pause {
@@ -404,7 +463,7 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
 
 /* reduced transparency: the frosted panels go solid */
 @media (prefers-reduced-transparency: reduce) {
-  :is(.cockpit__start, .hud__box, .hud__keys, .hud__skip, .hud__pedal, .cockpit__pause) {
+  :is(.cockpit__start, .cockpit__skip, .hud__goal, .hud__box, .hud__keys, .hud__skip, .hud__pedal, .hud__limiter, .cockpit__pause) {
     background: rgba(5, 7, 11, 0.94);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;

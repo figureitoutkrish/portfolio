@@ -3,23 +3,27 @@ import { createRecorder } from './telemetry.js';
 import { LAYOUT } from './layout.js';
 import { sfx, loop, soundOn, onSoundChange } from '../audio/sfx.js';
 
-// The drive: start → pit lane → stop past the garage → reverse into the box → parked → the camera
+// The drive, done the way it's done in F1: rolling in at 110 km/h → brake under 80 before the pit
+// entry line and switch the limiter on → down the pit lane → turn into your box and stop on the
+// crew's marks → jack up, wheel guns → the mechanics push you back into the garage → the camera
 // zooms into the steering wheel and the HTML wheel (wheel.js) takes over as the page.
 // Runs inside the garage's frame loop (garage.onFrame) so the car, the wheel display, the HUD and
 // the sound move in the same frame. Phases (html data-drive): intro · driving · paused · parked ·
 // wheel. The drive is recorded (telemetry.js) for the wheel's LAP mode.
 //
 // Controls (only while driving; never while typing, and never over the menu/palette):
-//   W ↑ throttle · S ↓ brake, then hold to reverse · A D ← → steer · Space brake · Esc pause
-//   touch: the pedals bottom-left/right, drag anywhere on the cockpit to steer
+//   W ↑ throttle · S ↓ Space brake · A D ← → steer · L pit limiter · Esc pause
+//   touch: brake and go pedals, the PIT button, drag anywhere on the cockpit to steer
 const KEYS = {
   throttle: ['KeyW', 'ArrowUp'],
-  back: ['KeyS', 'ArrowDown'],
+  brake: ['KeyS', 'ArrowDown', 'Space'],
   left: ['KeyA', 'ArrowLeft'],
   right: ['KeyD', 'ArrowRight'],
-  brake: ['Space'],
+  limiter: ['KeyL'],
 };
 const STORE = 'krish:garage';
+const BOX_NEAR = 55; // metres out: the turn-in call
+const MAP_NEAR = 33; // the box from above covers the last 33 m
 
 export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   const root = document.documentElement;
@@ -29,11 +33,15 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   const hud = cockpit.querySelector('.hud');
   const phaseEl = hud.querySelector('[data-hud-phase]');
   const msgEl = hud.querySelector('[data-hud-msg]');
+  const goalEl = hud.querySelector('[data-hud-goal]');
+  const goalLabel = goalEl.querySelector('[data-goal-label]');
+  const goalDist = goalEl.querySelector('[data-goal-dist]');
+  const goalSpeed = goalEl.querySelector('[data-goal-speed]');
+  const limEl = goalEl.querySelector('[data-goal-limiter]');
   const boxEl = hud.querySelector('[data-hud-box]');
   const carEl = boxEl.querySelector('[data-hud-car]');
   const distEl = boxEl.querySelector('[data-hud-dist]');
   const pause = cockpit.querySelector('.cockpit__pause');
-  const rearEl = hud.querySelector('[data-hud-rear]');
   const touch = matchMedia('(pointer: coarse)').matches;
   root.classList.toggle('drive-touch', touch);
 
@@ -52,7 +60,8 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
 
   // ---------- input ----------
   const held = new Set();
-  const input = { throttle: 0, brake: 0, back: 0, steer: 0 };
+  let limiterPress = false; // one press = one toggle, picked up by the next frame
+  const input = { throttle: 0, brake: 0, steer: 0, limiter: false };
   const typing = (e) => e.target.closest?.('input, textarea, select, [contenteditable="true"]');
   const busy = () => root.classList.contains('is-palette-open') || document.querySelector('.menu-btn[aria-expanded="true"]');
   const ALL = Object.values(KEYS).flat();
@@ -62,6 +71,10 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     if (phase !== 'driving' || typing(e) || busy() || e.metaKey || e.ctrlKey || e.altKey) return;
     if (!ALL.includes(e.code)) return;
     e.preventDefault(); // arrows and space would scroll the page
+    if (KEYS.limiter.includes(e.code)) {
+      if (!e.repeat) limiterPress = true;
+      return;
+    }
     held.add(e.code);
   }
   const onKeyUp = (e) => held.delete(e.code);
@@ -71,7 +84,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   window.addEventListener('blur', onBlur);
 
   // touch pedals (and they work with a mouse too)
-  const pedals = { throttle: 0, back: 0 };
+  const pedals = { throttle: 0, brake: 0 };
   hud.querySelectorAll('[data-pedal]').forEach((btn) => {
     const k = btn.dataset.pedal;
     const down = (e) => {
@@ -93,6 +106,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     btn.addEventListener('pointercancel', up);
     btn.addEventListener('lostpointercapture', up);
   });
+  hud.querySelector('[data-limiter]')?.addEventListener('click', () => (limiterPress = true));
   // drag to steer (touch), anywhere on the cockpit that isn't a control
   let dragId = null;
   let dragX = 0;
@@ -130,9 +144,10 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   function readInput() {
     const on = (k) => KEYS[k].some((c) => held.has(c));
     input.throttle = on('throttle') || pedals.throttle ? 1 : 0;
-    input.back = on('back') || pedals.back ? 1 : 0;
-    input.brake = on('brake') ? 1 : 0;
+    input.brake = on('brake') || pedals.brake ? 1 : 0;
     input.steer = (on('right') ? 1 : 0) - (on('left') ? 1 : 0) || dragSteer;
+    input.limiter = limiterPress;
+    limiterPress = false;
   }
 
   // ---------- sound ----------
@@ -145,13 +160,12 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     if (!on) {
       engine?.stop();
       engine = null;
-    } else if (phase !== 'intro') startEngine();
+    } else if (phase !== 'intro' && s.mode !== 'parked') startEngine();
   });
 
   // ---------- per frame ----------
-  let flash = 0;
-  let lastMsg = '';
-  let lastPhaseText = '';
+  let blink = 0;
+  let lift = 0; // the front jack, 0…1
   const offFrame = garage.onFrame((dt) => {
     if (phase === 'driving') {
       readInput();
@@ -159,83 +173,110 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
       rec.frame(dt, s, input);
       for (const ev of s.events) {
         if (ev === 'shift') sfx('shift');
-        else if (ev === 'reverse') {
-          sfx('clunk');
-          rec.mark('reverse');
-          garage.showPath(vehicle.path?.pts); // the line to follow back into the box
-        } else if (ev === 'forward') {
-          sfx('clunk');
-          garage.showPath(null);
-        }
-        else if (ev === 'limiter') sfx('limiter');
+        else if (ev === 'limiter-on' || ev === 'limiter-off') {
+          sfx('toggle');
+          if (ev === 'limiter-on') rec.mark('limiter', { dz: s.z - LAYOUT.entryLine });
+        } else if (ev === 'limiter') sfx('limiter');
+        else if (ev === 'line') rec.mark('line', { kph: s.kph });
         else if (ev === 'bump') sfx('clunk');
-        else if (ev === 'parked') {
-          rec.mark('parked', { error: s.distanceToBox });
-          garage.showPath(null);
+        else if (ev === 'stopped') {
+          rec.mark('stopped', { error: s.offMarks, maxPit: s.maxPitKph });
           rec.finish();
-          park();
-        }
+          service();
+        } else if (ev === 'parked') park();
       }
     } else if (phase === 'parked') vehicle.step(dt, {});
     tickZoom(dt);
+    lift += ((jack ? 1 : 0) - lift) * Math.min(1, dt * 8);
 
     // hand the car's state to the scene
     garage.pose.x = s.x;
     garage.pose.z = s.z;
     garage.pose.heading = s.heading;
+    garage.pose.lift = lift;
     const d = garage.drive;
-    d.speed = s.kph;
-    d.rpm = s.rpm;
-    d.gear = s.gear;
-    d.steer = s.steer * 0.55; // radians of wheel at full lock: about 30°, plenty for a pit lane
-    flash += dt;
-    d.flash = s.onLimit && Math.floor(flash * 8) % 2 === 0;
-    d.limiter = s.mode !== 'parked';
+    const idle = phase === 'intro'; // sat in the car before you take the wheel
+    d.speed = idle ? 0 : s.kph;
+    d.rpm = idle ? 3800 : s.rpm;
+    d.gear = idle ? 'N' : s.gear;
+    d.wheel = s.wheel;
+    d.road = s.road;
+    d.spin = s.spin;
+    blink += dt;
+    d.limiter = s.limiter && s.mode === 'drive';
+    d.flash = d.limiter && Math.floor(blink * 4) % 2 === 0; // the shift lights blink while the limiter is on
     d.message = phase === 'intro' ? '' : s.message;
-    d.mode = s.mode === 'reverse' ? 'R' : 'P';
+    d.mode = 'P';
     // look around: eased toward the pointer, ±6° / ±3°
     garage.look.yaw += (-look.x * 0.1 - garage.look.yaw) * Math.min(1, dt * 4);
     garage.look.pitch += (look.y * 0.05 - garage.look.pitch) * Math.min(1, dt * 4);
-    engine?.set({ rpm: s.rpm, load: s.throttle, cut: d.flash });
+    engine?.set({ rpm: s.rpm, load: s.throttle, cut: s.onLimit && Math.floor(blink * 14) % 2 === 0 }); // the limiter's stutter
 
     updateHud();
   });
 
+  // ---------- the HUD: what's happening, what to do next, how far ----------
+  const KEY = touch ? { brake: 'brake', limiter: 'PIT', steer: 'drag', go: 'go' } : { brake: 'S', limiter: 'L', steer: 'A D', go: 'W' };
+  const shown = {};
+  const put = (el, k, v) => {
+    if (shown[k] !== v) el.textContent = shown[k] = v;
+  };
   function updateHud() {
-    let phaseText = 'pit lane';
-    let msg = touch ? 'hold go to accelerate · drag to steer' : 'W / ↑ to accelerate · A D to steer';
-    const zRel = s.z - LAYOUT.ours;
-    if (s.mode === 'reverse') {
-      phaseText = 'reversing into the box';
-      msg = touch ? 'hold R to back in · go to pull forward' : 'S / ↓ to back in · W / ↑ to pull forward';
-    } else if (s.mode === 'parked') {
-      phaseText = 'parked';
-      msg = 'engine to idle';
-    } else if (zRel > LAYOUT.reverseZone[0]) {
-      phaseText = 'past the garage';
-      msg = s.speed > 0.2 ? (touch ? 'brake to stop' : 'S / ↓ to brake') : touch ? 'hold R to reverse in' : 'hold S / ↓ to reverse in';
-    } else if (zRel > -LAYOUT.approach) {
-      phaseText = 'box this lap';
-      msg = 'your garage is on the right · stop just past it';
-    } else if (s.kph > 1) msg = 'pit limiter on · 80 km/h';
-    if (phaseText !== lastPhaseText) phaseEl.textContent = lastPhaseText = phaseText;
-    if (msg !== lastMsg) msgEl.textContent = lastMsg = msg;
+    const limit = LAYOUT.speedLimit;
+    const kph = Math.round(s.kph);
+    let phaseText;
+    let msg;
+    let label = '';
+    let dist = '';
+    let warn = false;
+    if (s.mode === 'service') {
+      phaseText = s.offMarks < 0.5 ? 'on the marks' : `${s.offMarks.toFixed(1)} m off the marks`;
+      msg = 'jack up · new tyres';
+    } else if (s.mode === 'push' || s.mode === 'parked') {
+      phaseText = 'into the garage';
+      msg = 'the crew pushes you back in';
+    } else if (!s.pitLane) {
+      const toLine = Math.max(0, LAYOUT.entryLine - s.z);
+      phaseText = 'box, box';
+      msg = kph > limit ? `brake under ${limit} before the pit entry line` : `under ${limit}: press ${KEY.limiter} at the line for the limiter`;
+      label = 'pit entry line';
+      dist = `${Math.round(toLine)} m`;
+      warn = kph > limit && toLine < 60;
+    } else if (!s.limiter) {
+      phaseText = s.speeding ? 'pit lane speeding' : 'pit lane';
+      msg = `press ${KEY.limiter}: pit limiter on`;
+      label = 'limiter';
+      dist = 'off';
+      warn = true;
+    } else if (s.toMarks > BOX_NEAR) {
+      phaseText = 'pit lane';
+      msg = 'your crew is out on the right · KV';
+      label = 'your box';
+      dist = `${Math.round(s.toMarks)} m`;
+    } else {
+      phaseText = 'your box';
+      const lateral = s.x - LAYOUT.pitBox.x; // + = still left of the box
+      msg = lateral > 1.2 ? `move right into the box (${KEY.steer})` : s.speed > 0.3 ? `brake: stop on the marks (${KEY.brake})` : 'hold it there';
+      label = 'the marks';
+      dist = s.toMarks > -0.5 ? `${Math.max(0, s.toMarks).toFixed(s.toMarks < 10 ? 1 : 0)} m` : `${(-s.toMarks).toFixed(1)} m past`;
+    }
+    put(phaseEl, 'phase', phaseText);
+    put(msgEl, 'msg', msg);
+    put(goalLabel, 'label', label);
+    put(goalDist, 'dist', dist);
+    put(goalSpeed, 'speed', `${kph}`);
+    put(limEl, 'lim', s.limiter ? 'limiter on' : 'limiter off');
+    goalEl.hidden = !label;
+    goalEl.classList.toggle('is-warn', warn);
+    goalEl.classList.toggle('is-over', (s.pitLane || LAYOUT.entryLine - s.z < 60) && kph > limit);
+    limEl.classList.toggle('is-on', s.limiter);
 
-    // the rear camera while reversing: the 3D draws into the frame's box
-    const reversing = s.mode === 'reverse' && phase === 'driving';
-    if (rearEl.hidden === reversing) rearEl.hidden = !reversing;
-    if (reversing) {
-      const r = rearEl.getBoundingClientRect();
-      const c = cockpit.getBoundingClientRect();
-      garage.view.rear = { left: r.left - c.left, top: r.top - c.top, width: r.width, height: r.height };
-    } else garage.view.rear = null;
-
-    // the parking diagram: shown once you're in the zone or reversing
-    const showBox = s.mode === 'reverse' || (s.mode === 'lane' && zRel > LAYOUT.reverseZone[0] - 6);
+    // the box from above: shown on the way in
+    const showBox = s.mode === 'drive' && s.pitLane && s.toMarks < MAP_NEAR;
     if (boxEl.hidden === showBox) boxEl.hidden = !showBox;
     if (showBox) {
       carEl.setAttribute('transform', `translate(${s.x.toFixed(2)} ${(-s.z).toFixed(2)}) rotate(${((s.heading * 180) / Math.PI).toFixed(1)})`);
-      distEl.textContent = s.mode === 'reverse' ? s.message.toLowerCase() : 'stop here, then reverse';
+      put(distEl, 'boxd', Math.abs(s.x - LAYOUT.pitBox.x) < 0.6 && Math.abs(s.toMarks) < 0.6 ? 'on the marks' : `${Math.max(0, s.toMarks).toFixed(1)} m to the marks`);
     }
   }
 
@@ -244,7 +285,8 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     garage.pose.x = s.x;
     garage.pose.z = s.z;
     garage.pose.heading = s.heading;
-    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', steer: 0, flash: false, message: '', limiter: false });
+    garage.pose.lift = 0;
+    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', wheel: 0, road: 0, flash: false, message: '', limiter: false });
     garage.render();
   }
 
@@ -322,14 +364,6 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     garage.render();
   });
 
-  // reduced motion runs no loop: put the car where it is and draw one frame
-  function syncPose() {
-    garage.pose.x = s.x;
-    garage.pose.z = s.z;
-    garage.pose.heading = s.heading;
-    Object.assign(garage.drive, { speed: 0, rpm: 3800, gear: 'N', steer: 0, flash: false, message: '', limiter: false });
-    garage.render();
-  }
   function remember() {
     try {
       localStorage.setItem(STORE, 'parked');
@@ -339,13 +373,18 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   }
 
   // ---------- phases ----------
+  let jack = false;
+  const timers = [];
+  const later = (ms, fn) => timers.push(setTimeout(fn, reducedMotion ? 0 : ms));
+  const clearTimers = () => timers.splice(0).forEach(clearTimeout);
   function start() {
     if (phase !== 'intro') return;
+    vehicle.reset();
     setPhase('driving');
     cockpit.classList.add('is-driving');
     rec.start();
-    sfx('ignition');
-    setTimeout(startEngine, 650);
+    sfx('radio'); // box, box
+    startEngine();
     hud.querySelector('.hud__keys summary')?.focus({ preventScroll: true });
   }
   function setPaused(on) {
@@ -359,19 +398,39 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
       pause.querySelector('[data-resume]')?.focus();
     }
   }
-  // parked on the marks: idle, the wheel gun, then into the wheel
+  // stopped at the box: jack up, the wheel guns, jack down, then the crew pushes you in
+  function service() {
+    held.clear();
+    later(150, () => {
+      jack = true;
+      sfx('clunk');
+    });
+    later(450, () => sfx('airgun'));
+    later(800, () => sfx('airgun'));
+    later(1500, () => {
+      jack = false;
+      sfx('clunk');
+    });
+    later(1900, () => {
+      engine?.set({ rpm: 4000, load: 0 });
+      garage.crew('push');
+      vehicle.push();
+    });
+  }
+  // in the garage, nose out: engine off, then into the wheel
   function park() {
     setPhase('parked');
     remember();
-    setTimeout(() => sfx('airgun'), 450);
-    setTimeout(() => {
+    later(250, () => {
       engine?.stop();
       engine = null;
-    }, 1800);
+    });
     wheel.refresh(); // the new lap
-    toWheel({ delay: 1100, seconds: 1.6 });
+    toWheel({ delay: 350, seconds: 1.5 });
   }
   function skip() {
+    clearTimers();
+    jack = false;
     vehicle.reset({ parked: true });
     engine?.stop();
     engine = null;
@@ -382,8 +441,10 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     syncPose();
     toWheel({ seconds: 1.1 });
   }
-  // PIT on the wheel: back in the car at the pit entry, engine running
+  // PIT on the wheel: back in the car before the pit entry, rolling, engine running
   function restart() {
+    clearTimers();
+    jack = false;
     wheel.hide();
     garage.hands(true);
     garage.drive.blank = false;
@@ -392,12 +453,12 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     zoomAnim = null;
     garage.view.zoom = 0;
     vehicle.reset();
-    garage.showPath(null);
+    garage.crew('ready');
     cockpit.classList.add('is-driving');
     setPhase('driving');
     rec.start();
-    sfx('ignition');
-    setTimeout(startEngine, 650);
+    sfx('radio');
+    startEngine();
   }
 
   cockpit.querySelector('[data-start]').addEventListener('click', start);
@@ -419,7 +480,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     garage.hands(false);
     syncPose();
     onWheel();
-  }
+  } else syncPose(); // the intro: sat in the car before the pit entry
 
   return {
     get phase() {
@@ -430,6 +491,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     skip,
     restart,
     destroy() {
+      clearTimers();
       offFrame();
       offSound();
       engine?.stop();

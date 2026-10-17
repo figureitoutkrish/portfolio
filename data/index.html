@@ -75,20 +75,32 @@
         <div class="cockpit__intro">
           <p class="cockpit__eyebrow">alter ego 01 &middot; data</p>
           <h1 class="cockpit__title"><span class="line"><span>every project has</span></span> <span class="line"><span>a starting grid.</span></span></h1>
+          <p class="cockpit__brief">box this lap: get under 80 before the pit entry line, limiter on, and stop on your crew's marks.</p>
           <button class="cockpit__start" type="button" data-start><span>take the wheel</span></button>
-          <button class="cockpit__skip" type="button" data-skip>skip to the garage</button>
+          <button class="cockpit__skip" type="button" data-skip>skip to the garage <span aria-hidden="true">→</span></button>
         </div>
 
-        <!-- Driving HUD (src/garage/drive.js): what's happening, what to press, the box diagram. -->
+        <!-- Driving HUD (src/garage/drive.js): what's happening, what to do next, how far, the box from above. -->
         <div class="hud" aria-live="polite">
-          <p class="hud__status"><span class="hud__phase" data-hud-phase>pit lane</span><span class="hud__msg" data-hud-msg></span></p>
-          <figure class="hud__rear" data-hud-rear hidden><figcaption>rear camera · follow the line</figcaption></figure>
+          <p class="hud__status"><span class="hud__phase" data-hud-phase>box, box</span><span class="hud__msg" data-hud-msg></span></p>
+          <div class="hud__goal" data-hud-goal hidden>
+            <span class="hud__goal-label" data-goal-label></span>
+            <b class="hud__goal-dist" data-goal-dist></b>
+            <span class="hud__goal-speed"><b data-goal-speed>0</b> km/h</span>
+            <span class="hud__goal-lim" data-goal-limiter>limiter off</span>
+          </div>
           <figure class="hud__box" data-hud-box hidden>
-            <svg viewBox="-24 -30 30 40" width="150" height="200" aria-hidden="true">
-              <rect class="hud__garage" x="-23" y="-7.85" width="15" height="15.7" />
-              <line class="hud__lane" x1="-2" y1="-30" x2="-2" y2="10" />
-              <rect class="hud__mark" x="-15.55" y="-1.05" width="5.9" height="2.1" />
-              <g data-hud-car><rect class="hud__car" x="-1" y="-2.66" width="2" height="5.7" rx="0.6" /><path class="hud__nose" d="M-0.7 -2.2 L0 -3.3 L0.7 -2.2Z" /></g>
+            <!-- from above, forward up; mirrored so the garages (−x, the driver's right) draw on the right -->
+            <svg viewBox="-9.5 -6 19 40" width="120" height="252" aria-hidden="true">
+              <g transform="scale(-1 1)">
+                <rect class="hud__garage" x="-9.5" y="-6" width="1.5" height="40" />
+                <rect class="hud__work" x="-8" y="-6" width="6.05" height="40" />
+                <line class="hud__lane" x1="-1.95" y1="-6" x2="-1.95" y2="34" />
+                <rect class="hud__wall" x="9.2" y="-6" width="0.3" height="40" />
+                <rect class="hud__mark" x="-5.6" y="-2.9" width="2" height="5.5" rx="0.5" />
+                <line class="hud__t" x1="-6" y1="-1.44" x2="-3.2" y2="-1.44" />
+                <g data-hud-car><rect class="hud__car" x="-0.9" y="-2.5" width="1.8" height="5.3" rx="0.5" /><path class="hud__nose" d="M-0.6 -2.1 L0 -3.1 L0.6 -2.1Z" /></g>
+              </g>
             </svg>
             <figcaption data-hud-dist></figcaption>
           </figure>
@@ -96,15 +108,16 @@
             <summary>controls</summary>
             <dl>
               <div><dt><kbd>W</kbd><kbd>↑</kbd></dt><dd>accelerate</dd></div>
-              <div><dt><kbd>S</kbd><kbd>↓</kbd></dt><dd>brake · hold to reverse</dd></div>
+              <div><dt><kbd>S</kbd><kbd>↓</kbd></dt><dd>brake</dd></div>
               <div><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>steer</dd></div>
-              <div><dt><kbd>space</kbd></dt><dd>brake</dd></div>
+              <div><dt><kbd>L</kbd></dt><dd>pit limiter</dd></div>
               <div><dt><kbd>esc</kbd></dt><dd>pause</dd></div>
             </dl>
           </details>
           <button class="hud__skip" type="button" data-skip>skip to the garage</button>
           <div class="hud__pedals">
-            <button class="hud__pedal hud__pedal--back" type="button" data-pedal="back" aria-label="brake, hold to reverse">brake<small>hold: R</small></button>
+            <button class="hud__pedal hud__pedal--back" type="button" data-pedal="brake" aria-label="brake">brake</button>
+            <button class="hud__limiter" type="button" data-limiter aria-label="pit limiter">pit</button>
             <button class="hud__pedal hud__pedal--go" type="button" data-pedal="throttle" aria-label="accelerate">go</button>
           </div>
         </div>

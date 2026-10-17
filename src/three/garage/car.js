@@ -140,6 +140,9 @@ async function loadW11(manager) {
   pivot.updateMatrixWorld(true);
   pivot.attach(steerNode);
 
+  // wheels: the fronts steer about a kingpin just inboard of the tyre, and every wheel rolls
+  const wheels = rigWheels(root);
+
   // shift lights, numbered left (+x) to right
   const leds = [];
   for (let i = 0; i < 15; i++) {
@@ -201,6 +204,7 @@ async function loadW11(manager) {
       pit: [-0.0832, -0.0382, 0.0046],
     },
     eye: new THREE.Vector3(0, 0.99, -0.2), // the driver's eye line (no halo, nothing in the way)
+    wheels,
     dispose() {
       root.traverse((o) => o.geometry?.dispose());
       new Set(Object.values(M)).forEach((m) => m.dispose());
@@ -208,6 +212,37 @@ async function loadW11(manager) {
       textures.forEach((t) => t.dispose());
     },
   };
+}
+
+// The W11's wheels as moving parts. Its nodes carry no transforms (the geometry is baked in place),
+// so each wheel gets a pivot group at its own centre: WHEEL_xx rolls about the axle (x), and the
+// front HUB_xx (wheel, disc and caliper) steers about a vertical kingpin.
+function rigWheels(root) {
+  root.updateMatrixWorld(true);
+  const wrap = (node, world) => {
+    const p = new THREE.Group();
+    node.parent.add(p);
+    p.position.copy(node.parent.worldToLocal(world.clone()));
+    p.updateMatrixWorld(true);
+    p.attach(node);
+    return p;
+  };
+  const centre = (n) => new THREE.Box3().setFromObject(n).getCenter(new THREE.Vector3());
+  const spin = [];
+  const steer = [];
+  for (const id of ['LF', 'RF', 'LR', 'RR']) {
+    const w = root.getObjectByName(`WHEEL_${id}`);
+    if (w) spin.push(wrap(w, centre(w)));
+  }
+  for (const id of ['LF', 'RF']) {
+    const hub = root.getObjectByName(`HUB_${id}`);
+    const w = spin.find((p) => p.children[0]?.name === `WHEEL_${id}`);
+    if (!hub || !w) continue;
+    const c = w.getWorldPosition(new THREE.Vector3());
+    c.x -= Math.sign(c.x) * 0.09; // the kingpin sits inside the wheel rim
+    steer.push(wrap(hub, c));
+  }
+  return { steer, spin };
 }
 
 // remove the triangles of a mesh for which test(a, b, c) is true (vertices in the model's space)

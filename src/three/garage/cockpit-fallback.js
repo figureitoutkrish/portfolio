@@ -119,16 +119,23 @@ export function buildFallbackCar() {
     new THREE.MeshStandardMaterial({ map: sidewall, roughness: 0.85 }),
     new THREE.MeshStandardMaterial({ map: sidewall, roughness: 0.85 }),
   ];
+  // each front wheel: a steering pivot (the kingpin) holding a rolling group (tyre + rim)
+  const wheels = { steer: [], spin: [] };
   for (const side of [-1, 1]) {
+    const kingpin = new THREE.Group();
+    kingpin.position.set(side * 0.71, 0.33, 1.44);
+    const roll = new THREE.Group();
+    roll.position.set(side * 0.09, 0, 0);
+    kingpin.add(roll);
+    car.add(kingpin);
+    wheels.steer.push(kingpin);
+    wheels.spin.push(roll);
     const tyre = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.36, 48, 1), tyreMats);
     tyre.rotation.z = Math.PI / 2;
-    tyre.position.set(side * 0.8, 0.33, 1.45);
     tyre.name = side > 0 ? 'tyre_fl' : 'tyre_fr';
-    car.add(tyre);
     const rimMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.37, 32), mats.matte);
     rimMesh.rotation.z = Math.PI / 2;
-    rimMesh.position.copy(tyre.position);
-    car.add(rimMesh);
+    roll.add(tyre, rimMesh);
     // wishbones: thin aero-section tubes from the chassis to the hub
     for (const [y0, y1, z0] of [[0.56, 0.48, 1.25], [0.4, 0.26, 1.3], [0.58, 0.47, 1.62]]) {
       const arm = new THREE.LineCurve3(new THREE.Vector3(side * 0.16, y0, z0), new THREE.Vector3(side * 0.62, y1, 1.45));
@@ -193,6 +200,7 @@ export function buildFallbackCar() {
       pit: [-0.0832, -0.0382, 0.0046],
     },
     eye: new THREE.Vector3(0, 0.99, -0.2),
+    wheels,
     dispose() {
       car.traverse((o) => o.geometry?.dispose());
       Object.values(mats).forEach((m) => m.dispose());

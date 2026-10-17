@@ -3,18 +3,23 @@
 Overrides `MASTER.md` for the data alter ego.
 
 ## Concept (one flow, nothing outside it)
-1. **Cockpit:** first person in an F1 car (2020 W11 look) on a floodlit night pit lane. The opening line is "every project has a starting grid.", with **take the wheel** and **skip to the garage**.
-2. **Drive in (about 20–30s):** past the garages, stop just past ours, hold S to reverse into the box, and park on the marks.
+1. **Cockpit:** first person in an F1 car (2020 W11 look) on a floodlit night pit lane. The opening line is "every project has a starting grid.", then the objective in one sentence ("box this lap: get under 80 before the pit entry line, limiter on, and stop on your crew's marks."), with **take the wheel** and **skip to the garage** (a dark pill, so it reads over the car).
+2. **Drive in (about 20s), the way it's done in F1** (researched; sources in the commit that made it):
+   - you take over rolling at 110 km/h; brake under 80 before the **pit entry line**, and press **L** (touch: PIT) for the limiter as you cross it;
+   - down the fast lane on the limiter (it stutters the engine and blinks the shift lights);
+   - turn right into **your box** in the working lane and stop on the crew's marks (the front tyres on the white T);
+   - jack up, wheel guns, jack down; then **the mechanics push the car back into the garage**, nose out. F1 cars almost never reverse, so you don't.
 3. **The zoom:** the hands come off and the camera dollies into the steering wheel. **The real 3D wheel is the device**, like the Mac on the creative page:
    - the page's screen sits exactly over the wheel's display;
    - its physical buttons and knobs are the controls (focusable hotspots with printed labels over them);
    - pressing one presses the 3D part, and the 3D shift lights show your position.
 4. **Returning visits and reduced motion** land straight on the wheel. **No WebGL** gives a drawn HTML wheel with the same controls, without PIT. **No JS** gives a `<noscript>` list.
-5. **The way in is marked:**
-   - teal chevrons down the lane;
-   - countdown boards (100 / 50 / 25 m to the stop box);
-   - a painted STOP box with a crew member holding a KV lollipop;
-   - while reversing, a rear-camera strip and a dashed line on the ground into the box.
+5. **The way in is marked, like a real pit lane:**
+   - the pit entry line across the lane, with 80 boards either side;
+   - teal chevrons down the fast lane, then four that swing right toward the box;
+   - distance boards hung from the garage fronts (100 / 50 / 25 m to the box);
+   - our box: the car's outline in teal, the white T, KV; the crew at their stations (lollipop reading BRAKES, the front jack, a gunner at each corner).
+   - the HUD backs it up: a status line saying what to do next, a goal card (what you're aiming for, how far, your speed against 80, limiter on/off) and, for the last 33 m, the box from above.
 
 Rules that came out of Krish's review:
 - experience over visual fidelity: bright, readable, light rendering;
@@ -43,7 +48,7 @@ Every control is a real button with one job:
   - Clips: `public/assets/audio/radio-check/<id>-raw.m4a` / `-model.m4a` (16 kHz AAC, ~25 KB each), listed in the project's `check` field with their SNR before/after. Speech from LibriSpeech, gunfire from Kabealo & Wyatt's dataset, both CC BY 4.0 (credited on the screen).
   - Each new check opens raw (0%) so the first turn is the reveal; leaving the level, switching mode or PIT stops the audio.
 - **LAP:** `telemetry.js` records the drive (10 Hz in sessionStorage, never sent anywhere). The screen shows:
-  - the speed trace, with throttle and brake bands and the reverse dashed;
+  - the speed trace, with throttle, brake and limiter bands;
   - lap time, reaction, top speed, braking point before the box, corrections, cm off the marks;
   - a style call from five plain rules, with the rule that fired highlighted.
 - **RADIO:** a short exchange, then email, LinkedIn, GitHub, Instagram.
@@ -71,16 +76,18 @@ Every control is a real button with one job:
 - Quality: `low` on touch, small or weak devices (DPR 1.5, 2 spill lights). `?q=` forces it; `?nogl` gives the plain wheel.
 
 ## The drive (`src/garage/`)
-- `vehicle.js`: a guided kinematic model, pure and testable in Node:
-  - 80 km/h limiter;
-  - 4 gears, revving to about 11.8k;
-  - eased stop past our garage;
-  - hold S to reverse along a fixed curve into the box;
-  - parked within 0.3 m.
+- `vehicle.js`: a kinematic bicycle model, pure and testable in Node (`createVehicle()`; a scripted driver lives in the scratchpad, not the repo):
+  - the rear axle follows the heading; yaw rate = v · tan δ / wheelbase, with the W11's wheelbase (3.715 m, measured off the model);
+  - ±18° at the front wheels, ±180° at the steering wheel (a 10:1 ratio); a key asks for less lock the faster you go, and steering is capped by grip (~2.2 g), past which the car runs wide;
+  - the limiter (80 km/h) is a toggle, as in the car; F1 gearing, so the lane is 1st and 2nd, revving to about 11.8k before each shift, with blipped downshifts;
+  - the brake builds pressure over ~0.2 s; the pit wall and the garages are soft walls you glance off;
+  - stopping anywhere from 12 m before the box counts (the error is recorded); then `push()` walks the car back into the garage along a curve in 3–4.5 s.
+- The scene steers the front wheels about a kingpin and rolls all four (`car.wheels`; on the W11 the hubs get pivot groups since its nodes carry no transforms), turns the steering wheel by the real ratio, and lifts the nose on the jack (`pose.lift`).
 - `drive.js`:
   - phases on `html[data-drive]`: intro · driving · paused · parked · wheel;
-  - keys, touch pedals and drag-to-steer;
-  - the HUD (status, the parking diagram, the controls);
+  - keys (W S A D, L for the limiter), touch pedals, the PIT button and drag-to-steer;
+  - the HUD (status, the goal card, the box from above, the controls);
+  - the stop: `service()` (jack, guns, the gunners go round to push) → `vehicle.push()` → `park()`;
   - the engine (`loop('f1')`) and one-shots;
   - the zoom handover to the wheel.
 - While driving: no page scroll, the tab bar steps aside, Esc pauses. Shake is light, and none once parked.
