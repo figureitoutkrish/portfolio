@@ -38,7 +38,7 @@ creative/index.html     # Creative alter-ego page: green grid, Mac windows, bent
 404.html                # Standalone "wrong turn" page (no site scripts); robots.txt + sitemap.xml are generated at build (vite.config.js)
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
-content/*.mp3           # music for the garage radio, local only: git-ignored and never built (rights unknown)
+content/*.mp3           # music originals (git-ignored); the garage radio's track ships from public/assets/audio/garage/
 vite.config.js
 api/                    # Vercel functions: scores.js (leaderboard), notes.js (visitor sticky notes), pitboard.js (the garage's guestbook); Upstash Redis. Setup: docs-backend.md
 public/assets/

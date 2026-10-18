@@ -1,16 +1,14 @@
 import { audio, soundOn } from '../audio/sfx.js';
-import { music } from 'virtual:local-models';
 
 // The garage radio: music that lives in one place in the 3D garage (the boombox on the cabinets).
 // Walk toward it and it gets louder and brighter; walk away and it fades and dulls, as if heard
 // through the room; it sits left or right of you depending on where it is. Its speaker cones pump
 // with the level.
-//   the track: a file Krish drops in content/ (dev server only: rights unknown, so no build can
-//   contain it, see vite.config.js), else an original loop made right here in Web Audio.
+//   the track: Krish's own "F1" (public/assets/audio/garage/f1.mp3, 3 MB, fetched only when you get
+//   out of the car). If it can't load, an original loop made right here in Web Audio plays instead.
 //   it steps aside for the header's record player, mutes with the site's sound switch, dips while a
 //   station is open and nearly stops for the radio check (which is about listening).
-const LOCAL = Object.values(music)[0] || null;
-const NAME = LOCAL ? 'KV FM · F1' : 'KV FM';
+const TRACK = '/assets/audio/garage/f1.mp3';
 
 export function createGarageRadio() {
   let ctx = null;
@@ -20,6 +18,7 @@ export function createGarageRadio() {
   let startedAt = 0;
   let offset = 0;
   let on = true; // the visitor's switch (click the radio, or M)
+  let name = 'KV FM'; // the display, once the track is in
   const nodes = {};
 
   function graph() {
@@ -40,7 +39,10 @@ export function createGarageRadio() {
 
   function load() {
     if (loading) return loading;
-    loading = (LOCAL ? fetch(LOCAL).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)) : renderLoop(ctx.sampleRate))
+    loading = fetch(TRACK)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`${r.status}`))))
+      .then((b) => ctx.decodeAudioData(b))
+      .then((b) => ((name = 'KV FM · F1'), b))
       .catch(() => renderLoop(ctx.sampleRate)) // (a missing or broken file: the made-here loop instead)
       .then((b) => (buffer = b));
     return loading;
@@ -118,7 +120,7 @@ export function createGarageRadio() {
       return on;
     },
     get label() {
-      return on ? NAME : 'OFF';
+      return on ? name : 'OFF';
     },
     toggle() {
       on = !on;
@@ -136,9 +138,9 @@ const smooth = (a, b, x) => {
   return t * t * (3 - 2 * t);
 };
 
-// ---------- the made-here loop: 8 bars at 112 bpm, A minor (Am F C G), rendered once ----------
+// ---------- the fallback: 8 bars at 112 bpm, A minor (Am F C G), rendered once ----------
 // Kick on every beat, a clap on 2 and 4, hats on the eighths, a bassline, a soft pad and a quiet
-// arpeggio: an original garage-radio groove, so the live site has music with no rights question.
+// arpeggio: an original garage-radio groove, for when the track can't load.
 function renderLoop(rate) {
   const BPM = 112;
   const beat = 60 / BPM;

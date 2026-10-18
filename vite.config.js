@@ -22,8 +22,8 @@ const siteUrlPlugin = () => ({
   },
 });
 
-// The W11 in src/assets/local/ is an unlicensed rip, and music in content/ has unknown rights: they
-// may only ever run on Krish's Mac. Code asks for them through this virtual module, which finds it on the dev server and is always empty in a
+// The W11 in src/assets/local/ is an unlicensed rip: it may only ever run on Krish's Mac. Code asks
+// for it through this virtual module, which finds it on the dev server and is always empty in a
 // build, so no build (even one made on the Mac) can contain it.
 const localModelsPlugin = () => {
   let build = false;
@@ -33,9 +33,8 @@ const localModelsPlugin = () => {
     resolveId: (id) => (id === 'virtual:local-models' ? '\0local-models' : null),
     load(id) {
       if (id !== '\0local-models') return null;
-      // (music Krish drops into content/ for the garage radio: same rule, rights unknown)
-      if (build) return 'export default {};\nexport const music = {};';
-      return "export default import.meta.glob('/src/assets/local/w11/*.{glb,png}', { query: '?url', import: 'default', eager: true });\nexport const music = import.meta.glob('/content/*.{mp3,m4a}', { query: '?url', import: 'default', eager: true });";
+      if (build) return 'export default {};';
+      return "export default import.meta.glob('/src/assets/local/w11/*.{glb,png}', { query: '?url', import: 'default', eager: true });";
     },
   };
 };
