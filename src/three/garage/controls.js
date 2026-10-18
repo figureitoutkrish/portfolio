@@ -146,7 +146,7 @@ export const CONTROL_SET = {
   back: { kind: 'button', color: 0xe23a2e },
   ok: { kind: 'button', color: 0xeef1f4 },
   talk: { kind: 'button', color: 0x0fb3a1 },
-  drs: { kind: 'button', color: 0x18a957 },
+  overtake: { kind: 'button', color: 0x18a957 },
   drink: { kind: 'button', color: 0x9aa0a6 },
   pit: { kind: 'button', color: 0xf08c00 },
 };

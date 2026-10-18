@@ -1,6 +1,8 @@
 import './styles/main.css';
+import './styles/f1ui.css'; // the F1-game UI language first; page styles build on it
 import './styles/data.css';
 import './styles/wheel.css';
+import '@fontsource-variable/saira/wdth.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
 import gsap from 'gsap';
 import { initShared } from './shared.js';
@@ -17,6 +19,11 @@ const viaWipe = arrivedViaWipe();
 const cockpit = document.querySelector('.cockpit');
 const canvas = cockpit.querySelector('.cockpit__gl');
 const pct = cockpit.querySelector('.cockpit__load-pct');
+let carIn = false; // the loading manager reports 1/1 before it knows about every texture: hold under 100% until the car is in
+const check = (name) => {
+  if (name === 'car') carIn = true;
+  cockpit.querySelector(`[data-check="${name}"]`)?.classList.add('is-done');
+};
 const bar = cockpit.querySelector('.cockpit__load-track');
 const lines = cockpit.querySelectorAll('.cockpit__title .line > span');
 const wheelEl = document.getElementById('wheel');
@@ -31,7 +38,8 @@ fontsReady.then(async () => {
   let garage;
   try {
     const { createGarage } = await import('./three/garage/index.js');
-    garage = await createGarage(canvas, { quality: pickQuality(), reducedMotion, onProgress: progress });
+    check('engine');
+    garage = await createGarage(canvas, { quality: pickQuality(), reducedMotion, onProgress: progress, onStage: check });
   } catch (err) {
     console.error('[garage] 3D failed, showing the plain wheel', err);
     document.documentElement.classList.add('no-gl');
@@ -49,7 +57,7 @@ fontsReady.then(async () => {
 });
 
 function progress(p) {
-  const v = Math.max(0, Math.min(1, p));
+  const v = Math.max(0, Math.min(carIn ? 1 : 0.9, p));
   bar.style.setProperty('--p', v.toFixed(3));
   pct.textContent = `${Math.round(v * 100)}%`;
 }
@@ -76,7 +84,7 @@ function webglAvailable() {
 // no WebGL (or it failed): the wheel on its own is the page; PIT has nowhere to drive to
 function plainWheel() {
   const wheel = initWheel({ root: wheelEl, reducedMotion, onPit: () => {} });
-  wheelEl.querySelector('[data-act="pit"]').hidden = true;
+  wheelEl.querySelectorAll('[data-act="pit"]').forEach((b) => (b.hidden = true));
   document.documentElement.dataset.drive = 'wheel';
   wheel.show({ instant: true });
 }

@@ -1,0 +1,281 @@
+/* The data page's UI language, studied from the current F1 game (F1 25 + the 2026 Season Pack):
+   dark translucent panels with a light top edge, a coloured section tag beside its key, dense
+   zebra rows, an info panel with an underlined title, the violet objective pill, the S1/S2/S3
+   sector box in the timing colours, ring gauges, and a prompt bar of keys bottom right.
+   Our own team throughout (KV, teal): no F1 marks, fonts or team names. Rules: design-system/pages/data.md */
+
+:root:has(.garage-page) {
+  --f1-font: "Saira Variable", "Saira", var(--font-mono);
+  --f1-stretch: 118%; /* wide, like the game's display face */
+  --f1-panel: rgba(9, 11, 15, 0.82);
+  --f1-panel-solid: #0b0d12;
+  --f1-zebra: rgba(255, 255, 255, 0.035);
+  --f1-edge: rgba(255, 255, 255, 0.24); /* the light top edge every panel has */
+  --f1-line: rgba(255, 255, 255, 0.1);
+  --f1-ink: #f2f5f7;
+  --f1-muted: rgba(242, 245, 247, 0.64);
+  --f1-team: var(--w11-teal);
+  --f1-team-ink: #03201c; /* text on the team colour */
+  /* the timing colours mean the same thing everywhere: best, personal best, slower; red = a limit broken */
+  --f1-purple: #b45cff;
+  --f1-green: #2fe07a;
+  --f1-yellow: #ffd60a;
+  --f1-red: #ff453a;
+  --f1-objective: linear-gradient(90deg, #4f22c9, #7d3cf0);
+  --f1-radius: 3px;
+}
+
+/* ---------- panel ---------- */
+.f1-panel {
+  position: relative;
+  border-radius: var(--f1-radius);
+  background: var(--f1-panel);
+  box-shadow: inset 0 1px 0 var(--f1-edge), 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  color: var(--f1-ink);
+}
+
+/* the session header: our mark in the team colour, then the session */
+.f1-head {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.f1-mark {
+  display: grid;
+  place-items: center;
+  padding: 0.35em 0.5em;
+  background: var(--f1-team);
+  color: var(--f1-team-ink);
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+.f1-head__t { display: flex; align-items: center; padding: 0.35em 0.6em; letter-spacing: 0.02em; }
+
+/* ---------- section tag + key glyph (the game's tab with its shoulder button) ---------- */
+.f1-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.f1-tag > b {
+  padding: 0.38em 0.6em;
+  border-radius: 2px;
+  background: var(--f1-team);
+  color: var(--f1-team-ink);
+  font-weight: inherit;
+}
+kbd.f1-key,
+.f1-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.7em;
+  height: 1.7em;
+  padding: 0 0.4em;
+  border: 1px solid rgba(242, 245, 247, 0.32);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--f1-ink);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+/* ---------- rows: dense, zebra, the selected one outlined ---------- */
+.f1-rows { display: grid; list-style: none; }
+.f1-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  min-height: 2.4em;
+  padding: 0.35em 0.8em;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--f1-ink);
+  text-decoration: none;
+}
+.f1-rows > :nth-child(odd) > .f1-row,
+.f1-rows > .f1-row:nth-child(odd) { background: var(--f1-zebra); }
+.f1-row.is-sel { border-color: rgba(242, 245, 247, 0.85); background: rgba(255, 255, 255, 0.08); }
+.f1-row__v { display: inline-flex; align-items: center; gap: 0.6em; color: var(--f1-muted); }
+.f1-row.is-sel .f1-row__v { color: var(--f1-ink); }
+.f1-row__v::before { content: "‹"; opacity: 0.6; }
+.f1-row__v::after { content: "›"; opacity: 0.6; }
+
+/* ---------- info panel: title, a short team-coloured underline, the text ---------- */
+.f1-info__t {
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.f1-info__t::after {
+  content: "";
+  display: block;
+  width: 2.6em;
+  height: 2px;
+  margin-top: 0.45em;
+  background: var(--f1-team);
+}
+
+/* ---------- objective: the violet pill with a diamond ---------- */
+.f1-objective {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 0.5em 0.9em 0.5em 0.65em;
+  border-radius: 2px;
+  background: var(--f1-objective);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 8px 24px rgba(79, 34, 201, 0.35);
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.f1-objective::before {
+  content: "";
+  flex: none;
+  width: 0.6em;
+  height: 0.6em;
+  border: 2px solid #fff;
+  rotate: 45deg;
+}
+.f1-objective:empty { display: none; }
+
+/* ---------- sector box: S1 S2 S3, each filling in the timing colours ---------- */
+.f1-sectors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35em; list-style: none; }
+.f1-sector { display: grid; gap: 0.3em; }
+.f1-sector > span {
+  color: var(--f1-muted);
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.f1-sector > i { position: relative; display: block; height: 4px; border-radius: 1px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.f1-sector > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--c, transparent);
+  transform-origin: left;
+  transform: scaleX(var(--fill, 0));
+  transition: transform 220ms var(--ease-out), background-color 220ms ease;
+}
+.f1-sector > b { min-height: 1.2em; font-family: var(--font-mono); font-size: 0.8em; font-weight: 500; font-variant-numeric: tabular-nums; }
+.f1-sector[data-state="live"] { --c: rgba(242, 245, 247, 0.85); }
+.f1-sector[data-state="live"] > span { color: var(--f1-ink); }
+.f1-sector[data-state="purple"] { --c: var(--f1-purple); --fill: 1; }
+.f1-sector[data-state="green"] { --c: var(--f1-green); --fill: 1; }
+.f1-sector[data-state="yellow"] { --c: var(--f1-yellow); --fill: 1; }
+.f1-sector[data-state="red"] { --c: var(--f1-red); --fill: 1; }
+.f1-sector:is([data-state="purple"], [data-state="green"], [data-state="yellow"], [data-state="red"]) > b { color: var(--c); }
+
+/* ---------- ring gauge (a 270° arc; the value is set by JS on .f1-gauge__v) ---------- */
+.f1-gauge { position: relative; display: grid; place-items: center; aspect-ratio: 1; }
+.f1-gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; rotate: 135deg; overflow: visible; }
+.f1-gauge circle { fill: none; stroke-width: 7; stroke-linecap: butt; }
+.f1-gauge__track { stroke: rgba(255, 255, 255, 0.12); stroke-dasharray: 75 100; }
+.f1-gauge__v { stroke: var(--g, var(--f1-team)); stroke-dasharray: 0 100; transition: stroke 200ms ease; }
+.f1-gauge__in { position: relative; display: grid; justify-items: center; line-height: 1; }
+.f1-gauge__k { color: var(--f1-muted); font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: 0.62em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.f1-gauge__n { font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: 1.35em; font-weight: 700; font-variant-numeric: tabular-nums; }
+.f1-gauge__s { color: var(--f1-muted); font-family: var(--font-mono); font-size: 0.6em; font-variant-numeric: tabular-nums; }
+
+/* ---------- prompt bar: what each key does, bottom right ---------- */
+.f1-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.45em 1.1em;
+  color: var(--f1-ink);
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.f1-prompts > span { display: inline-flex; align-items: center; gap: 0.45em; white-space: nowrap; }
+.f1-prompts .f1-key + .f1-key { margin-left: -0.2em; }
+
+/* ---------- buttons: square-cornered, the primary in the team colour ---------- */
+.f1-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  min-height: 48px;
+  padding: 0 1.25em;
+  border: 0;
+  border-radius: var(--f1-radius);
+  background: var(--f1-panel);
+  box-shadow: inset 0 1px 0 var(--f1-edge);
+  color: var(--f1-ink);
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 140ms var(--ease-out), background-color 160ms ease, box-shadow 160ms ease;
+}
+.f1-btn:active { transform: scale(0.97); }
+.f1-btn--primary { background: var(--f1-team); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 10px 30px rgba(0, 210, 190, 0.25); color: var(--f1-team-ink); }
+.f1-btn--primary .f1-key { border-color: rgba(3, 32, 28, 0.45); background: rgba(3, 32, 28, 0.08); color: var(--f1-team-ink); }
+.f1-btn:focus-visible { outline: 2px solid var(--f1-ink); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) {
+  .f1-btn:hover { background: rgba(28, 32, 40, 0.9); }
+  .f1-btn--primary:hover { background: #2ee3d1; }
+}
+
+/* ---------- light streaks behind menus (the game's moving backdrop), in the team colour ---------- */
+.f1-streaks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.f1-streaks::before,
+.f1-streaks::after {
+  content: "";
+  position: absolute;
+  left: -20%;
+  width: 140%;
+  height: 38%;
+  background: radial-gradient(60% 40% at 50% 50%, rgba(0, 210, 190, 0.22), transparent 70%);
+  filter: blur(18px);
+  rotate: -8deg;
+  animation: f1-streak 9s ease-in-out infinite alternate;
+}
+.f1-streaks::before { top: 18%; }
+.f1-streaks::after { top: 52%; rotate: 6deg; opacity: 0.6; animation-duration: 12s; animation-direction: alternate-reverse; }
+@keyframes f1-streak { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+@media (prefers-reduced-motion: reduce) {
+  .f1-streaks::before, .f1-streaks::after { animation: none; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .f1-panel, .f1-btn:not(.f1-btn--primary) { background: var(--f1-panel-solid); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}

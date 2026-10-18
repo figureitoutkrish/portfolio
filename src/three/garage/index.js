@@ -9,7 +9,8 @@ export { LAYOUT };
 // talks to it only through the API returned here (no three.js outside src/three/).
 //   quality  'high' (bloom, more lights) or 'low' (phones, slow GPUs)
 //   onProgress(0…1) while the car and textures load
-export async function createGarage(canvas, { quality = 'high', reducedMotion = false, onProgress } = {}) {
+//   onStage(name) as each part is in: 'lane', 'car', 'radio' (the canvas fonts); the loader ticks them
+export async function createGarage(canvas, { quality = 'high', reducedMotion = false, onProgress, onStage } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'high', powerPreference: 'high-performance' });
   const dpr = () => Math.min(window.devicePixelRatio, quality === 'high' ? 2 : 1.5);
   renderer.setPixelRatio(dpr());
@@ -32,9 +33,11 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
 
   const world = buildWorld({ quality });
   scene.add(world.group);
+  onStage?.('lane');
 
   const lcd = createLcd();
   const car = await loadCar({ manager, lcdTexture: lcd.texture });
+  onStage?.('car');
   // the rig is the car's pose in the world; the car model and the camera ride on it
   // the display's real width (before the car is placed anywhere): the page sizes the zoom with it
   const lcdBox = new THREE.Box3().setFromObject(car.lcdMesh);
@@ -243,6 +246,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
 
   // make sure the canvas fonts are in before the first sign/display draw
   await document.fonts?.ready;
+  onStage?.('radio');
   frame();
   if (!reducedMotion) start();
 

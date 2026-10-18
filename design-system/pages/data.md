@@ -37,7 +37,7 @@ Every control is a real button with one job:
 | OK | enter | open the briefing → open the code (or the radio check); LAP: drive again; RADIO: open the channel |
 | BACK | esc / backspace | close the briefing |
 | PIT | – | back in the car at the pit entry |
-| DRS · TALK · DRINK | – | short radio moments on the screen bar; TALK plays a radio call over gunfire that the noise model cleans up after a second |
+| OVERTAKE · TALK · DRINK | – | short radio moments on the screen bar; TALK plays a radio call over gunfire that the noise model cleans up after a second |
 | shift lights | – | position (project n of N; on LAP, how close you parked; on RADIO, the channel) |
 
 - **PROJECTS:** `src/garage/data/projects.js`. Add a project there and the wheel picks it up.
@@ -58,10 +58,42 @@ Every control is a real button with one job:
   - Hotspots are always 44px targets; the hover/focus ring hugs the real button (`--ring`). The 3D part presses on pointer-down / key-down, the action fires on release.
 - **Drawn (no WebGL):** a 900×400 SVG wheel with the controls placed in % of it; phones get a tall layout.
 
-## Look
-- **Colours:** always dark. Tokens `--night`, `--night-2`, `--night-ink`, `--night-muted`, `--night-line`, `--w11-teal` (#00d2be), `--carbon`.
-- **Type:** mono (JetBrains Mono) for labels and the wheel's UI; Nohemi for titles. No team or sponsor marks in anything published (our garage sign reads KV).
-- **3D:** floodlit night (hemisphere + flood + fill lights), lighter asphalt and walls, exposure 1.3, thin blue fog, no bloom, environment reflections at 0.22, little clearcoat. No halo: it's removed from the W11 at load and not built in the code car.
+## Look: the F1 game's UI (`src/styles/f1ui.css`)
+Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no standalone F1 26) using EA's own in-game screenshots: the race HUD and the menus. Our team throughout: KV in teal, with no F1 marks, font, team names or drivers.
+- **Panels:** `--f1-panel` (near-black, blurred) with a 1px light top edge (`--f1-edge`) and 3px corners. Session header `.f1-head`: the KV mark on teal, then the session ("box 01").
+- **Type:** Saira (OFL, `@fontsource-variable/saira`, width axis) at `--f1-stretch` 118%, 600–800, uppercase for headings, labels, tags and buttons. Big titles are 800 italic, like the game's. JetBrains Mono for numbers and small data. Reading text stays lowercase Saira 500. Nohemi isn't used on this page.
+- **Colour:** always dark; teal `--f1-team` is the accent. The timing colours mean the same thing everywhere: `--f1-purple` = best, `--f1-green` = good, `--f1-yellow` = slower, `--f1-red` = a limit broken. Violet `--f1-objective` is for the objective only.
+- **Components:**
+  - `.f1-tag` (section tag in teal);
+  - `.f1-key` (a key cap);
+  - `.f1-rows` / `.f1-row` (zebra rows, the selected one outlined);
+  - `.f1-info__t` (title with a short teal underline);
+  - `.f1-objective` (violet pill with a diamond);
+  - `.f1-sectors` (S1/S2/S3);
+  - `.f1-gauge` (270° ring, set from JS);
+  - `.f1-prompts` (key prompts, bottom right);
+  - `.f1-btn` / `--primary`;
+  - `.f1-streaks` (the moving light behind menus; still under reduced motion).
+- **Where they're used:**
+  - **Loader:** an install-style checklist (3d engine, pit lane, car & textures, team radio), each ticked when that part has really loaded (`createGarage({ onStage })`). The percentage holds under 100% until the car is in.
+  - **Intro:** session header, the title in 800 italic, the objective pill, **take the wheel ↵** (Enter starts) and **skip to the garage**.
+  - **Drive HUD:**
+    - top left: the session box (phase, your time) and the objective, the only part announced to screen readers;
+    - top right: the sector box. S1 is your speed at the pit entry line (purple 74–80, green under, red over 80). S2 is where the limiter went on (purple within 5 m of the line, green early or within 25 m, yellow later). S3 is the distance from the marks (purple ≤ 50 cm, green ≤ 1.5 m, yellow beyond). The live sector fills as you go, and the distance to the next target sits under the box.
+    - bottom centre: BATT, gear plus the LIM light (blue, flashing on the limiter), and speed (red over 80 near the lane). BATT drains on the throttle and refills under braking; it's display only.
+    - prompt bar bottom right (hidden under 1100px), skip bottom left, and the box from above for the last 33 m.
+    - touch: the panels go half width, the sectors read S1 S2 S3, and the gauges sit above the pedals.
+  - **Pause:** a menu panel (resume esc, skip).
+  - **Wheel screen:**
+    - the mode is the teal tag and the hints are key prompts;
+    - titles in 800 italic uppercase, the stack as small tags, the briefing sections as info titles;
+    - links as buttons (code teal, live dark);
+    - "ok radio check" as the objective pill;
+    - LAP stats as a timing tower, with the style call that fired in purple;
+    - RADIO channels as menu rows.
+- **Legibility floor:** screen text scales with the display but never goes below 11px for labels (`--lab`) or 13px for reading text (`--txt`). On phones the screen grows down over the wheel's face to just above the next row of buttons, and off-screen hotspots are hidden (out of the tab order). The dock adds **PIT**.
+- **2026-correct:** the cars have no DRS any more, so that wheel button is **OVERTAKE** (the electric boost; "+350 kW · not in the pit lane").
+- **3D:** floodlit night (hemisphere + flood + fill lights), lighter asphalt and walls, exposure 1.3, thin blue fog, no bloom, environment reflections at 0.22, little clearcoat. No halo in the cockpit view: it's removed from the W11 at load and not built in the code car.
 
 ## 3D (`src/three/garage/`)
 - `index.js` `createGarage()` returns `{ pose, drive, look, view, hold(on), onFrame, render }`:
@@ -86,7 +118,7 @@ Every control is a real button with one job:
 - `drive.js`:
   - phases on `html[data-drive]`: intro · driving · paused · parked · wheel;
   - keys (W S A D, L for the limiter), touch pedals, the PIT button and drag-to-steer;
-  - the HUD (status, the goal card, the box from above, the controls);
+  - the HUD (session box, objective, sectors, gauges, the box from above, the key prompts);
   - the stop: `service()` (jack, guns, the gunners go round to push) → `vehicle.push()` → `park()`;
   - the engine (`loop('f1')`) and one-shots;
   - the zoom handover to the wheel.

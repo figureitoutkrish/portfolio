@@ -67,29 +67,58 @@
            park, and the steering wheel (below) becomes the page. Without WebGL only the wheel shows. -->
       <section class="cockpit" id="cockpit" aria-label="cockpit">
         <canvas class="cockpit__gl" aria-hidden="true"></canvas>
-        <div class="cockpit__load" role="status">
-          <span class="cockpit__load-label">warming the tyres</span>
-          <span class="cockpit__load-track" aria-hidden="true"><i></i></span>
-          <span class="cockpit__load-pct">0%</span>
+        <div class="cockpit__load f1-panel" role="status" aria-label="loading">
+          <span class="f1-streaks" aria-hidden="true"></span>
+          <header class="f1-head"><span class="f1-mark">KV</span><span class="f1-head__t">box 01 &middot; loading</span></header>
+          <!-- honest: each line ticks when that part is really in (data.js / createGarage onStage) -->
+          <ol class="cockpit__checks">
+            <li data-check="engine"><i aria-hidden="true"></i>3d engine</li>
+            <li data-check="lane"><i aria-hidden="true"></i>pit lane</li>
+            <li data-check="car"><i aria-hidden="true"></i>car &amp; textures</li>
+            <li data-check="radio"><i aria-hidden="true"></i>team radio</li>
+          </ol>
+          <p class="cockpit__load-row"><span class="cockpit__load-track" aria-hidden="true"><i></i></span><span class="cockpit__load-pct">0%</span></p>
         </div>
         <div class="cockpit__intro">
-          <p class="cockpit__eyebrow">alter ego 01 &middot; data</p>
+          <header class="cockpit__session f1-head"><span class="f1-mark">KV</span><span class="f1-head__t">alter ego 01 &middot; data</span></header>
           <h1 class="cockpit__title"><span class="line"><span>every project has</span></span> <span class="line"><span>a starting grid.</span></span></h1>
-          <p class="cockpit__brief">box this lap: get under 80 before the pit entry line, limiter on, and stop on your crew's marks.</p>
-          <button class="cockpit__start" type="button" data-start><span>take the wheel</span></button>
-          <button class="cockpit__skip" type="button" data-skip>skip to the garage <span aria-hidden="true">→</span></button>
+          <p class="cockpit__brief f1-objective">box this lap: get under 80 km/h before the pit entry line, limiter on, and stop on your crew's marks.</p>
+          <div class="cockpit__actions">
+            <button class="cockpit__start f1-btn f1-btn--primary" type="button" data-start><span>take the wheel</span><kbd class="f1-key" aria-hidden="true">&crarr;</kbd></button>
+            <button class="cockpit__skip f1-btn" type="button" data-skip>skip to the garage <span aria-hidden="true">&rarr;</span></button>
+          </div>
         </div>
 
-        <!-- Driving HUD (src/garage/drive.js): what's happening, what to do next, how far, the box from above. -->
-        <div class="hud" aria-live="polite">
-          <p class="hud__status"><span class="hud__phase" data-hud-phase>box, box</span><span class="hud__msg" data-hud-msg></span></p>
-          <div class="hud__goal" data-hud-goal hidden>
-            <span class="hud__goal-label" data-goal-label></span>
-            <b class="hud__goal-dist" data-goal-dist></b>
-            <span class="hud__goal-speed"><b data-goal-speed>0</b> km/h</span>
-            <span class="hud__goal-lim" data-goal-limiter>limiter off</span>
+        <!-- Driving HUD (src/garage/drive.js), laid out like the game's: the session box and the
+             objective top left, the sector box top right, ring gauges bottom centre, the keys
+             bottom right, the box from above for the last 33 m. Only the objective is announced. -->
+        <div class="hud" tabindex="-1">
+          <section class="hud__session f1-panel" aria-label="session">
+            <header class="f1-head"><span class="f1-mark">KV</span><span class="f1-head__t">box 01</span></header>
+            <p class="hud__phase" data-hud-phase>box, box</p>
+            <p class="hud__row"><span class="hud__pos">01</span><i class="hud__tick" aria-hidden="true"></i><span class="hud__who">you</span><b data-hud-time>0.0</b></p>
+          </section>
+          <p class="hud__objective f1-objective" data-hud-msg aria-live="polite"></p>
+          <section class="hud__timing f1-panel" aria-label="sectors">
+            <ol class="f1-sectors">
+              <li class="f1-sector" data-sector="1" title="pit entry: your speed at the line"><span>S1<small> entry</small></span><i></i><b></b></li>
+              <li class="f1-sector" data-sector="2" title="limiter: where you switched it on"><span>S2<small> limiter</small></span><i></i><b></b></li>
+              <li class="f1-sector" data-sector="3" title="the box: how close to the marks"><span>S3<small> box</small></span><i></i><b></b></li>
+            </ol>
+            <p class="hud__goal" data-hud-goal hidden><span data-goal-label></span><b data-goal-dist></b></p>
+          </section>
+          <div class="hud__gauges" aria-hidden="true">
+            <div class="f1-gauge hud__batt" data-gauge="batt">
+              <svg viewBox="0 0 100 100"><circle class="f1-gauge__track" cx="50" cy="50" r="44" pathLength="100" /><circle class="f1-gauge__v" cx="50" cy="50" r="44" pathLength="100" /></svg>
+              <span class="f1-gauge__in"><span class="f1-gauge__k">batt</span><b class="f1-gauge__n" data-batt>100%</b></span>
+            </div>
+            <div class="hud__gear"><b data-gear>N</b><span class="hud__lim" data-goal-limiter>lim</span></div>
+            <div class="f1-gauge hud__speed" data-gauge="speed">
+              <svg viewBox="0 0 100 100"><circle class="f1-gauge__track" cx="50" cy="50" r="44" pathLength="100" /><circle class="f1-gauge__v" cx="50" cy="50" r="44" pathLength="100" /></svg>
+              <span class="f1-gauge__in"><span class="f1-gauge__k">kph</span><b class="f1-gauge__n" data-goal-speed>0</b><span class="f1-gauge__s" data-rpm>3800</span></span>
+            </div>
           </div>
-          <figure class="hud__box" data-hud-box hidden>
+          <figure class="hud__box f1-panel" data-hud-box hidden>
             <!-- from above, forward up; mirrored so the garages (−x, the driver's right) draw on the right -->
             <svg viewBox="-9.5 -6 19 40" width="120" height="252" aria-hidden="true">
               <g transform="scale(-1 1)">
@@ -104,17 +133,14 @@
             </svg>
             <figcaption data-hud-dist></figcaption>
           </figure>
-          <details class="hud__keys" open>
-            <summary>controls</summary>
-            <dl>
-              <div><dt><kbd>W</kbd><kbd>↑</kbd></dt><dd>accelerate</dd></div>
-              <div><dt><kbd>S</kbd><kbd>↓</kbd></dt><dd>brake</dd></div>
-              <div><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>steer</dd></div>
-              <div><dt><kbd>L</kbd></dt><dd>pit limiter</dd></div>
-              <div><dt><kbd>esc</kbd></dt><dd>pause</dd></div>
-            </dl>
-          </details>
-          <button class="hud__skip" type="button" data-skip>skip to the garage</button>
+          <p class="hud__prompts f1-prompts" aria-label="controls">
+            <span><kbd class="f1-key">W</kbd> go</span>
+            <span><kbd class="f1-key">S</kbd> brake</span>
+            <span><kbd class="f1-key">A</kbd><kbd class="f1-key">D</kbd> steer</span>
+            <span><kbd class="f1-key">L</kbd> limiter</span>
+            <span><kbd class="f1-key">esc</kbd> pause</span>
+          </p>
+          <button class="hud__skip f1-btn" type="button" data-skip>skip to the garage</button>
           <div class="hud__pedals">
             <button class="hud__pedal hud__pedal--back" type="button" data-pedal="brake" aria-label="brake">brake</button>
             <button class="hud__limiter" type="button" data-limiter aria-label="pit limiter">pit</button>
@@ -155,7 +181,7 @@
             <div class="leds" aria-hidden="true"></div>
 
             <div class="cluster cluster--l">
-              <button class="cap cap--green" type="button" data-act="drs">drs</button>
+              <button class="cap cap--green" type="button" data-act="overtake" aria-label="overtake">ot</button>
               <button class="cap cap--teal" type="button" data-act="talk">talk</button>
               <button class="cap cap--grey" type="button" data-act="drink">drink</button>
             </div>
@@ -195,15 +221,19 @@
               <button class="cap cap--grey" type="button" data-act="mode" aria-label="mode: next">mode</button>
               <button class="cap cap--ok" type="button" data-act="ok">ok</button>
               <button class="cap cap--blue" type="button" data-act="next" aria-label="next">&rsaquo;</button>
+              <button class="cap cap--orange" type="button" data-act="pit" aria-label="pit exit: drive in again">pit</button>
             </div>
           </div>
-          <p class="wheel__keys" aria-hidden="true"><kbd>&larr;</kbd><kbd>&rarr;</kbd> paddles <kbd>&uarr;</kbd><kbd>&darr;</kbd> scroll <kbd>enter</kbd> ok <kbd>esc</kbd> back <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> mode</p>
+          <p class="wheel__keys f1-prompts" aria-hidden="true"><span><kbd class="f1-key">&larr;</kbd><kbd class="f1-key">&rarr;</kbd> paddles</span><span><kbd class="f1-key">&uarr;</kbd><kbd class="f1-key">&darr;</kbd> scroll</span><span><kbd class="f1-key">&crarr;</kbd> ok</span><span><kbd class="f1-key">esc</kbd> back</span><span><kbd class="f1-key">1</kbd><kbd class="f1-key">2</kbd><kbd class="f1-key">3</kbd> mode</span></p>
         </section>
 
         <div class="cockpit__pause" role="dialog" aria-label="paused" hidden>
-          <p>paused</p>
-          <button type="button" data-resume>resume</button>
-          <button type="button" data-skip>skip to the garage</button>
+          <span class="f1-streaks" aria-hidden="true"></span>
+          <div class="cockpit__pause-menu f1-panel">
+            <p class="f1-tag"><b>paused</b></p>
+            <button class="f1-btn f1-btn--primary" type="button" data-resume>resume <kbd class="f1-key" aria-hidden="true">esc</kbd></button>
+            <button class="f1-btn" type="button" data-skip>skip to the garage</button>
+          </div>
         </div>
       </section>
 

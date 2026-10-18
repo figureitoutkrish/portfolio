@@ -68,39 +68,43 @@ html:not(.js) .site-header--over { position: relative; inset: auto; margin: 1.25
 }
 .cockpit.is-ready .cockpit__gl { opacity: 1; }
 
-/* loader: a telemetry bar with the real progress */
+/* loader: the game's install-screen checklist; each line ticks when that part is really loaded */
 .cockpit__load {
   position: absolute;
   left: 50%;
-  bottom: clamp(5rem, 14svh, 9rem);
+  top: 50%;
   z-index: 2;
   display: grid;
-  grid-template-columns: auto clamp(5rem, 28vw, 10rem) auto;
-  align-items: center;
-  white-space: nowrap;
-  gap: 0.9rem;
-  color: var(--night-muted);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  translate: -50% 0;
-  transition: opacity 400ms ease;
+  gap: 1rem;
+  width: min(20rem, calc(100% - 2 * var(--gutter)));
+  padding: 0 0 1.1rem;
+  overflow: hidden;
+  font-size: 0.8rem;
+  translate: -50% -50%;
+  transition: opacity 400ms ease, translate 400ms var(--ease-out);
 }
-.cockpit.is-ready .cockpit__load { opacity: 0; pointer-events: none; }
-.cockpit__load-track { height: 2px; background: var(--night-line); overflow: hidden; }
+.cockpit.is-ready .cockpit__load { opacity: 0; translate: -50% -46%; pointer-events: none; }
+.cockpit__load .f1-head { position: relative; font-size: 0.85rem; }
+.cockpit__checks { position: relative; display: grid; gap: 0.55rem; padding: 0 1.1rem; list-style: none; font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--f1-muted); }
+.cockpit__checks li { display: flex; align-items: center; gap: 0.7rem; transition: color 200ms ease; }
+.cockpit__checks i { position: relative; width: 0.9rem; height: 0.9rem; border: 1px solid rgba(242, 245, 247, 0.35); border-radius: 2px; transition: background-color 200ms ease, border-color 200ms ease; }
+.cockpit__checks i::after { content: ""; position: absolute; left: 0.27rem; top: 0.08rem; width: 0.24rem; height: 0.48rem; border: solid var(--f1-team-ink); border-width: 0 2px 2px 0; rotate: 45deg; opacity: 0; transition: opacity 160ms ease; }
+.cockpit__checks li.is-done { color: var(--f1-ink); }
+.cockpit__checks li.is-done i { border-color: var(--f1-team); background: var(--f1-team); }
+.cockpit__checks li.is-done i::after { opacity: 1; }
+.cockpit__load-row { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.8rem; padding: 0 1.1rem; font-family: var(--font-mono); }
+.cockpit__load-track { height: 3px; background: var(--f1-line); overflow: hidden; }
 .cockpit__load-track i {
   display: block;
   height: 100%;
-  background: var(--w11-teal);
+  background: var(--f1-team);
   transform-origin: left;
   transform: scaleX(var(--p, 0));
   transition: transform 200ms linear;
 }
-.cockpit__load-pct { min-width: 3.5ch; color: var(--night-ink); text-align: right; font-variant-numeric: tabular-nums; }
+.cockpit__load-pct { min-width: 3.5ch; color: var(--f1-ink); text-align: right; font-variant-numeric: tabular-nums; }
 
-/* intro: the line, then the start button */
+/* intro: the session header, the line, the objective, then the start button */
 .cockpit__intro {
   position: absolute;
   inset: 0;
@@ -111,83 +115,32 @@ html:not(.js) .site-header--over { position: relative; inset: auto; margin: 1.25
   gap: 1.25rem;
   padding: 0 var(--gutter);
   text-align: center;
-  background: radial-gradient(120% 70% at 50% 40%, rgba(5, 7, 11, 0.15), rgba(5, 7, 11, 0.7));
+  background: radial-gradient(120% 70% at 50% 40%, rgba(5, 7, 11, 0.15), rgba(5, 7, 11, 0.72));
   opacity: 0;
   visibility: hidden;
   transition: opacity 500ms ease, visibility 0s linear 500ms;
 }
 .cockpit.is-ready .cockpit__intro { opacity: 1; visibility: visible; transition: opacity 700ms ease; }
 .cockpit.is-driving .cockpit__intro { opacity: 0; visibility: hidden; transition: opacity 400ms ease, visibility 0s linear 400ms; }
-.cockpit__eyebrow {
-  color: var(--w11-teal);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
+.cockpit__session { font-size: 0.78rem; background: var(--f1-panel); box-shadow: inset 0 1px 0 var(--f1-edge); border-radius: var(--f1-radius); overflow: hidden; }
 .cockpit__title {
-  --tracking: var(--tracking-display);
-  max-width: 16ch;
-  font-size: clamp(2.4rem, 7vw, 6rem);
-  font-weight: var(--weight-heading);
-  line-height: 0.98;
-  letter-spacing: var(--tracking);
+  max-width: 18ch;
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-size: clamp(2.1rem, 6.4vw, 5.4rem);
+  font-weight: 800;
+  font-style: italic;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
   text-wrap: balance;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 }
-.cockpit__title .line { display: block; overflow: hidden; padding-bottom: 0.06em; }
+.cockpit__title .line { display: block; overflow: hidden; padding: 0 0.08em 0.06em; }
 .cockpit__title .line > span { display: block; }
-.cockpit__start {
-  min-height: 52px;
-  margin-top: 0.75rem;
-  padding: 0 1.75rem;
-  border: 1px solid rgba(0, 210, 190, 0.6);
-  border-radius: 999px;
-  background: rgba(0, 210, 190, 0.08);
-  color: var(--night-ink);
-  font: inherit;
-  font-size: 1rem;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: transform 160ms var(--ease-out), background-color 200ms ease, border-color 200ms ease;
-}
-.cockpit__start:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) {
-  .cockpit__start:hover { background: rgba(0, 210, 190, 0.18); border-color: var(--w11-teal); }
-}
-
-/* a quieter second choice, but a real button: a dark pill that reads over the car's bodywork */
-.cockpit__skip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 44px;
-  padding: 0 1.25rem;
-  border: 1px solid var(--night-line);
-  border-radius: 999px;
-  background: rgba(5, 7, 11, 0.62);
-  color: var(--night-ink);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: var(--weight-body);
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: transform 160ms var(--ease-out), border-color 200ms ease;
-}
-.cockpit__skip:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) {
-  .cockpit__skip:hover { border-color: rgba(232, 236, 241, 0.4); }
-}
-.cockpit__brief {
-  max-width: 34ch;
-  color: var(--night-ink);
-  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
-  line-height: 1.45;
-  text-wrap: balance;
-  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85);
-}
+.cockpit__brief { max-width: 36rem; font-size: clamp(0.92rem, 1.25vw, 1.02rem); text-align: left; text-wrap: pretty; }
+.cockpit__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
+.cockpit__start { min-width: 14rem; min-height: 54px; }
 
 /* ---------- driving: HUD ---------- */
 /* the tab bar steps aside while you drive (it would sit on the wheel) */
@@ -208,82 +161,99 @@ html[data-drive="paused"] .tabbar {
   opacity: 0;
   visibility: hidden;
   transition: opacity 500ms ease 300ms, visibility 0s linear 800ms;
-  font-family: var(--font-mono);
+  font-size: 0.85rem;
 }
+.hud:focus { outline: none; }
 html[data-drive="driving"] .hud,
 html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: opacity 500ms ease 300ms; }
-.hud > :not(.hud__status) { pointer-events: auto; }
+.hud > :is(button, .hud__pedals, .hud__box) { pointer-events: auto; }
 
-.hud__status {
+/* top left: the session box (what's happening, your time), the objective under it */
+.hud__session {
   position: absolute;
   top: 5.25rem;
-  left: 50%;
-  display: grid;
-  justify-items: center;
-  gap: 0.35rem;
-  width: max-content;
-  max-width: calc(100% - 2 * var(--gutter));
-  text-align: center;
-  translate: -50% 0;
+  left: var(--gutter);
+  width: 15.5rem;
+  overflow: hidden;
 }
+.hud__session .f1-head { font-size: 0.82rem; border-bottom: 1px solid var(--f1-line); }
 .hud__phase {
-  color: var(--w11-teal);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  padding: 0.55rem 0.8rem 0.35rem;
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
-.hud__msg {
-  color: var(--night-ink);
-  font-family: var(--font);
-  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
-  font-weight: var(--weight-body);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
-}
-
-/* the goal: what you're aiming for, how far, your speed against the limit, the limiter */
-.hud__goal {
-  position: absolute;
-  top: 50%;
-  left: var(--gutter);
+.hud__row {
   display: grid;
-  gap: 0.3rem;
-  min-width: 10.5rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--night-line);
-  border-radius: 16px;
-  background: rgba(5, 7, 11, 0.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  translate: 0 -50%;
-  transition: border-color 200ms ease;
-}
-.hud__goal[hidden] { display: none; }
-.hud__goal.is-warn { border-color: rgba(255, 159, 10, 0.75); }
-.hud__goal-label { color: var(--w11-teal); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; }
-.hud__goal-dist {
-  font-family: var(--font);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: var(--weight-heading);
-  line-height: 1;
-  letter-spacing: -0.02em;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0.45rem 0.45rem;
+  padding: 0.3rem 0.4rem;
+  background: var(--f1-zebra);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
 }
-.hud__goal-speed { color: var(--night-muted); font-size: 0.75rem; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
-.hud__goal-speed b { color: var(--night-ink); font-size: 1rem; font-weight: 500; }
-.hud__goal.is-over .hud__goal-speed b { color: #ff453a; }
-.hud__goal-lim {
-  justify-self: start;
-  margin-top: 0.2rem;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid var(--night-line);
-  border-radius: 999px;
-  color: var(--night-muted);
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.hud__pos { color: var(--f1-muted); }
+.hud__tick { width: 3px; height: 0.9rem; background: var(--f1-team); }
+.hud__who { font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-weight: 700; text-transform: uppercase; }
+.hud__row b { font-weight: 500; }
+.hud__objective {
+  position: absolute;
+  top: calc(5.25rem + 7.4rem);
+  left: var(--gutter);
+  max-width: min(24rem, calc(100% - 2 * var(--gutter)));
+  font-size: 0.92rem;
 }
-.hud__goal-lim.is-on { border-color: var(--w11-teal); color: var(--w11-teal); }
+
+/* top right: S1 entry · S2 limiter · S3 box, and how far to the next one */
+.hud__timing {
+  position: absolute;
+  top: 5.25rem;
+  right: var(--gutter);
+  width: 17rem;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.7rem 0.8rem 0.75rem;
+}
+.hud__goal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--f1-line);
+}
+.hud__goal[hidden] { display: none; }
+.hud__goal span { color: var(--f1-muted); font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.hud__goal b { white-space: nowrap; font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: 1.7rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.hud__timing.is-warn { box-shadow: inset 0 1px 0 var(--f1-edge), inset 0 0 0 1px rgba(255, 214, 10, 0.75); }
+
+/* bottom centre: battery · gear + limiter · speed, like the game's cluster */
+.hud__gauges {
+  position: absolute;
+  left: 50%;
+  bottom: 1.4rem;
+  display: grid;
+  grid-template-columns: 5.6rem auto 5.6rem;
+  align-items: center;
+  gap: 0.6rem;
+  translate: -50% 0;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.6));
+}
+.hud__gauges .f1-gauge { width: 5.6rem; border-radius: 50%; background: radial-gradient(circle, rgba(9, 11, 15, 0.78) 58%, transparent 60%); font-size: 1rem; }
+.hud__batt { --g: var(--f1-yellow); }
+.hud__speed.is-over { --g: var(--f1-red); }
+.hud__speed.is-over .f1-gauge__n { color: var(--f1-red); }
+.hud__gear { display: grid; justify-items: center; gap: 0.25rem; min-width: 3rem; }
+.hud__gear b { font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: 2.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.hud__lim { padding: 0.15rem 0.45rem; border: 1px solid var(--f1-line); border-radius: 2px; color: var(--f1-muted); font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
+.hud__lim.is-on { border-color: #3b6bff; color: #fff; background: rgba(59, 107, 255, 0.35); }
+.hud__lim.is-on.is-flash { background: #3b6bff; }
 
 .hud__box {
   position: absolute;
@@ -292,12 +262,7 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
   display: grid;
   gap: 0.5rem;
   padding: 0.75rem;
-  border: 1px solid var(--night-line);
-  border-radius: 16px;
-  background: rgba(5, 7, 11, 0.62);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  translate: 0 -50%;
+  translate: 0 -40%;
 }
 .hud__box[hidden] { display: none; }
 .hud__box svg { width: clamp(84px, 8vw, 120px); height: auto; }
@@ -311,76 +276,49 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
 .hud__nose { fill: var(--w11-teal); }
 .hud__box figcaption {
   color: var(--night-ink);
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
-.hud__keys {
+/* bottom right: the keys; bottom left: skip */
+.hud__prompts {
   position: absolute;
   right: var(--gutter);
-  bottom: 1.5rem;
-  min-width: 13rem;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--night-line);
-  border-radius: 14px;
-  background: rgba(5, 7, 11, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: var(--night-muted);
+  bottom: 1.6rem;
+  max-width: calc(50% - 10rem);
   font-size: 0.72rem;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9);
 }
-.hud__keys summary {
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  color: var(--night-ink);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.hud__keys dl { display: grid; gap: 0.4rem; margin-top: 0.35rem; }
-.hud__keys dl > div { display: grid; grid-template-columns: 5.5rem 1fr; align-items: center; gap: 0.5rem; }
-.hud__keys dt { display: flex; gap: 0.25rem; }
-.hud__keys kbd {
-  min-width: 1.6rem;
-  padding: 0.15rem 0.35rem;
-  border: 1px solid rgba(232, 236, 241, 0.25);
-  border-radius: 6px;
-  color: var(--night-ink);
-  font: inherit;
-  text-align: center;
-}
-
 .hud__skip {
   position: absolute;
   left: var(--gutter);
   bottom: 1.5rem;
   min-height: 44px;
-  padding: 0 1rem;
-  border: 1px solid var(--night-line);
-  border-radius: 999px;
-  background: rgba(5, 7, 11, 0.55);
-  color: var(--night-ink);
-  font: inherit;
   font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), border-color 200ms ease;
 }
-.hud__skip:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) {
-  .hud__skip:hover { border-color: var(--w11-teal); }
+@media (max-width: 1100px) {
+  .hud__prompts { display: none; }
 }
 
-/* touch: pedals instead of the key guide */
+/* touch: pedals and the PIT button instead of the key guide */
 .hud__pedals { display: none; }
-.drive-touch .hud__keys { display: none; }
-.drive-touch .hud__skip { top: 4.5rem; bottom: auto; }
-.drive-touch .hud__status { top: 8.25rem; }
+.drive-touch .hud__prompts { display: none; }
+.drive-touch .hud__session { top: 4.5rem; width: min(13.5rem, calc(50% - var(--gutter) - 0.3rem)); }
+.drive-touch .hud__timing { top: 4.5rem; width: min(13.5rem, calc(50% - var(--gutter) - 0.3rem)); padding: 0.55rem 0.6rem; font-size: 0.75rem; }
+.drive-touch .hud__goal b { font-size: 1.3rem; }
+.drive-touch .hud__objective { top: 11.9rem; font-size: 0.85rem; }
+.drive-touch .hud__skip { top: 15rem; bottom: auto; min-height: 40px; font-size: 0.68rem; }
+@media (max-width: 600px) {
+  .f1-sector small { display: none; } /* S1 S2 S3 only; the full names are in their titles */
+  .hud__goal span { font-size: 0.62rem; }
+}
 .drive-touch .hud__box { top: auto; bottom: 8.5rem; translate: none; }
-.drive-touch .hud__goal { top: 12rem; translate: none; min-width: 0; padding: 0.65rem 0.8rem; }
+.drive-touch .hud__gauges { bottom: 7.2rem; grid-template-columns: 4.4rem auto 4.4rem; }
+.drive-touch .hud__gauges .f1-gauge { width: 4.4rem; font-size: 0.82rem; }
+.drive-touch .hud__gear b { font-size: 2rem; }
 .drive-touch .hud__pedals { display: block; }
 .hud__pedal {
   position: absolute;
@@ -427,43 +365,24 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
 }
 .hud__limiter:active { transform: scale(0.94); }
 
-/* pause */
+/* pause: a menu, as in the game */
 .cockpit__pause {
   position: absolute;
   inset: 0;
   z-index: 6;
   display: grid;
   place-content: center;
-  justify-items: center;
-  gap: 0.75rem;
-  background: rgba(5, 7, 11, 0.55);
+  background: rgba(5, 7, 11, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 .cockpit__pause[hidden] { display: none; }
-.cockpit__pause p {
-  color: var(--w11-teal);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.cockpit__pause button {
-  min-height: 48px;
-  min-width: 12rem;
-  border: 1px solid var(--night-line);
-  border-radius: 999px;
-  background: rgba(232, 236, 241, 0.06);
-  color: var(--night-ink);
-  font: inherit;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out);
-}
-.cockpit__pause button:active { transform: scale(0.97); }
+.cockpit__pause-menu { position: relative; display: grid; gap: 0.6rem; min-width: 16rem; padding: 1rem; }
+.cockpit__pause-menu .f1-tag { margin-bottom: 0.4rem; font-size: 0.85rem; }
 
 /* reduced transparency: the frosted panels go solid */
 @media (prefers-reduced-transparency: reduce) {
-  :is(.cockpit__start, .cockpit__skip, .hud__goal, .hud__box, .hud__keys, .hud__skip, .hud__pedal, .hud__limiter, .cockpit__pause) {
+  :is(.hud__pedal, .hud__limiter, .cockpit__pause) {
     background: rgba(5, 7, 11, 0.94);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;

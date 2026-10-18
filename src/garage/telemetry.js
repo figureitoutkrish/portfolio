@@ -9,9 +9,15 @@ const RATE = 0.1; // seconds between samples
 
 export function createRecorder() {
   let rec = null;
+  let last = null; // the finished lap, until the next one starts
   let since = 0;
   return {
+    // the moments so far (live HUD: the sector box grades from these)
+    get marks() {
+      return (rec || last)?.marks || {};
+    },
     start() {
+      last = null;
       rec = { t: 0, samples: [], marks: {}, corrections: 0, lastSteer: 0 };
       since = RATE;
     },
@@ -45,6 +51,7 @@ export function createRecorder() {
         /* storage off: LAP just shows "no lap set" next time */
       }
       rec = null;
+      last = lap;
       return lap;
     },
   };

@@ -33,11 +33,19 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   const hud = cockpit.querySelector('.hud');
   const phaseEl = hud.querySelector('[data-hud-phase]');
   const msgEl = hud.querySelector('[data-hud-msg]');
+  const timeEl = hud.querySelector('[data-hud-time]');
+  const timingEl = hud.querySelector('.hud__timing');
+  const sectorEls = [...hud.querySelectorAll('[data-sector]')];
   const goalEl = hud.querySelector('[data-hud-goal]');
   const goalLabel = goalEl.querySelector('[data-goal-label]');
   const goalDist = goalEl.querySelector('[data-goal-dist]');
-  const goalSpeed = goalEl.querySelector('[data-goal-speed]');
-  const limEl = goalEl.querySelector('[data-goal-limiter]');
+  const speedEl = hud.querySelector('[data-goal-speed]');
+  const speedGauge = hud.querySelector('[data-gauge="speed"]');
+  const battGauge = hud.querySelector('[data-gauge="batt"]');
+  const battEl = hud.querySelector('[data-batt]');
+  const rpmEl = hud.querySelector('[data-rpm]');
+  const gearEl = hud.querySelector('[data-gear]');
+  const limEl = hud.querySelector('[data-goal-limiter]');
   const boxEl = hud.querySelector('[data-hud-box]');
   const carEl = boxEl.querySelector('[data-hud-car]');
   const distEl = boxEl.querySelector('[data-hud-dist]');
@@ -66,6 +74,8 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   const busy = () => root.classList.contains('is-palette-open') || document.querySelector('.menu-btn[aria-expanded="true"]');
   const ALL = Object.values(KEYS).flat();
   function onKeyDown(e) {
+    // the intro: Enter takes the wheel (the button shows the key), unless a control has focus
+    if (phase === 'intro' && e.key === 'Enter' && !e.repeat && !typing(e) && !busy() && !document.activeElement?.closest?.('button, a, summary')) return start();
     if (phase === 'driving' && e.code === 'Escape') return setPaused(true);
     if (phase === 'paused' && e.code === 'Escape') return setPaused(false);
     if (phase !== 'driving' || typing(e) || busy() || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -166,10 +176,18 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   // ---------- per frame ----------
   let blink = 0;
   let lift = 0; // the front jack, 0…1
+  // 2026 cars run half their power off the battery: it drains on the throttle and refills under
+  // braking (harvesting). Only for the HUD's BATT gauge; it doesn't change the car.
+  let batt = 1;
+  let lapTime = 0;
   const offFrame = garage.onFrame((dt) => {
     if (phase === 'driving') {
       readInput();
       vehicle.step(dt, input);
+      if (s.mode === 'drive') {
+        lapTime += dt;
+        batt = Math.max(0, Math.min(1, batt - input.throttle * dt * 0.035 + input.brake * Math.min(1, s.speed / 10) * dt * 0.06));
+      }
       rec.frame(dt, s, input);
       for (const ev of s.events) {
         if (ev === 'shift') sfx('shift');
@@ -221,6 +239,33 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   const put = (el, k, v) => {
     if (shown[k] !== v) el.textContent = shown[k] = v;
   };
+  const attr = (el, k, name, v) => {
+    if (shown[k] !== v) el.setAttribute(name, (shown[k] = v));
+  };
+  const arc = (gauge, k, v) => {
+    const d = `${(Math.max(0, Math.min(1, v)) * 75).toFixed(1)} 100`; // a 270° arc
+    if (shown[k] !== d) gauge.querySelector('.f1-gauge__v').style.strokeDasharray = shown[k] = d;
+  };
+  // the sector box, graded in the game's timing colours (purple best, green good, yellow slow,
+  // red a limit broken). S1: speed at the pit entry line. S2: where the limiter went on.
+  // S3: how close to the marks you stopped.
+  const sectors = { 1: null, 2: null, 3: null };
+  function grade() {
+    const limit = LAYOUT.speedLimit;
+    const m = rec.marks;
+    if (m.line) {
+      const v = Math.round(m.line.kph);
+      sectors[1] = { state: v > limit ? 'red' : v >= limit - 6 ? 'purple' : 'green', text: `${v} km/h` };
+    }
+    if (m.limiter) {
+      const dz = Math.round(m.limiter.dz);
+      sectors[2] = { state: Math.abs(dz) <= 5 ? 'purple' : dz < 0 || dz <= 25 ? 'green' : 'yellow', text: `${dz > 0 ? '+' : ''}${dz} m` };
+    }
+    if (m.stopped) {
+      const off = m.stopped.error;
+      sectors[3] = { state: off <= 0.5 ? 'purple' : off <= 1.5 ? 'green' : 'yellow', text: off < 1 ? `${Math.round(off * 100)} cm` : `${off.toFixed(1)} m` };
+    }
+  }
   function updateHud() {
     const limit = LAYOUT.speedLimit;
     const kph = Math.round(s.kph);
@@ -229,6 +274,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     let label = '';
     let dist = '';
     let warn = false;
+    let live = 0; // the sector you're in
     if (s.mode === 'service') {
       phaseText = s.offMarks < 0.5 ? 'on the marks' : `${s.offMarks.toFixed(1)} m off the marks`;
       msg = 'jack up · new tyres';
@@ -238,38 +284,64 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     } else if (!s.pitLane) {
       const toLine = Math.max(0, LAYOUT.entryLine - s.z);
       phaseText = 'box, box';
-      msg = kph > limit ? `brake under ${limit} before the pit entry line` : `under ${limit}: press ${KEY.limiter} at the line for the limiter`;
+      msg = kph > limit ? `brake under ${limit} km/h before the pit entry line` : `under ${limit}: press ${KEY.limiter} at the line for the limiter`;
       label = 'pit entry line';
       dist = `${Math.round(toLine)} m`;
       warn = kph > limit && toLine < 60;
+      live = 1;
     } else if (!s.limiter) {
       phaseText = s.speeding ? 'pit lane speeding' : 'pit lane';
       msg = `press ${KEY.limiter}: pit limiter on`;
       label = 'limiter';
       dist = 'off';
       warn = true;
+      live = 2;
     } else if (s.toMarks > BOX_NEAR) {
       phaseText = 'pit lane';
       msg = 'your crew is out on the right · KV';
       label = 'your box';
       dist = `${Math.round(s.toMarks)} m`;
+      live = 3;
     } else {
       phaseText = 'your box';
       const lateral = s.x - LAYOUT.pitBox.x; // + = still left of the box
       msg = lateral > 1.2 ? `move right into the box (${KEY.steer})` : s.speed > 0.3 ? `brake: stop on the marks (${KEY.brake})` : 'hold it there';
       label = 'the marks';
       dist = s.toMarks > -0.5 ? `${Math.max(0, s.toMarks).toFixed(s.toMarks < 10 ? 1 : 0)} m` : `${(-s.toMarks).toFixed(1)} m past`;
+      live = 3;
     }
     put(phaseEl, 'phase', phaseText);
     put(msgEl, 'msg', msg);
+    put(timeEl, 'time', lapTime.toFixed(1));
     put(goalLabel, 'label', label);
     put(goalDist, 'dist', dist);
-    put(goalSpeed, 'speed', `${kph}`);
-    put(limEl, 'lim', s.limiter ? 'limiter on' : 'limiter off');
     goalEl.hidden = !label;
-    goalEl.classList.toggle('is-warn', warn);
-    goalEl.classList.toggle('is-over', (s.pitLane || LAYOUT.entryLine - s.z < 60) && kph > limit);
+    timingEl.classList.toggle('is-warn', warn);
+
+    // sectors: graded once done, the live one fills as you go
+    grade();
+    sectorEls.forEach((el, i) => {
+      const n = i + 1;
+      const done = sectors[n];
+      attr(el, `s${n}`, 'data-state', done ? done.state : n === live ? 'live' : 'none');
+      put(el.lastElementChild, `s${n}t`, done ? done.text : '');
+    });
+    const toLine = LAYOUT.entryLine - LAYOUT.startZ;
+    const fill = live === 1 ? 1 - Math.max(0, LAYOUT.entryLine - s.z) / toLine : live === 2 ? 0.5 : live === 3 ? 1 - Math.max(0, Math.min(1, s.toMarks / (LAYOUT.pitBox.z - LAYOUT.entryLine))) : 0;
+    const liveEl = sectorEls[live - 1];
+    if (liveEl && !sectors[live]) liveEl.style.setProperty('--fill', fill.toFixed(3));
+
+    // the cluster: battery, gear and limiter, speed (red over the limit in the lane)
+    const over = (s.pitLane || LAYOUT.entryLine - s.z < 60) && kph > limit;
+    put(speedEl, 'speed', `${kph}`);
+    put(rpmEl, 'rpm', `${Math.round(s.rpm / 10) * 10}`);
+    put(gearEl, 'gear', String(s.gear));
+    put(battEl, 'batt', `${Math.round(batt * 100)}%`);
+    arc(speedGauge, 'spd', s.kph / 320);
+    arc(battGauge, 'bat', batt);
+    speedGauge.classList.toggle('is-over', over);
     limEl.classList.toggle('is-on', s.limiter);
+    limEl.classList.toggle('is-flash', s.limiter && garage.drive.flash);
 
     // the box from above: shown on the way in
     const showBox = s.mode === 'drive' && s.pitLane && s.toMarks < MAP_NEAR;
@@ -278,6 +350,12 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
       carEl.setAttribute('transform', `translate(${s.x.toFixed(2)} ${(-s.z).toFixed(2)}) rotate(${((s.heading * 180) / Math.PI).toFixed(1)})`);
       put(distEl, 'boxd', Math.abs(s.x - LAYOUT.pitBox.x) < 0.6 && Math.abs(s.toMarks) < 0.6 ? 'on the marks' : `${Math.max(0, s.toMarks).toFixed(1)} m to the marks`);
     }
+  }
+  function resetHud() {
+    batt = 1;
+    lapTime = 0;
+    sectors[1] = sectors[2] = sectors[3] = null;
+    sectorEls.forEach((el) => el.style.removeProperty('--fill'));
   }
 
   // reduced motion runs no loop: put the car where it is and draw one frame
@@ -385,7 +463,8 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     rec.start();
     sfx('radio'); // box, box
     startEngine();
-    hud.querySelector('.hud__keys summary')?.focus({ preventScroll: true });
+    resetHud();
+    hud.focus({ preventScroll: true }); // off the start button (which hides), onto the HUD
   }
   function setPaused(on) {
     if (on && phase !== 'driving') return;
@@ -457,6 +536,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     cockpit.classList.add('is-driving');
     setPhase('driving');
     rec.start();
+    resetHud();
     sfx('radio');
     startEngine();
   }

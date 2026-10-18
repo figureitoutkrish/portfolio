@@ -16,7 +16,8 @@ import { radioCall } from './radio-check.js';
 //   SCROLL rotary   scroll the screen (↑ ↓, wheel, drag the knob)
 //   OK / BACK       open / back (enter / esc)
 //   PIT             drive in again
-//   DRS TALK DRINK  little radio moments (TALK: a radio call the noise model cleans up)
+//   OVERTAKE TALK DRINK  little radio moments (TALK: a radio call the noise model cleans up).
+//                        2026 cars have no DRS: OVERTAKE is the new electric boost button.
 //   shift lights    where you are (project 3 of 6; on LAP: how close you parked)
 // A mode can take a control over for one of its levels: step (paddles), turn (the SCROLL dial,
 // as the radio check's model dial does), labels (renamed hotspots) and leave (stop its audio).
@@ -24,7 +25,7 @@ const MODES = { projects, lap, radio };
 const ORDER = ['projects', 'lap', 'radio'];
 const KNOB = { projects: -50, lap: 0, radio: 50 };
 const TOASTS = {
-  drs: 'drs disabled · pit lane',
+  overtake: 'overtake mode · +350 kW · not in the pit lane',
   drink: 'drinks bottle · red bull, obviously',
   talk: 'radio check · loud and clear',
 };
@@ -45,7 +46,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
   const state = { mode: 'projects', index: 0, detail: false };
   let visible = false;
   let surface = null; // the 3D wheel, once attached
-  const LABELS = { mode: 'mode', scroll: 'scroll', prev: 'prev', next: 'next', back: 'back', ok: 'ok', talk: 'talk', drs: 'drs', drink: 'drink', pit: 'pit' };
+  const LABELS = { mode: 'mode', scroll: 'scroll', prev: 'prev', next: 'next', back: 'back', ok: 'ok', talk: 'talk', overtake: 'overtake', drink: 'drink', pit: 'pit' };
 
   // what a mode may drive directly while it's on screen
   const ui = {
@@ -199,7 +200,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
 
   // buttons (a press shows on the cap even when it came from the keyboard)
   // the 3D part goes down the moment you press (pointer-down / key-down), not when you let go
-  const PRESSABLE = new Set(['prev', 'next', 'back', 'ok', 'talk', 'drs', 'drink', 'pit']);
+  const PRESSABLE = new Set(['prev', 'next', 'back', 'ok', 'talk', 'overtake', 'drink', 'pit']);
   const pressPart = (id) => surface && PRESSABLE.has(id) && surface.pressControl(id);
   root.addEventListener('pointerdown', (e) => pressPart(e.target.closest('[data-act]')?.dataset.act));
   root.addEventListener('keydown', (e) => {
@@ -300,11 +301,23 @@ export function initWheel({ root, reducedMotion, onPit }) {
   function layout() {
     if (!surface) return;
     const L = surface.layout();
-    const r = L.screen;
+    const r = { ...L.screen };
+    // phones: the display alone is too short to read on, so the screen grows down over the wheel's
+    // face to just above the next row of buttons (their labels sit above them)
+    if (root.classList.contains('is-compact')) {
+      const below = L.controls.filter((c) => c.x > 0 && c.x < window.innerWidth && c.y - c.r > r.top + r.height).map((c) => c.y - c.r - 26);
+      const dock = root.querySelector('.wheel__dock').getBoundingClientRect().top - 16;
+      const limit = Math.min(dock, ...below);
+      if (limit > r.top + r.height) r.height = limit - r.top;
+    }
     Object.assign(screenEl.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+    const W = window.innerWidth;
+    const H = window.innerHeight;
     for (const c of L.controls) {
       const el = hots.querySelector(`[data-hot="${c.id}"]`);
       if (!el) continue;
+      // off-screen (the phone framing crops the wheel): out of the tab order too; the dock has them
+      el.hidden = c.x < 0 || c.x > W || c.y < 0 || c.y > H;
       const size = Math.max(c.r * 2, 44); // a full 44px target, whatever the button's size on screen
       Object.assign(el.style, { left: `${c.x}px`, top: `${c.y}px`, width: `${size}px`, height: `${size}px` });
       el.style.setProperty('--ring', `${Math.round(c.r * 2)}px`);
