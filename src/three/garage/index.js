@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { loadCar } from './car.js';
 import { createLcd } from './lcd.js';
 import { buildWorld, buildEnvironment, LAYOUT } from './pitlane.js';
+import { createRoam } from './roam.js';
 
 export { LAYOUT };
 
@@ -66,6 +67,8 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   rearCam.rotation.set(-0.42, 0, 0); // three cameras look down −z: that's backwards here
   rig.add(rearCam);
   head.rotation.x = -LOOK_DOWN; // pitch toward the wheel (rotation is applied in the flipped frame)
+  // on foot in the garage (the free roam): takes the camera into the world while active
+  const roam = createRoam({ scene, camera, head, car, rig, colliders: world.colliders, parts: world.stations, reducedMotion });
 
 
   // ---------- state the rest of the page drives ----------
@@ -133,7 +136,8 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     const t = clock.getElapsedTime();
     // a touch wider with speed (the lane rushes past a little more); narrow when zoomed on the wheel
     const z = view.zoom * view.zoom * (3 - 2 * view.zoom);
-    const fov = lerp(baseFov + (reducedMotion ? 0 : Math.min(1, Math.abs(drive.speed) / 80) * 4), ZOOM_FOV, z);
+    let fov = lerp(baseFov + (reducedMotion ? 0 : Math.min(1, Math.abs(drive.speed) / 80) * 4), ZOOM_FOV, z);
+    if (roam.active) fov = camera.fov + (baseFov - camera.fov) * Math.min(1, reducedMotion ? 1 : dt * 2.5); // out of the wheel's close-up, back to the eye's view
     if (Math.abs(camera.fov - fov) > 0.01) {
       camera.fov = fov;
       camera.updateProjectionMatrix();
@@ -160,6 +164,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
       head.position.lerp(close, z);
       head.rotation.set(lerp(head.rotation.x, 0, z), lerp(head.rotation.y, 0, z), lerp(head.rotation.z, 0, z));
     }
+    roam.update(dt);
     setLeds(drive.rpm, drive.flash);
     lcd.draw(drive);
     pos.set(pose.x, 0, pose.z);
@@ -289,6 +294,37 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
         start();
       }
     },
+    // ---- on foot in the garage (roam.js); the page drives it from src/garage/roam-ui.js ----
+    roam: {
+      get active() {
+        return roam.active;
+      },
+      get busy() {
+        return roam.busy;
+      },
+      get focused() {
+        return roam.focused;
+      },
+      stations: roam.stations,
+      enter: (done) => roam.enter(done),
+      leave: (done) => roam.leave(done),
+      focus: (id, index, done) => roam.focus(id, index, done),
+      unfocus: (done) => roam.unfocus(done),
+      pick: (x, y) => roam.pick(x, y, canvas.clientWidth, canvas.clientHeight),
+      rect: (id, index) => roam.rect(id, index, canvas.clientWidth, canvas.clientHeight),
+      move: roam.move,
+      look: roam.look,
+      go: roam.go,
+      setDock: roam.setDock,
+      nearCar: roam.nearCar,
+      onStep: roam.onStep,
+    },
+    // the engineers' stand's LED meters follow this level (0…1), or idle chatter with null
+    setMeter: (v) => world.setMeter(v),
+    printPage: () => world.printPage(),
+    setBoard: (text) => world.setBoard(text),
+    // the props the page animates (printer paper, the pit board)
+    parts: world.stations,
     onFrame: (fn) => (tickers.add(fn), () => tickers.delete(fn)),
     render: frame,
     info: () => renderer.info.render,

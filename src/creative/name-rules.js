@@ -40,3 +40,13 @@ export function checkNote(raw) {
   if (!isClean(text)) return { error: "Let's keep it friendly." };
   return { text };
 }
+
+// the data page's pit board: a short line, like a real board
+export function checkBoard(raw) {
+  const text = String(raw ?? '').trim().replace(/\s+/g, ' ');
+  if (!text) return { error: 'Write something first.' };
+  if (text.length > 28) return { error: 'Keep it to 28 characters: it’s a pit board.' };
+  if (/https?:\/\/|www\.|\.com\b/i.test(text)) return { error: 'No links on the board.' };
+  if (!isClean(text)) return { error: "Let's keep it friendly." };
+  return { text };
+}

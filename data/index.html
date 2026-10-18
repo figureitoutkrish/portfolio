@@ -200,6 +200,7 @@
               <button class="cap cap--ok" type="button" data-act="ok">ok</button>
               <button class="cap cap--red" type="button" data-act="back">back</button>
               <button class="cap cap--orange" type="button" data-act="pit" aria-label="pit exit: drive in again">pit</button>
+              <button class="cap cap--teal" type="button" data-act="out" aria-label="get out: walk the garage">out</button>
             </div>
 
             <div class="rotary rotary--mode" role="radiogroup" aria-label="mode">
@@ -222,10 +223,37 @@
               <button class="cap cap--ok" type="button" data-act="ok">ok</button>
               <button class="cap cap--blue" type="button" data-act="next" aria-label="next">&rsaquo;</button>
               <button class="cap cap--orange" type="button" data-act="pit" aria-label="pit exit: drive in again">pit</button>
+              <button class="cap cap--teal" type="button" data-act="out" aria-label="get out: walk the garage">out</button>
             </div>
           </div>
+          <button class="wheel__out f1-btn" type="button" data-act="out">get out &middot; walk the garage <kbd class="f1-key" aria-hidden="true">E</kbd></button>
           <p class="wheel__keys f1-prompts" aria-hidden="true"><span><kbd class="f1-key">&larr;</kbd><kbd class="f1-key">&rarr;</kbd> paddles</span><span><kbd class="f1-key">&uarr;</kbd><kbd class="f1-key">&darr;</kbd> scroll</span><span><kbd class="f1-key">&crarr;</kbd> ok</span><span><kbd class="f1-key">esc</kbd> back</span><span><kbd class="f1-key">1</kbd><kbd class="f1-key">2</kbd><kbd class="f1-key">3</kbd> mode</span></p>
         </section>
+
+        <!-- On foot in the garage (src/garage/roam-ui.js + src/three/garage/roam.js): get out of the
+             car and walk to the stations. The strip lists every station, so nothing needs the 3D. -->
+        <div class="roam" hidden>
+          <section class="roam__session f1-panel" aria-label="garage">
+            <header class="f1-head"><span class="f1-mark">KV</span><span class="f1-head__t">box 01 &middot; garage</span></header>
+            <p class="roam__phase">on foot</p>
+          </section>
+          <p class="roam__objective f1-objective" data-roam-objective aria-live="polite"></p>
+          <span class="roam__dot" aria-hidden="true"></span>
+          <span class="roam__ring" aria-hidden="true"></span>
+          <p class="roam__hover f1-panel" aria-hidden="true" hidden></p>
+          <section class="roam__panel f1-panel" role="dialog" aria-labelledby="roam-title" tabindex="-1" hidden>
+            <header class="roam__bar">
+              <span class="screen__mode" data-roam-tag></span>
+              <span class="roam__count" data-roam-count></span>
+              <span class="roam__nav"><button type="button" data-roam-prev aria-label="previous project">&lsaquo;</button><button type="button" data-roam-next aria-label="next project">&rsaquo;</button></span>
+              <button class="roam__back" type="button" data-roam-back><kbd class="f1-key" aria-hidden="true">esc</kbd> back</button>
+            </header>
+            <div class="roam__body" data-roam-body></div>
+            <footer class="roam__prompts f1-prompts" data-roam-prompts aria-hidden="true"></footer>
+          </section>
+          <nav class="roam__strip" aria-label="garage stations"></nav>
+          <p class="roam__keys f1-prompts" aria-hidden="true"><span><kbd class="f1-key">W</kbd><kbd class="f1-key">A</kbd><kbd class="f1-key">S</kbd><kbd class="f1-key">D</kbd> walk</span><span>drag &middot; look</span><span>click &middot; go</span><span><kbd class="f1-key">E</kbd> get in</span></p>
+        </div>
 
         <div class="cockpit__pause" role="dialog" aria-label="paused" hidden>
           <span class="f1-streaks" aria-hidden="true"></span>

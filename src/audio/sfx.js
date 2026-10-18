@@ -173,6 +173,25 @@ const THEMES = {
       noise({ dur: 0.18, vol: 0.05, type: 'bandpass', freq: 1800, q: 1 });
       tone({ freq: 1200, type: 'sine', dur: 0.06, vol: 0.025, delay: 0.16 });
     },
+    // the garage, on foot
+    step: () => {
+      // a soft footstep on the epoxy floor
+      tone({ freq: 90 + Math.random() * 20, to: 55, type: 'sine', dur: 0.07, vol: 0.035 });
+      noise({ dur: 0.04, vol: 0.012, type: 'bandpass', freq: 1400 + Math.random() * 600, q: 1.5 });
+    },
+    print: () => {
+      // the printer pulling a sheet through: a motor whine and the feed
+      tone({ freq: 220, to: 260, type: 'sawtooth', dur: 1.2, vol: 0.012, attack: 0.08 });
+      for (let i = 0; i < 9; i++) noise({ dur: 0.05, vol: 0.02, type: 'bandpass', freq: 3000, q: 3, delay: 0.1 + i * 0.12 });
+    },
+    chalk: () => {
+      for (let i = 0; i < 3; i++) noise({ dur: 0.09, vol: 0.03, type: 'bandpass', freq: 3800 + i * 400, q: 4, delay: i * 0.11 });
+    },
+    drink: () => {
+      // a squeeze of the bottle
+      noise({ dur: 0.25, vol: 0.03, type: 'lowpass', freq: 900, to: 400, q: 2 });
+      tone({ freq: 300, to: 180, type: 'sine', dur: 0.12, vol: 0.02, delay: 0.18 });
+    },
   },
   retro: {
     tap: () => tone({ freq: 1800, type: 'square', dur: 0.025, vol: 0.03 }),

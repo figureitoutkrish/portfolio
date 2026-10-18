@@ -2,6 +2,7 @@ import './styles/main.css';
 import './styles/f1ui.css'; // the F1-game UI language first; page styles build on it
 import './styles/data.css';
 import './styles/wheel.css';
+import './styles/roam.css';
 import '@fontsource-variable/saira/wdth.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
 import gsap from 'gsap';
@@ -51,7 +52,7 @@ fontsReady.then(async () => {
   if (!reducedMotion) gsap.to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.08, delay: 0.25 });
 
   let drive = null;
-  const wheel = initWheel({ root: wheelEl, reducedMotion, onPit: () => drive?.restart() });
+  const wheel = initWheel({ root: wheelEl, reducedMotion, onPit: () => drive?.restart(), onOut: () => drive?.getOut() });
   drive = initDrive({ garage, cockpit, wheel, reducedMotion, lenis });
   if (import.meta.env.DEV) Object.assign(window, { __drive: drive, __wheel: wheel });
 });
@@ -84,7 +85,7 @@ function webglAvailable() {
 // no WebGL (or it failed): the wheel on its own is the page; PIT has nowhere to drive to
 function plainWheel() {
   const wheel = initWheel({ root: wheelEl, reducedMotion, onPit: () => {} });
-  wheelEl.querySelectorAll('[data-act="pit"]').forEach((b) => (b.hidden = true));
+  wheelEl.querySelectorAll('[data-act="pit"], [data-act="out"]').forEach((b) => (b.hidden = true)); // nowhere to drive or walk
   document.documentElement.dataset.drive = 'wheel';
   wheel.show({ instant: true });
 }

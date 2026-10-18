@@ -1,6 +1,6 @@
 // RADIO mode: team radio. A short exchange, then the ways to reach Krish; paddles pick a row, OK
 // opens it.
-const ROWS = [
+export const ROWS = [
   { label: 'email', value: 'krishviramgamatir@gmail.com', href: 'mailto:krishviramgamatir@gmail.com' },
   { label: 'linkedin', value: 'krish viramgama', href: 'https://www.linkedin.com/in/krish-viramgama-27951927a/' },
   { label: 'github', value: 'figureitoutkrish', href: 'https://github.com/figureitoutkrish' },

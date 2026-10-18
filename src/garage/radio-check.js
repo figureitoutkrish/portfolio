@@ -17,6 +17,18 @@ const db = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)} 
 let view = null; // the mounted check: { canvas, range, output, clip, data, ui, raf }
 
 export const checkLeds = () => Math.round(player.mix * 15);
+// the level you're hearing right now (0…1, from the clip's peaks at the playhead and the dial's mix),
+// or null when nothing plays: the engineers' stand's LED meters follow it in the garage
+export function checkLevel() {
+  const d = view?.data;
+  if (!d || !player.looping) return null;
+  const { raw, model } = d.peaks;
+  const i = Math.min(raw.length - 1, Math.floor(player.position() * raw.length));
+  let top = 0;
+  for (let k = 0; k < raw.length; k++) top = Math.max(top, raw[k]);
+  const v = (raw[i] + (model[i] - raw[i]) * player.mix) / (top || 1);
+  return Math.min(1, v * 1.15);
+}
 
 export function renderCheck(body, project, state, ui) {
   const clips = project.check;

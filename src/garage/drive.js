@@ -2,6 +2,7 @@ import { createVehicle } from './vehicle.js';
 import { createRecorder } from './telemetry.js';
 import { LAYOUT } from './layout.js';
 import { sfx, loop, soundOn, onSoundChange } from '../audio/sfx.js';
+import { initRoam } from './roam-ui.js';
 
 // The drive, done the way it's done in F1: rolling in at 110 km/h → brake under 80 before the pit
 // entry line and switch the limiter on → down the pit lane → turn into your box and stop on the
@@ -9,7 +10,8 @@ import { sfx, loop, soundOn, onSoundChange } from '../audio/sfx.js';
 // zooms into the steering wheel and the HTML wheel (wheel.js) takes over as the page.
 // Runs inside the garage's frame loop (garage.onFrame) so the car, the wheel display, the HUD and
 // the sound move in the same frame. Phases (html data-drive): intro · driving · paused · parked ·
-// wheel. The drive is recorded (telemetry.js) for the wheel's LAP mode.
+// wheel · roam (out of the car, on foot in the garage: roam-ui.js). The drive is recorded
+// (telemetry.js) for the wheel's LAP mode.
 //
 // Controls (only while driving; never while typing, and never over the menu/palette):
 //   W ↑ throttle · S ↓ Space brake · A D ← → steer · L pit limiter · Esc pause
@@ -541,6 +543,29 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     startEngine();
   }
 
+  // ---------- out of the car: the garage on foot ----------
+  const roam = initRoam({
+    garage,
+    cockpit,
+    reducedMotion,
+    onGetIn: () => {
+      // back in the seat (the camera is on the driver's head again): zoom into the wheel
+      setPhase('parked');
+      toWheel({ seconds: 1.1 });
+    },
+    onDrive: () => restart(),
+  });
+  function getOut() {
+    if (phase !== 'wheel') return;
+    wheel.hide();
+    garage.drive.blank = false; // the display shows the car's own screen again
+    garage.setLeds(null);
+    garage.hold(false);
+    setPhase('roam');
+    roam.enter(); // takes the camera from where it is (the wheel's close-up)…
+    garage.view.zoom = 0; // …so the driver's head can go back to the eye for the way in
+  }
+
   cockpit.querySelector('[data-start]').addEventListener('click', start);
   cockpit.querySelectorAll('[data-skip]').forEach((b) => b.addEventListener('click', skip));
   pause.querySelector('[data-resume]')?.addEventListener('click', () => setPaused(false));
@@ -570,6 +595,8 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     start,
     skip,
     restart,
+    getOut,
+    roam,
     destroy() {
       clearTimers();
       offFrame();

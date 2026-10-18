@@ -627,8 +627,9 @@ html[data-drive="wheel"] .hud { display: none; }
   gap: 0.6rem;
   translate: -50% 0;
 }
-.wheel__dock .cap { width: 48px; font-size: 0.6rem; }
-.wheel__dock .cap--ok { width: 56px; }
+.wheel.is-overlay.is-compact .wheel__dock { gap: 0.4rem; }
+.wheel__dock .cap { width: 44px; min-width: 44px; font-size: 0.6rem; }
+.wheel__dock .cap--ok { width: 50px; }
 
 /* reduced motion: screens swap with a quick fade, nothing slides */
 @media (prefers-reduced-motion: reduce) {

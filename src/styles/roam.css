@@ -1,0 +1,262 @@
+/* On foot in the garage (src/garage/roam-ui.js): the session box and the objective top left, a dot
+   in the middle of the view, the station strip along the bottom (above the tab bar), the keys
+   bottom right, and a station's content laid over its screen or docked beside it.
+   The UI language is src/styles/f1ui.css. */
+
+html[data-drive="roam"] :is(.cockpit__intro, .hud) { display: none; }
+.roam { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 400ms ease; }
+.roam[hidden] { display: none; }
+.roam.is-on { opacity: 1; }
+/* a shade under the header so the logo and the session box read over the garage's white walls */
+.roam::before { content: ""; position: absolute; inset: 0 0 auto; height: 10rem; background: linear-gradient(rgba(5, 7, 11, 0.6), rgba(5, 7, 11, 0)); pointer-events: none; }
+.roam > :is(.roam__strip, .roam__panel) { pointer-events: auto; }
+html[data-drive="roam"] .cockpit__gl { cursor: grab; touch-action: none; }
+.roam.is-dragging ~ * , .roam.is-dragging { cursor: grabbing; }
+
+/* top left: where you are, and what to do */
+.roam__session { position: absolute; top: 5.25rem; left: var(--gutter); width: 15.5rem; overflow: hidden; }
+.roam__session .f1-head { font-size: 0.82rem; border-bottom: 1px solid var(--f1-line); }
+.roam__phase { padding: 0.55rem 0.8rem 0.6rem; font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: 0.95rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.roam__objective { position: absolute; top: calc(5.25rem + 5.4rem); left: var(--gutter); max-width: min(26rem, calc(100% - 2 * var(--gutter))); font-size: 0.9rem; }
+
+/* the middle of the view, and where you clicked to go */
+.roam__dot { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; border-radius: 50%; background: rgba(242, 245, 247, 0.85); box-shadow: 0 0 0 2px rgba(5, 7, 11, 0.45); translate: -50% -50%; transition: opacity 200ms ease; }
+.roam:has(.roam__panel:not([hidden])) .roam__dot { opacity: 0; }
+.roam__ring { position: absolute; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 2px solid var(--f1-team); border-radius: 50%; opacity: 0; transform: scale(0.6) rotateX(62deg); }
+.roam__ring.is-on { animation: roam-ring 700ms var(--ease-out) both; }
+@keyframes roam-ring { 0% { opacity: 0.95; transform: scale(0.55) rotateX(62deg); } 100% { opacity: 0; transform: scale(1.5) rotateX(62deg); } }
+
+/* what's under the pointer */
+.roam__hover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.45rem 0.65rem;
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.roam__hover b { color: var(--f1-team); font-weight: 700; }
+.roam__hover[hidden] { display: none; }
+
+/* the station strip: the game's tab row, one button per station (always reachable) */
+.roam__strip {
+  position: absolute;
+  left: 50%;
+  bottom: 6.6rem;
+  display: flex;
+  gap: 0.35rem;
+  width: max-content; /* (left: 50% would otherwise cap it at half the screen) */
+  max-width: calc(100% - 2 * var(--gutter));
+  padding: 0.35rem;
+  border-radius: var(--f1-radius);
+  background: var(--f1-panel);
+  box-shadow: inset 0 1px 0 var(--f1-edge), 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  translate: -50% 0;
+}
+.roam__strip::-webkit-scrollbar { display: none; }
+.roam__strip button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.5rem;
+  align-items: center;
+  flex: none;
+  min-height: 48px;
+  padding: 0.35rem 0.75rem 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--f1-ink);
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms var(--ease-out);
+}
+.roam__strip button:active { transform: scale(0.97); }
+.roam__strip .f1-key { grid-row: 1 / 3; font-size: 0.72rem; }
+.roam__strip span { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.roam__strip small { color: var(--f1-muted); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.02em; }
+.roam__strip button[aria-pressed="true"] { border-color: rgba(242, 245, 247, 0.85); background: rgba(255, 255, 255, 0.08); }
+.roam__strip button:focus-visible { outline: 2px solid var(--f1-team); outline-offset: 1px; }
+@media (hover: hover) and (pointer: fine) {
+  .roam__strip button:hover { background: rgba(255, 255, 255, 0.06); }
+}
+
+.roam__keys { position: absolute; right: var(--gutter); bottom: 1.6rem; max-width: calc(50% - 9rem); font-size: 0.7rem; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9); }
+.drive-touch .roam__keys { display: none; }
+@media (max-width: 1100px) { .roam__keys { display: none; } }
+
+/* ---------- a station's content ---------- */
+.roam__panel {
+  container-type: inline-size;
+  --lab: max(11px, min(1.5cqi, 13px)); /* labels */
+  --txt: max(14px, min(2cqi, 17px)); /* reading text */
+  position: absolute;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+.roam__panel[hidden] { display: none; }
+.roam__panel.is-on { opacity: 1; transform: none; }
+.roam__panel:focus { outline: none; }
+/* on its screen: the screen's own dark, edge to edge */
+.roam__panel.is-screen { border-radius: 2px; background: #040506; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* docked: beside the object on wide screens, a sheet on phones */
+.roam__panel.is-docked { top: 5.25rem; right: var(--gutter); width: min(26rem, calc(100% - 2 * var(--gutter))); max-height: calc(100% - 12.5rem); }
+@media (max-width: 760px) {
+  .roam__panel.is-docked { top: auto; left: 0.75rem; right: 0.75rem; bottom: 11.4rem; width: auto; max-height: min(30rem, calc(100% - 22rem)); } /* the station stays in view above it */
+}
+.roam__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--f1-line);
+  font-size: var(--lab);
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.roam__count { color: var(--f1-muted); font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+.roam__nav { display: none; gap: 0.3rem; }
+.roam__panel[data-station="gantry"] .roam__nav { display: inline-flex; }
+.roam__nav button,
+.roam__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  min-width: 36px;
+  justify-content: center;
+  padding: 0 0.55rem;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: var(--f1-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), background-color 140ms ease;
+}
+.roam__nav button { font-size: 1.1em; }
+.roam__nav button:active, .roam__back:active { transform: scale(0.95); }
+.roam__back { margin-left: auto; }
+@media (hover: hover) and (pointer: fine) {
+  .roam__nav button:hover, .roam__back:hover { background: rgba(255, 255, 255, 0.12); }
+}
+.roam__body { min-height: 0; padding: 1rem 1.1rem; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(0, 210, 190, 0.5) transparent; color: var(--f1-ink); font-family: var(--f1-font); }
+.roam__prompts { padding: 0.5rem 0.75rem; border-top: 1px solid var(--f1-line); font-size: var(--lab); }
+.roam__prompts .f1-key { margin-right: 0.15em; }
+.drive-touch .roam__prompts { display: none; }
+
+/* the screens' type, capped for big screens (the wheel's sizes scale with a small display) */
+.roam__panel .p-title { font-size: clamp(22px, 3.4cqi, 40px); }
+.roam__panel .p-stack li { font-size: var(--lab); }
+.roam__panel .p-check { border: 0; cursor: pointer; }
+.roam__panel .lap-verdict b, .roam__panel .lap-empty b { font-size: clamp(22px, 3.4cqi, 40px); }
+.roam__panel .rc { min-height: 100%; }
+.roam__panel .rc-wave { min-height: 7rem; }
+.roam__panel .rc-credit { font-size: var(--lab); }
+.roam-brief header { margin-bottom: 0.6rem; }
+
+/* docked panels: an info panel and its action */
+.roam-info { display: grid; gap: 0.8rem; align-content: start; font-size: var(--txt); line-height: 1.5; }
+.roam-info .f1-info__t { font-size: clamp(18px, 2.6cqi, 24px); }
+.roam-info > p { color: rgba(242, 245, 247, 0.84); }
+.roam-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 var(--f1-edge);
+  color: var(--f1-ink);
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-size: var(--lab);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), background-color 160ms ease;
+}
+.roam-btn:active { transform: scale(0.97); }
+.roam-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.roam-btn--primary { background: var(--f1-team); color: var(--f1-team-ink); }
+.roam-btn--primary .f1-key { border-color: rgba(3, 32, 28, 0.45); color: var(--f1-team-ink); }
+@media (hover: hover) and (pointer: fine) {
+  .roam-btn:not(:disabled):hover { background: rgba(255, 255, 255, 0.14); }
+  .roam-btn--primary:not(:disabled):hover { background: #2ee3d1; }
+}
+.roam-radio .f1-row { font-size: var(--lab); font-stretch: var(--f1-stretch); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.roam-radio .f1-row__v { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0; text-transform: none; }
+.roam-radio .f1-row:focus-visible { outline: 2px solid var(--f1-team); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) {
+  .roam-radio .f1-row:hover { border-color: rgba(242, 245, 247, 0.85); }
+}
+
+/* the pit board */
+.roam-board__form { display: flex; gap: 0.5rem; }
+.roam-board__form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(242, 245, 247, 0.25);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--f1-ink);
+  font-family: var(--f1-font);
+  font-stretch: var(--f1-stretch);
+  font-size: 16px; /* (no zoom on iOS) */
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.roam-board__form input::placeholder { color: rgba(242, 245, 247, 0.35); }
+.roam-board__form input:focus-visible { outline: 2px solid var(--f1-team); outline-offset: 1px; }
+.roam-board__msg { min-height: 1.2em; color: var(--f1-muted); font-size: var(--lab); }
+.roam-board__list .f1-row { font-size: var(--lab); font-stretch: var(--f1-stretch); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.roam-board__when { color: var(--f1-muted); font-family: var(--font-mono); font-weight: 500; }
+
+/* touch: the strip sits above the tab bar, the objective under the session box */
+.drive-touch .roam__session { top: 4.5rem; width: min(13.5rem, calc(60% - var(--gutter))); }
+.drive-touch .roam__objective { top: 9.6rem; font-size: 0.85rem; }
+@media (max-width: 760px) {
+  .roam__strip { left: 0.75rem; right: 0.75rem; width: auto; max-width: none; translate: none; bottom: 6.4rem; }
+  .roam__strip small { display: none; }
+}
+
+/* the wheel's way out */
+.wheel__out { position: absolute; left: 50%; bottom: 9.2rem; translate: -50% 0; min-height: 44px; font-size: 0.78rem; }
+.wheel:not(.is-overlay) .wheel__out { display: none; }
+.wheel.is-compact .wheel__out { display: none; } /* phones: the dock's OUT cap */
+
+@media (prefers-reduced-motion: reduce) {
+  .roam__panel { transition: opacity 120ms ease; transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .roam__strip { background: var(--f1-panel-solid); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+.roam-radio .f1-row__v::before, .roam-radio .f1-row__v::after { content: none; } /* links, not ‹ value › selectors */

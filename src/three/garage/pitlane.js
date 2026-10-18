@@ -203,6 +203,8 @@ export function buildWorld({ quality = 'high' } = {}) {
     stations: ours.stations,
     colliders: ours.colliders,
     setMeter: ours.props.setMeter,
+    printPage: ours.props.printPage,
+    setBoard: ours.props.setBoard,
     update,
     setCrew: guide.setCrew,
     outsideAt: (x) => Math.max(0, Math.min(1, (x - gx + 1) / 4)),

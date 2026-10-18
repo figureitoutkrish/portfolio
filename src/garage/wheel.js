@@ -16,6 +16,7 @@ import { radioCall } from './radio-check.js';
 //   SCROLL rotary   scroll the screen (↑ ↓, wheel, drag the knob)
 //   OK / BACK       open / back (enter / esc)
 //   PIT             drive in again
+//   GET OUT (E)     out of the car to walk the garage (roam-ui.js); not on the drawn wheel
 //   OVERTAKE TALK DRINK  little radio moments (TALK: a radio call the noise model cleans up).
 //                        2026 cars have no DRS: OVERTAKE is the new electric boost button.
 //   shift lights    where you are (project 3 of 6; on LAP: how close you parked)
@@ -30,7 +31,7 @@ const TOASTS = {
   talk: 'radio check · loud and clear',
 };
 
-export function initWheel({ root, reducedMotion, onPit }) {
+export function initWheel({ root, reducedMotion, onPit, onOut }) {
   const body = root.querySelector('[data-screen-body]');
   const modeEl = root.querySelector('[data-screen-mode]');
   const countEl = root.querySelector('[data-screen-count]');
@@ -125,6 +126,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
     if (name === 'next') return step(1);
     if (name === 'up' || name === 'down') return scrollBy(name === 'up' ? -1 : 1);
     if (name === 'pit') return onPit?.();
+    if (name === 'out') return onOut?.();
     if (name === 'talk' && radioCall(ui)) return;
     if (TOASTS[name]) {
       sfx(name === 'talk' ? 'radio' : 'tap');
@@ -247,6 +249,7 @@ export function initWheel({ root, reducedMotion, onPit }) {
       return scrollBy(e.key === 'ArrowUp' ? -1 : 1);
     }
     if (['1', '2', '3'].includes(e.key)) return setMode(ORDER[Number(e.key) - 1]);
+    if (e.code === 'KeyE' && !e.repeat && onOut) return onOut(); // out of the car, into the garage
     const hit = map[e.key];
     if (!hit) return;
     // Enter on a focused control clicks that control; only take it when nothing is focused

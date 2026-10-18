@@ -139,7 +139,7 @@ export function buildGarageProps(M, track) {
   // ======================= the pit board (by the door, +z side) =======================
   const board = new THREE.Group();
   board.position.set(gx - 1.3, 0, 6.35);
-  board.rotation.y = -0.5;
+  board.rotation.y = 2.6; // faces into the garage and the lane, toward the car coming in
   g.add(board);
   mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.7, 10), P.grey, 0, 0.85, 0, board);
   mesh(new THREE.BoxGeometry(0.5, 0.04, 0.5), P.black, 0, 0.02, 0, board);
@@ -317,6 +317,7 @@ export function buildGarageProps(M, track) {
       meterTarget = feed != null ? feed : Math.random() < 0.3 ? 0 : 0.2 + Math.random() * 0.6;
     }
     meterLevel += (meterTarget - meterLevel) * Math.min(1, dt * 18);
+    tickPrinter(dt);
     const lit = Math.round(meterLevel * 24);
     if (lit !== litMeters) {
       litMeters = lit;
@@ -334,6 +335,22 @@ export function buildGarageProps(M, track) {
   }
   let litMeters = -1;
   let feed = null;
+  // the printer: a sheet feeds out over ~1.2 s (the page downloads the PDF as it lands)
+  let printT = -1;
+  function tickPrinter(dt) {
+    if (printT < 0) return;
+    printT += dt;
+    const k = Math.min(1, printT / 1.2);
+    paper.visible = true;
+    paper.position.z = -0.2 - k * 0.2;
+    paper.position.y = 0.075 - k * 0.01;
+    printerLed.visible = Math.floor(printT * 8) % 2 === 0 || k >= 1;
+    if (printT > 4) {
+      printT = -1;
+      paper.visible = false;
+      printerLed.visible = true;
+    }
+  }
 
   return {
     group: g,
@@ -343,6 +360,18 @@ export function buildGarageProps(M, track) {
     parts: { gantryScreens, clock, printer, paper, printerLed, board, boardFace, standScreen, headset, tv, fridge, tyreBoard },
     // the radio console follows the page's audio level (0…1), or null for idle chatter
     setMeter: (v) => (feed = v),
+    printPage: () => (printT = 0),
+    // the pit board shows the newest message, chalked across up to four lines
+    setBoard(text) {
+      if (!text) return;
+      const lines = [];
+      for (const word of String(text).toUpperCase().split(' ')) {
+        const last = lines[lines.length - 1];
+        if (last && (last + ' ' + word).length <= 9) lines[lines.length - 1] = `${last} ${word}`;
+        else lines.push(word);
+      }
+      boardFace.userData.redraw(lines.slice(0, 4));
+    },
     dispose() {
       geos.forEach((x) => x.dispose());
     },
@@ -579,4 +608,3 @@ function drawTyreBoard(c, w, h) {
     c.textBaseline = 'alphabetic';
   });
 }
-export const drawers = { drawBoard };
