@@ -286,7 +286,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     } else if (!s.pitLane) {
       const toLine = Math.max(0, LAYOUT.entryLine - s.z);
       phaseText = 'box, box';
-      msg = kph > limit ? `brake under ${limit} km/h before the pit entry line` : `under ${limit}: press ${KEY.limiter} at the line for the limiter`;
+      msg = kph > limit ? `brake under ${limit} km/h before the pit entry line` : s.limiter ? 'limiter on: roll on down to the pit lane' : `under ${limit}: press ${KEY.limiter} at the line for the limiter`;
       label = 'pit entry line';
       dist = `${Math.round(toLine)} m`;
       warn = kph > limit && toLine < 60;
@@ -513,6 +513,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     clearTimers();
     jack = false;
     vehicle.reset({ parked: true });
+    garage.crew('push'); // the car's in the garage: the gunners aren't waiting at an empty box
     engine?.stop();
     engine = null;
     pause.hidden = true;
@@ -579,6 +580,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   }
   if (seen === 'parked' || reducedMotion) {
     vehicle.reset({ parked: true });
+    garage.crew('push');
     cockpit.classList.add('is-driving');
     fitWheel();
     garage.view.zoom = 1;

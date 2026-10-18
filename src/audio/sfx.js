@@ -187,6 +187,16 @@ const THEMES = {
     chalk: () => {
       for (let i = 0; i < 3; i++) noise({ dur: 0.09, vol: 0.03, type: 'bandpass', freq: 3800 + i * 400, q: 4, delay: i * 0.11 });
     },
+    // a car going past on the straight, far off (the garage's ambience)
+    distant: () => {
+      const up = 300 + Math.random() * 200;
+      tone({ freq: up, to: up * 0.55, type: 'sawtooth', dur: 1.6, vol: 0.006, attack: 0.6 });
+      noise({ dur: 1.6, vol: 0.01, type: 'bandpass', freq: 700, to: 300, q: 1, attack: 0.6 });
+    },
+    // another team's wheel gun, a few garages down
+    farGun: () => {
+      for (let i = 0; i < 5; i++) noise({ dur: 0.03, vol: 0.018, type: 'bandpass', freq: 2200, q: 2, delay: i * 0.04 });
+    },
     drink: () => {
       // a squeeze of the bottle
       noise({ dur: 0.25, vol: 0.03, type: 'lowpass', freq: 900, to: 400, q: 2 });
@@ -370,6 +380,24 @@ export function loop(name) {
     src.connect(f).connect(g);
     nodes = [src];
     set = (v) => g.gain.setTargetAtTime(0.0001 + Math.min(1, v) * 0.03, a.currentTime, 0.03); // louder when drawing faster
+  } else if (name === 'garage') {
+    // the data page's garage on foot: generators and air handling, a low rumble under everything
+    const src = a.createBufferSource();
+    src.buffer = whiteNoise(a);
+    src.loop = true;
+    const f = a.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = 220;
+    f.Q.value = 0.7;
+    const hum = a.createOscillator();
+    hum.type = 'sine';
+    hum.frequency.value = 50;
+    const hg = a.createGain();
+    hg.gain.value = 0.35;
+    src.connect(f).connect(g);
+    hum.connect(hg).connect(g);
+    nodes = [src, hum];
+    g.gain.exponentialRampToValueAtTime(0.03, t + 1.2);
   }
   nodes.forEach((n) => n.start(t));
   return {

@@ -124,6 +124,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   let running = false;
   const pos = new THREE.Vector3();
   const close = new THREE.Vector3();
+  const viewer = new THREE.Vector3();
   const lerp = (a, b, k) => a + (b - a) * k;
   let held = false; // the page's wheel is up: stop drawing until it isn't
   let last = performance.now();
@@ -168,7 +169,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     setLeds(drive.rpm, drive.flash);
     lcd.draw(drive);
     pos.set(pose.x, 0, pose.z);
-    world.update(pos, dt);
+    world.update(pos, dt, camera.getWorldPosition(viewer));
     // the car's own key light is for the dark lane; in the garage it would double up
     const out = world.outsideAt(pose.x);
     key.intensity = 4 + 10 * out;
@@ -317,6 +318,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
       go: roam.go,
       setDock: roam.setDock,
       nearCar: roam.nearCar,
+      position: roam.position,
       onStep: roam.onStep,
     },
     // the engineers' stand's LED meters follow this level (0…1), or idle chatter with null

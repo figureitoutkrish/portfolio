@@ -37,6 +37,7 @@ Every control is a real button with one job:
 | OK | enter | open the briefing → open the code (or the radio check); LAP: drive again; RADIO: open the channel |
 | BACK | esc / backspace | close the briefing |
 | PIT | – | back in the car at the pit entry |
+| GET OUT | E | out of the car to walk the garage (below) |
 | OVERTAKE · TALK · DRINK | – | short radio moments on the screen bar; TALK plays a radio call over gunfire that the noise model cleans up after a second |
 | shift lights | – | position (project n of N; on LAP, how close you parked; on RADIO, the channel) |
 
@@ -57,6 +58,37 @@ Every control is a real button with one job:
   - Compact framing (phones, and tablets held upright: `wheel.setCompact`): the display fills the width (94% on phones, 72% on tablets), sits just under the header, and a dock of caps (‹ back mode ok ›) stands in for the controls off-screen.
   - Hotspots are always 44px targets; the hover/focus ring hugs the real button (`--ring`). The 3D part presses on pointer-down / key-down, the action fires on release.
 - **Drawn (no WebGL):** a 900×400 SVG wheel with the controls placed in % of it; phones get a tall layout.
+
+## Free roam: out of the car (`src/garage/roam-ui.js`, `src/three/garage/roam.js`)
+For visitors who'd rather walk than read on the wheel. Inspired by the 3D world on Vivaan Jasapara's site, done first person so it carries on from the cockpit.
+- **Getting out:** **GET OUT** under the wheel (E; on phones, OUT in the dock). The gloves come off, the steering wheel unclips and rests on the nose (real drivers take it off to climb out), and the camera rises out of the cockpit, over the sidepod on the gantry side, and down to standing height (1.68 m) beside the car (2.1 s; a cut under reduced motion). The driver's body hides and the halo shows. **Getting in:** E near the car, or the car station; the reverse move, then the zoom back into the wheel.
+- **Moving:**
+  - WASD / arrows to walk (shift runs), drag to look, click the floor to walk there (sidestepping people and props; a ring marks the spot);
+  - click or tap anything with a station to open it; 1–7 jump to a station; Esc steps back from it;
+  - collisions keep you out of the car, props and crew (2D boxes with a 0.3 m body); you can walk the garage and the pit box in front of it.
+- **Stations** (the strip along the bottom lists them all; it's real buttons, so keyboard and screen-reader users never need the 3D):
+
+| key | station | content |
+|---|---|---|
+| 1 | pit wall gantry | each monitor is a project: its briefing laid over the screen; ‹ › moves along the monitors; the noise project's "hear it" goes to 2 |
+| 2 | engineers' stand | the radio check on the big monitor; the console's red LED meters follow the audio level (`checkLevel()`) |
+| 3 | wall TV | LAP; drive it again / take the wheel |
+| 4 | the car | a line about the 2026 car; get in (E) |
+| 5 | printer | prints the CV: a sheet feeds out, then `/assets/cv/krish-viramgama-cv.pdf` downloads. Until that file exists it says it's out of paper and the button is off |
+| 6 | pit board | the guestbook: up to 28 characters, chalked onto the 3D board (the newest shows on arrival); `api/pitboard.js`, 3 per hour per IP, same word rules as the notes; this browser only until Upstash is connected |
+| 7 | team radio | the headset on its hook: email, LinkedIn, GitHub, Instagram as menu rows |
+
+- **Focus:** the camera glides to frame the station (in-out ease; glides across the garage swing through the open floor behind the car, never through walls). Screens (1–3) get their HTML laid over the projected screen on wide screens; objects get a panel docked on the right with the object kept to its left. Phones get a bottom sheet with the station framed above it.
+- **Life:** the crew shift their weight and turn their heads (with their headsets) toward you within 4.5 m; the session clock on the gantry counts your time on the page (red past an hour); the gantry and canopy screens drift; garage ambience plays under it all (a low rumble, cars on the straight, other teams' wheel guns). Footsteps follow your stride, and the printer, chalk and drink each have a sound. Stand in the pit box for 4 s and the radio calls "box, box!". The fridge has drinks.
+
+## The garage (`src/three/garage/garage-props.js`, `car-body.js`)
+Dressed from Krish's photos of a team garage:
+- **Pit wall gantry** (+z wall): a desk with a radio rack of red LEDs, five monitors (the project titles when idle), the canopy with the session clock between weather and onboard screens, the printer at the end, a headset.
+- **Engineers' stand** (−z wall): an octagonal console, one big monitor over the LED radio console, the headset on its hook, four chairs.
+- **Back wall:** the wall TV, tool cabinets with lit handles, the fridge, a race suit on a stand and two helmets, the tyre allocation board (S ×8, M ×3, H ×2).
+- **Over the car:** the light box on cables, four coiled air lines, and a cooling duct into the sidepod. The pit board stands by the door.
+- **Crew:** people in team kit (white shirts, dark trousers, headsets, arms behind their backs), placed to leave a lane either side of the car. When the car's in the garage, the gunners at the box stand down.
+- **The car** (`car-body.js` adds to `cockpit-fallback.js`): engine cover with the airbox and a teal spine, a rain light, the flat floor and diffuser, rear wheels on the same rig, an active-aero rear wing (`setAero`) and front main plane, the 01 · KV flank numbers, and the halo (shown from outside only). The W11 stays local-only as before.
 
 ## Look: the F1 game's UI (`src/styles/f1ui.css`)
 Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no standalone F1 26) using EA's own in-game screenshots: the race HUD and the menus. Our team throughout: KV in teal, with no F1 marks, font, team names or drivers.

@@ -183,7 +183,7 @@ export function buildWorld({ quality = 'high' } = {}) {
   const canopy = new THREE.SpotLight(0xe8efff, 16, 30, 0.9, 0.7, 1.4);
   world.add(canopy, canopy.target);
 
-  function update(carPos, dt = 0) {
+  function update(carPos, dt = 0, viewer = null) {
     // the lane's lights fade out as the car backs into the garage (its own panels take over)
     const outside = Math.max(0, Math.min(1, (carPos.x - gx + 1) / 4));
     const nearest = Math.round((carPos.z - LAYOUT.ours) / pitch);
@@ -195,13 +195,13 @@ export function buildWorld({ quality = 'high' } = {}) {
     canopy.intensity = 16 * outside;
     canopy.position.set(gx + 3, 5.6, carPos.z + 2);
     canopy.target.position.set(carPos.x, 0.6, carPos.z + 1);
-    ours.update(dt, Math.abs(carPos.z - LAYOUT.ours) < 60);
+    ours.update(dt, Math.abs(carPos.z - LAYOUT.ours) < 60, viewer);
   }
 
   return {
     group: world,
     stations: ours.stations,
-    colliders: ours.colliders,
+    colliders: [...ours.colliders, ...guide.colliders],
     setMeter: ours.props.setMeter,
     printPage: ours.props.printPage,
     setBoard: ours.props.setBoard,
@@ -290,12 +290,14 @@ function buildOurGarage(M, track) {
   const trousers = track(new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.85 }));
   const skin = track(new THREE.MeshStandardMaterial({ color: 0x2c2f35, roughness: 0.7 }));
   const figure = crewFigure(keep);
+  // (placed to leave a clear lane either side of the car)
   const crew = [];
-  for (const [x, z, ry] of [[box.x + 2.6, z0 - 2.0, -2.4], [box.x - 2.2, z0 + 2.0, 0.3], [box.x - 6.2, z0 - 1.4, 1.2], [gx - 1.6, z0 + 2.4, -1.9], [box.x + 1.2, z0 + 1.9, 3.0]]) {
+  for (const [x, z, ry] of [[box.x + 2.6, z0 - 2.7, -2.4], [box.x - 2.2, z0 + 2.9, 0.3], [box.x - 6.2, z0 - 1.4, 1.2], [gx - 1.4, z0 + 3.6, -1.9], [box.x + 1.2, z0 + 3.0, 3.0]]) {
     const p = new THREE.Group();
     p.add(new THREE.Mesh(figure.shirt, shirt), new THREE.Mesh(figure.trousers, trousers), new THREE.Mesh(figure.dark, M.crew));
     const hd = new THREE.Mesh(figure.head, skin); // its own mesh: the head turns to look at you
     hd.position.y = 1.6;
+    hd.add(new THREE.Mesh(figure.headset, M.crew));
     p.add(hd);
     const stripe = new THREE.Mesh(figure.stripe, M.tealPaint);
     p.add(stripe);
@@ -305,6 +307,26 @@ function buildOurGarage(M, track) {
     g.add(p);
     crew.push(p);
   }
+  // crew life: a slow sway and the odd shift of weight, and heads that turn to you as you walk by
+  let t = 0;
+  const seeds = crew.map((_, i) => i * 1.7 + 0.4);
+  const local3 = new THREE.Vector3();
+  function crewLife(dt, viewer) {
+    t += dt;
+    crew.forEach((p, i) => {
+      const s = seeds[i];
+      p.rotation.z = Math.sin(t * 0.7 + s) * 0.012 + (Math.sin(t * 0.11 + s * 3) > 0.7 ? 0.02 : 0); // weight onto one leg now and then
+      const hd = p.userData.head;
+      let want = Math.sin(t * 0.23 + s) * 0.25; // looking round the garage
+      if (viewer) {
+        local3.copy(viewer);
+        p.worldToLocal(local3);
+        const d = Math.hypot(local3.x, local3.z);
+        if (d < 4.5 && d > 0.3) want = Math.max(-1.1, Math.min(1.1, Math.atan2(local3.x, local3.z))); // at you, within reason
+      }
+      hd.rotation.y += (want - hd.rotation.y) * Math.min(1, dt * 3);
+    });
+  }
   const colliders = [...props.colliders, ...crew.map((p) => [p.position.x - 0.3, p.position.x + 0.3, p.position.z - 0.3, p.position.z + 0.3])];
 
   return {
@@ -312,7 +334,10 @@ function buildOurGarage(M, track) {
     stations: { ...props.parts, crew },
     props,
     colliders,
-    update: (dt, near) => props.update(dt, near),
+    update(dt, near, viewer) {
+      props.update(dt, near);
+      if (near) crewLife(dt, viewer);
+    },
     dispose() {
       local.forEach((x) => x.dispose());
       props.dispose();
@@ -341,14 +366,21 @@ function crewFigure(keep) {
   put(parts.trousers, new THREE.CapsuleGeometry(0.16, 0.1, 4, 12), 0, 0.93, 0, 0, Math.PI / 2, 1, 1, 0.75);
   put(parts.shirt, new THREE.CapsuleGeometry(0.17, 0.36, 6, 14), 0, 1.24, 0, 0, 0, 1.18, 1, 0.66);
   put(parts.shirt, new THREE.CylinderGeometry(0.05, 0.055, 0.1, 10), 0, 1.5, 0); // neck (collar)
-  // the headset: band over the head, cups at the ears, the mic boom
-  put(parts.dark, new THREE.TorusGeometry(0.118, 0.012, 6, 20, Math.PI), 0, 1.6, 0); // (an arc in x–y: ear to ear over the top)
+  // the headset, in the head's own space so it turns with it: band over the top, cups at the
+  // ears, and the mic boom forward to the mouth (what shows which way they're looking)
+  parts.headset = [];
+  put(parts.headset, new THREE.TorusGeometry(0.118, 0.012, 6, 20, Math.PI), 0, 0, 0); // (an arc in x–y: ear to ear over the top)
   for (const s of [-1, 1]) {
     const cup = new THREE.CylinderGeometry(0.045, 0.045, 0.04, 14);
     cup.rotateZ(Math.PI / 2);
-    cup.translate(s * 0.115, 1.6, 0);
-    parts.dark.push(cup);
+    cup.translate(s * 0.115, 0, 0);
+    parts.headset.push(cup);
   }
+  const boom = new THREE.CylinderGeometry(0.006, 0.006, 0.13, 6);
+  boom.rotateX(Math.PI / 2);
+  boom.rotateY(-0.5);
+  boom.translate(0.08, -0.05, 0.06);
+  parts.headset.push(boom);
   const head = keep(new THREE.SphereGeometry(0.105, 18, 14));
   head.scale(0.92, 1.08, 1);
   const stripe = keep(new THREE.CylinderGeometry(0.2, 0.2, 0.035, 16));
@@ -359,7 +391,7 @@ function crewFigure(keep) {
     list.forEach((x) => x.dispose());
     return keep(m);
   };
-  return { shirt: merge(parts.shirt), trousers: merge(parts.trousers), dark: merge(parts.dark), head, stripe };
+  return { shirt: merge(parts.shirt), trousers: merge(parts.trousers), dark: merge(parts.dark), headset: merge(parts.headset), head, stripe };
 }
 
 // What a real pit lane shows you, so the HUD is a backup rather than the only guide:
@@ -567,6 +599,8 @@ function buildGuide(M, track) {
   return {
     group: g,
     setCrew,
+    // the jack man and the lollipop stay at the box: walk round them, not through them
+    colliders: [jackMan, lolly].map((p) => [p.position.x - 0.32, p.position.x + 0.32, p.position.z - 0.32, p.position.z + 0.32]),
     dispose() {
       own.forEach((x) => x.dispose());
     },

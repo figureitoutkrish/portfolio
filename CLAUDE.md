@@ -38,7 +38,7 @@ creative/index.html     # Creative alter-ego page: green grid, Mac windows, bent
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
 vite.config.js
-api/                    # Vercel functions: scores.js (leaderboard), notes.js (visitor sticky notes); Upstash Redis. Setup: docs-backend.md
+api/                    # Vercel functions: scores.js (leaderboard), notes.js (visitor sticky notes), pitboard.js (the garage's guestbook); Upstash Redis. Setup: docs-backend.md
 public/assets/
   images/               # Static images, served as-is at /assets/images/...
   work/<slug>/          # Creative-page project images (from Behance; originals in content/behance/)
@@ -47,7 +47,7 @@ public/assets/
 src/
   main.js               # Home entry (intro, home reveal)
   data.js               # Entry for the data page (+ src/garage/ modules, styles/data.css)
-  garage/               # Data page logic, no three.js: drive.js, vehicle.js, telemetry.js, wheel.js + modes/, radio-check.js (the noise project heard on the wheel), data/projects.js (add projects here)
+  garage/               # Data page logic, no three.js: drive.js, vehicle.js, telemetry.js, wheel.js + modes/, radio-check.js (the noise project heard on the wheel), roam-ui.js (on foot in the garage) + pitboard-client.js, data/projects.js (add projects here)
   creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
   creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
   shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js), record player
@@ -55,8 +55,9 @@ src/
   assets/music/<record>/ # the record player's tracks (picked up automatically; only music Krish has rights to)
   styles/main.css       # Global styles + design tokens
   styles/glass.css      # Liquid glass material (.glass, variants)
+  styles/f1ui.css       # The data page's F1-game UI language (+ data.css, wheel.css, roam.css)
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)
-  three/garage/         # The data page's 3D: cockpit (car.js, gloves.js, driver.js, lcd.js), pit lane (pitlane.js)
+  three/garage/         # The data page's 3D: cockpit (car.js, car-body.js, gloves.js, driver.js, lcd.js), pit lane (pitlane.js), garage-props.js (stations), roam.js (walking)
   assets/local/         # git-ignored, never published: unlicensed models used only on Krish's Mac (the W11)
 scripts/fbx-to-glb.mjs  # converts an FBX car to a geometry-only GLB
   sections/             # One JS module per page section (home, intro, menu, tabbar, trail, about, journey)

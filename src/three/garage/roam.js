@@ -320,7 +320,18 @@ export function createRoam({ scene, camera, head, car, rig, colliders, parts, re
     speed += (want - speed) * Math.min(1, dt * 10);
     if (len > 0.001 && speed > 0.01) {
       const step = (speed * dt) / Math.max(1, len);
-      const free = moveBy(fx * step, fz * step);
+      let free = moveBy(fx * step, fz * step);
+      if (!free && target) {
+        // someone (or something) in the way: step round it, trying either side
+        for (const a of [0.9, -0.9, 1.5, -1.5]) {
+          const c = Math.cos(a);
+          const sn = Math.sin(a);
+          if (moveBy((fx * c - fz * sn) * step, (fx * sn + fz * c) * step)) {
+            free = true;
+            break;
+          }
+        }
+      }
       if (target) {
         stuck = free ? 0 : stuck + dt;
         if (stuck > 0.6) target = null; // can't get there: stop rather than grind
@@ -378,6 +389,8 @@ export function createRoam({ scene, camera, head, car, rig, colliders, parts, re
     unfocus,
     pick,
     rect,
+    // where you're standing (world x, z), or null while you're in the car
+    position: () => (active ? { x: walker.x, z: walker.z } : null),
     // where the page docks object panels: 'right' (wide screens) or 'bottom' (phones)
     setDock: (d) => (dock = d),
     move(forward, strafe, run = false) {

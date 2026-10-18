@@ -3,7 +3,8 @@ import { lap } from './modes/lap.js';
 import { ROWS } from './modes/radio.js';
 import { renderCheck, toggleCheck, turnCheck, leaveCheck, checkLevel } from './radio-check.js';
 import { getBoard, postBoard } from './pitboard-client.js';
-import { sfx } from '../audio/sfx.js';
+import { sfx, loop, soundOn, onSoundChange } from '../audio/sfx.js';
+import { LAYOUT } from './layout.js';
 
 // The free roam's page side: out of the car and on foot in the garage (the 3D side is
 // src/three/garage/roam.js). It reads the keys, the pointer and the station strip, and shows a
@@ -458,13 +459,50 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
   panel.querySelector('[data-roam-prev]').addEventListener('click', () => stepProject(-1));
   panel.querySelector('[data-roam-next]').addEventListener('click', () => stepProject(1));
 
+  // ---------- the garage's sound: a low rumble, cars on the straight, other teams' guns ----------
+  let ambience = null;
+  let nextAmb = 4;
+  const startAmbience = () => {
+    ambience?.stop();
+    ambience = active && soundOn() ? loop('garage') : null;
+  };
+  const offSound = onSoundChange(() => startAmbience());
+
+  // stand in the pit box too long and the radio tells you
+  let inBox = 0;
+  let boxCalled = false; // (a cooldown, so it isn't every few seconds)
+  let boxShown = 0; // the call stays up a few seconds
+
   // ---------- per frame ----------
-  const offFrame = garage.onFrame(() => {
-    if (!active) return;
+  const offFrame = garage.onFrame((dt) => {
+    if (!active) {
+      if (ambience) {
+        ambience.stop();
+        ambience = null;
+      }
+      return;
+    }
+    if (!ambience && soundOn()) startAmbience();
+    nextAmb -= dt;
+    if (nextAmb <= 0) {
+      nextAmb = 5 + Math.random() * 9;
+      sfx(Math.random() < 0.65 ? 'distant' : 'farGun');
+    }
+    const me = R.position();
+    if (me && Math.abs(me.x - LAYOUT.pitBox.x) < 1.4 && Math.abs(me.z - LAYOUT.pitBox.z) < 2.6) {
+      inBox += dt;
+      if (inBox > 4 && !boxCalled) {
+        boxCalled = true;
+        boxShown = performance.now() + 4000;
+        sfx('radio');
+        say('radio: box, box! …you’re standing in it.');
+        setTimeout(() => (boxCalled = false), 20000);
+      }
+    } else inBox = 0;
     const on = (k) => KEYS[k].some((c) => held.has(c));
     R.move((on('forward') ? 1 : 0) - (on('back') ? 1 : 0), (on('right') ? 1 : 0) - (on('left') ? 1 : 0), held.has('Shift'));
     if (open?.id === 'stand') garage.setMeter(checkLevel());
-    if (!open && !R.busy) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–7 jump to one');
+    if (!open && !R.busy && performance.now() > boxShown) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–7 jump to one');
   });
   const offStep = R.onStep(() => sfx('step'));
 
@@ -477,6 +515,8 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     destroy() {
       offFrame();
       offStep();
+      offSound();
+      ambience?.stop();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     },
