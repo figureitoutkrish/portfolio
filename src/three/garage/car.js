@@ -5,14 +5,14 @@ import { placeGlove, disposeGloves } from './gloves.js';
 import { carbonTexture } from './geometry.js';
 import { buildDriver } from './driver.js';
 import { buildControls, placeControls } from './controls.js';
+import LOCAL from 'virtual:local-models'; // the local W11 on the dev server only; always empty in a build (vite.config.js)
 
 // The car. A real model is used when one sits in src/assets/local/ (kept out of git: the W11 there
 // is unlicensed, so it only ever runs on Krish's Mac). Without it, the cockpit built in code
 // (cockpit-fallback.js) is used, which is what the published site shows. Either way the rest of
 // the scene gets the same handles: the steering pivot, 15 shift lights, the display mesh, the
 // grips for the gloves and the driver's eye point.
-const LOCAL = import.meta.glob('../../assets/local/w11/*.{glb,png}', { query: '?url', import: 'default', eager: true });
-const local = (name) => LOCAL[`../../assets/local/w11/${name}`];
+const local = (name) => LOCAL[`/src/assets/local/w11/${name}`];
 
 export async function loadCar({ manager, lcdTexture }) {
   let car = null;

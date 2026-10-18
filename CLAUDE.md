@@ -58,7 +58,7 @@ src/
   styles/f1ui.css       # The data page's F1-game UI language (+ data.css, wheel.css, roam.css)
   three/scene.js        # Three.js scene (currently unused; all WebGL code lives under src/three/)
   three/garage/         # The data page's 3D: cockpit (car.js, car-body.js, gloves.js, driver.js, lcd.js), pit lane (pitlane.js), garage-props.js (stations), roam.js (walking)
-  assets/local/         # git-ignored, never published: unlicensed models used only on Krish's Mac (the W11)
+  assets/local/         # git-ignored, never published: unlicensed models used only on Krish's Mac (the W11); loaded via virtual:local-models, which is empty in every build (vite.config.js)
 scripts/fbx-to-glb.mjs  # converts an FBX car to a geometry-only GLB
   sections/             # One JS module per page section (home, intro, menu, tabbar, trail, about, journey)
   utils/                # motion.js, spring.js, liquid-glass.js, transition.js (page wipe)

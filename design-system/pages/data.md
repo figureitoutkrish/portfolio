@@ -132,7 +132,7 @@ Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no
   - `view.zoom` 0…1 moves the camera from the driver's eye to face the wheel;
   - `view.fit` / `view.offsetY` size and place it so it lines up with the HTML wheel;
   - `hold(true)` stops drawing while the HTML wheel covers the scene.
-- `car.js` uses the W11 from `src/assets/local/w11/` when present (**git-ignored, never published**: an unlicensed game rip). Otherwise it uses `cockpit-fallback.js`, built from scratch to read like the local W11 (the W11 is only a visual reference; nothing of it is copied):
+- `car.js` uses the W11 from `src/assets/local/w11/` when present (**git-ignored, never published**: an unlicensed game rip). It reaches it through `virtual:local-models` (`localModelsPlugin` in `vite.config.js`), which lists the files on the dev server and is empty in every build, so even a build made on Krish's Mac can't contain it. Otherwise it uses `cockpit-fallback.js`, built from scratch to read like the local W11 (the W11 is only a visual reference; nothing of it is copied):
   - `wheel-model.js`: carbon body with raised top corners, sculpted rubber grips, a gloss bezel with the display, a domed shift-light slot, unassigned buttons and a KV emblem. The controls sit at the same `controlSpots` as the W11, so the overlay is identical.
   - `chassisRing()`: one lofted chassis, an open U-tub around the driver closing into a low front deck and the nose, with teal pinstripes on the cockpit rim and the nose.
   - `?car=code` previews the published one locally.

@@ -317,7 +317,9 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
   const typing = (e) => e.target.closest?.('input, textarea, select, [contenteditable="true"]');
   const busyPage = () => docEl.classList.contains('is-palette-open') || document.querySelector('.menu-btn[aria-expanded="true"]');
   function onKeyDown(e) {
-    if (!active || busyPage() || e.metaKey || e.ctrlKey || e.altKey) return;
+    // (also while getting out / back in: the E that got you out is still on its way through the
+    // listeners, and you're standing by the car, so it would read as "get back in")
+    if (!active || moving || busyPage() || e.metaKey || e.ctrlKey || e.altKey) return;
     if (typing(e)) {
       if (e.key === 'Escape') e.target.blur();
       return;
