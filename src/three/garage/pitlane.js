@@ -204,6 +204,7 @@ export function buildWorld({ quality = 'high' } = {}) {
     colliders: [...ours.colliders, ...guide.colliders],
     setMeter: ours.props.setMeter,
     printPage: ours.props.printPage,
+    setRadio: ours.props.setRadio,
     setBoard: ours.props.setBoard,
     update,
     setCrew: guide.setCrew,

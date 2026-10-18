@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en"><head>
+<!-- Krish's CV (the garage printer downloads public/assets/cv/krish-viramgama-cv.pdf). Edit here, then print to PDF:
+     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --no-pdf-header-footer --print-to-pdf=public/assets/cv/krish-viramgama-cv.pdf "file://$PWD/scripts/cv.html"
+     Sources: content/about.md (the LinkedIn timeline) and src/garage/data/projects.js. Keep it to one A4 page. --><meta charset="utf-8"><title>Krish Viramgama — CV</title>
+<style>
+@font-face { font-family: "Nohemi"; src: url("../public/assets/fonts/Nohemi-VF.ttf") format("truetype"); font-weight: 100 900; }
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --ink: #111; --muted: #5d6068; --line: #e2e3e6; --accent: #1f4fff; }
+html, body { width: 210mm; height: 297mm; }
+body { font-family: "Nohemi", Helvetica, Arial, sans-serif; color: var(--ink); font-size: 8.6pt; line-height: 1.42; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { display: grid; grid-template-columns: 1fr 64mm; height: 297mm; overflow: hidden; }
+main { padding: 15mm 9mm 12mm 15mm; }
+aside { padding: 15mm 11mm 10mm 8mm; background: #f4f5f8; font-size: 8.1pt; }
+h1 { font-size: 27pt; font-weight: 600; letter-spacing: -0.035em; line-height: 1; }
+.role { margin-top: 2.2mm; color: var(--accent); font-size: 10pt; font-weight: 500; }
+.summary { margin-top: 4mm; max-width: 112mm; color: #2a2c31; font-size: 9pt; }
+h2 { margin: 6.5mm 0 2.6mm; padding-bottom: 1.4mm; border-bottom: 1px solid var(--line); font-size: 8pt; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+aside h2:first-child, main h2.first { margin-top: 0; }
+.item { margin-bottom: 3.2mm; break-inside: avoid; }
+.row { display: flex; justify-content: space-between; gap: 4mm; align-items: baseline; }
+.t { font-weight: 600; font-size: 9pt; }
+.d { color: var(--muted); font-size: 7.8pt; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.o { color: var(--muted); }
+.sub { margin-top: 0.6mm; }
+.sub li { list-style: none; display: flex; justify-content: space-between; gap: 3mm; }
+.sub li span:first-child::before { content: "– "; color: var(--muted); }
+p.x { margin-top: 0.8mm; color: #2a2c31; }
+.stack { margin-top: 0.6mm; color: var(--muted); font-size: 7.6pt; }
+aside p, aside li { color: #2a2c31; }
+aside ul { list-style: none; display: grid; gap: 1.3mm; }
+.k { color: var(--muted); font-size: 7.6pt; }
+.big { font-size: 13pt; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); line-height: 1.1; }
+.stat { margin-bottom: 2mm; }
+a { color: inherit; text-decoration: none; }
+</style></head>
+<body><div class="page">
+<main>
+  <h1>Krish Viramgama</h1>
+  <p class="role">Data science student · Designer · Co-founder, Koach Creative Studio</p>
+  <p class="summary">B.Tech + Diploma in Data Science student at NMIMS Mumbai, with a creative side that refuses to stay a side. I build models and data tools, and I build brands: design, video and content strategy for 20+ companies through Koach.</p>
+
+  <h2>Experience</h2>
+  <div class="item"><div class="row"><span class="t">Co-Founder <span class="o">· Koach Creative Studio</span></span><span class="d">Feb 2025 – Present</span></div>
+    <p class="x">A content and creative agency helping brands meet their content needs and scale. 20+ companies, including Atovio, Endura, Peeyo, Bafpro, Bobabob, Picklx, SuperYou and Alpino. An Atovio campaign of three ads crossed 3M+ views across social platforms.</p></div>
+  <div class="item"><div class="row"><span class="t">Vice Chairperson <span class="o">· Taqneeq, MPSTME</span></span><span class="d">Jul 2026 – Present</span></div>
+    <ul class="sub"><li><span>Executive, Digital Creatives</span><span class="d">Nov 2023 – Nov 2024</span></li></ul></div>
+  <div class="item"><div class="row"><span class="t">Head of Digital Creatives <span class="o">· IETE-SF MPSTME</span></span><span class="d">May 2025 – May 2026</span></div>
+    <ul class="sub"><li><span>Sub-Head of Digital Creatives</span><span class="d">Jun 2024 – Jul 2025</span></li><li><span>Executive, Digital Creatives</span><span class="d">Jul 2023 – Jun 2024</span></li></ul></div>
+  <div class="item"><div class="row"><span class="t">Creative Director <span class="o">· Buzzinga</span></span><span class="d">Oct 2024 – Feb 2025</span></div></div>
+  <div class="item"><div class="row"><span class="t">VP of Content Team <span class="o">· Designare</span></span><span class="d">Feb 2024 – Feb 2025</span></div>
+    <ul class="sub"><li><span>Manager, Editing &amp; Designing Crew</span><span class="d">Nov 2023 – Mar 2024</span></li><li><span>Lead Designer, Editing &amp; Designing Crew</span><span class="d">Jul 2023 – Nov 2023</span></li></ul></div>
+
+  <h2>Projects</h2>
+  <div class="item"><div class="row"><span class="t">A voice through gunfire <span class="o">· Smart India Hackathon 2026, team Gradient Descent</span></span><span class="d">2026</span></div>
+    <p class="x">Fine-tuned a causal speech-enhancement model (Facebook's Denoiser, dns48, 18.9M parameters) to pull a radio voice out of gunfire: SNR on the gunfire test clips from −1.1 to +8.9 dB on average. Exported PyTorch → ONNX → Core ML int8 (72 → 18 MB), about 54 ms per 4 s of audio on an iPhone.</p>
+    <p class="stack">Python · PyTorch · ONNX · Core ML · SwiftUI · Streamlit</p></div>
+  <div class="item"><div class="row"><span class="t">India's inflation, explained</span><span class="d">2026</span></div>
+    <p class="x">A Streamlit study of India's consumer price index: t-tests, ANOVA with Tukey post-hoc, OLS with VIF checks, and ridge / lasso tuned by k-fold cross-validation.</p>
+    <p class="stack">Python · pandas · statsmodels · scikit-learn · SciPy · Streamlit</p></div>
+  <div class="item"><div class="row"><span class="t">Fruit Ninja, two ways <span class="o">· AI in software development case study</span></span><span class="d">2026</span></div>
+    <p class="x">A webcam Fruit Ninja played with your hand, built twice (Claude and ChatGPT) from one brief to compare how each assistant builds software.</p>
+    <p class="stack">Python · OpenCV · MediaPipe</p></div>
+  <div class="item"><div class="row"><span class="t">Perfect circle, in the air</span><span class="d">2026</span></div>
+    <p class="x">Draw a circle in the air with one finger; MediaPipe tracks it and the game scores how perfect it is.</p>
+    <p class="stack">Python · MediaPipe · OpenCV · Pygame</p></div>
+  <div class="item"><div class="row"><span class="t">Unlock</span><span class="d">2026</span></div>
+    <p class="x">Gated links: visitors unlock a link by leaving an email or joining a community. A Next.js app with a Cloudflare Worker doing the redirects at the edge.</p>
+    <p class="stack">Next.js · TypeScript · Cloudflare Workers · Drizzle</p></div>
+
+  <h2>Beyond work</h2>
+  <p class="x">Dance (once a career path), vlogs and making videos.</p>
+</main>
+<aside>
+  <h2>Contact</h2>
+  <ul>
+    <li><span class="k">Email</span><br>krishviramgamatir@gmail.com</li>
+    <li><span class="k">LinkedIn</span><br>linkedin.com/in/<wbr>krish-viramgama-27951927a</li>
+    <li><span class="k">GitHub</span><br>github.com/figureitoutkrish</li>
+    <li><span class="k">Behance</span><br>behance.net/theinvrangers</li>
+    <li><span class="k">Instagram</span><br>@figureitoutwithkrish · @koach.studio</li>
+    <li><span class="k">Based in</span><br>Mumbai, India</li>
+  </ul>
+
+  <h2>Education</h2>
+  <div class="item"><p class="t">B.Tech + Diploma, Data Science</p><p>SVKM's NMIMS Mukesh Patel School of Technology Management &amp; Engineering, Mumbai</p><p class="d">2022 – 2028 · six-year programme</p></div>
+
+  <h2>Numbers</h2>
+  <div class="stat"><p class="big">60K → 200K</p><p>subscribers for @rochakforsports, thumbnails designed by me</p></div>
+  <div class="stat"><p class="big">14.9M+</p><p>views across my top 13 reels on @figureitoutwithkrish (2 years)</p></div>
+  <div class="stat"><p class="big">20+</p><p>companies worked with through Koach</p></div>
+
+  <h2>Skills</h2>
+  <p class="k">Data &amp; engineering</p>
+  <p>Python, SQL, PyTorch, pandas, scikit-learn, statsmodels, OpenCV, MediaPipe, ONNX, Core ML, Streamlit, HTML, CSS, JavaScript, jQuery</p>
+  <p class="k" style="margin-top:2mm">Creative</p>
+  <p>Figma, Photoshop, Premiere Pro, Lightroom, AI tools; branding, video editing, thumbnails, content strategy</p>
+
+</aside>
+</div></body></html>

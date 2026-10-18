@@ -136,12 +136,13 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   });
   canvas.addEventListener('pointermove', (e) => {
     if (e.pointerId === dragId) dragSteer = Math.max(-1, Math.min(1, (e.clientX - dragX) / 110));
-    else if (e.pointerType === 'mouse' && !reducedMotion) {
-      // mouse: a slight look around (never steers)
-      const r = canvas.getBoundingClientRect();
-      look.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      look.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    }
+  });
+  // mouse: look around (never steers). On the cockpit, not the canvas: the intro sits over it.
+  cockpit.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse' || reducedMotion) return;
+    const r = canvas.getBoundingClientRect();
+    look.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
+    look.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
   });
   const endDrag = (e) => {
     if (e.pointerId !== dragId) return;
@@ -150,7 +151,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   };
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
-  canvas.addEventListener('pointerleave', () => ((look.x = 0), (look.y = 0)));
+  cockpit.addEventListener('pointerleave', () => ((look.x = 0), (look.y = 0)));
   const look = { x: 0, y: 0 };
 
   function readInput() {
@@ -227,9 +228,12 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     d.flash = d.limiter && Math.floor(blink * 4) % 2 === 0; // the shift lights blink while the limiter is on
     d.message = phase === 'intro' ? '' : s.message;
     d.mode = 'P';
-    // look around: eased toward the pointer, ±6° / ±3°
-    garage.look.yaw += (-look.x * 0.1 - garage.look.yaw) * Math.min(1, dt * 4);
-    garage.look.pitch += (look.y * 0.05 - garage.look.pitch) * Math.min(1, dt * 4);
+    // look around, eased toward the pointer: sat in the car before the drive, a good look round
+    // (±30° / ±11°); while driving, just a glance (±6° / ±3°) so the road stays ahead
+    const wide = phase === 'intro';
+    const range = wide ? [0.52, 0.19] : [0.1, 0.05];
+    garage.look.yaw += (-look.x * range[0] - garage.look.yaw) * Math.min(1, dt * (wide ? 3 : 4));
+    garage.look.pitch += (look.y * range[1] - garage.look.pitch) * Math.min(1, dt * (wide ? 3 : 4));
     engine?.set({ rpm: s.rpm, load: s.throttle, cut: s.onLimit && Math.floor(blink * 14) % 2 === 0 }); // the limiter's stutter
 
     updateHud();

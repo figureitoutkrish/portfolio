@@ -924,7 +924,8 @@ html:not(.js) .tl__viewport { overflow-x: auto; }
 
 /* ---------- Home: next section (placeholder until it's designed) ---------- */
 
-.next {
+/* ---------- the two doors (end of home): where the alter egos live ---------- */
+.doors {
   display: grid;
   align-content: center;
   gap: 1rem;
@@ -932,47 +933,87 @@ html:not(.js) .tl__viewport { overflow-x: auto; }
   min-height: 100svh;
   padding: 6rem var(--gutter) 8rem;
 }
-.next__eyebrow,
+.doors__eyebrow,
 .page-hero__eyebrow {
   --tracking: var(--tracking-small);
   color: var(--muted);
   font-size: 0.875rem;
   font-weight: var(--weight-body);
 }
-.next__title {
+.doors__title {
   --tracking: var(--tracking-heading);
-  max-width: 14ch;
   font-size: clamp(2.25rem, 7vw, 5.5rem);
   font-weight: var(--weight-heading);
   line-height: 1.02;
-  text-wrap: balance;
 }
-.next__body,
-.page-hero__note {
-  max-width: 40ch;
-  color: var(--muted);
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
-  font-weight: var(--weight-body);
-  line-height: 1.45;
-  text-wrap: pretty;
+.doors__grid { display: grid; gap: 1rem; margin-top: 1.25rem; }
+@media (min-width: 760px) { .doors__grid { grid-template-columns: 1fr 1fr; gap: 1.25rem; } }
+.door {
+  --door-ink: #f2f5f7;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: end;
+  gap: 0.6rem;
+  min-height: clamp(20rem, 52svh, 34rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  overflow: hidden;
+  border-radius: 24px;
+  color: var(--door-ink);
+  text-decoration: none;
+  transition: transform 160ms var(--ease-out);
 }
-.next__cta {
+.door:active { transform: scale(0.985); }
+.door:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.door__art { position: absolute; inset: 0; z-index: -1; transition: transform 600ms var(--ease-out); }
+.door__tag { --tracking: var(--tracking-small); font-size: 0.875rem; font-weight: var(--weight-body); opacity: 0.8; }
+.door__name { --tracking: var(--tracking-display); font-size: clamp(2.2rem, 5vw, 4rem); font-weight: var(--weight-heading); line-height: 0.95; letter-spacing: var(--tracking); }
+.door__body { max-width: 34ch; font-size: clamp(0.95rem, 1.3vw, 1.05rem); font-weight: var(--weight-body); line-height: 1.45; opacity: 0.82; text-wrap: pretty; }
+.door__go {
   justify-self: start;
-  min-height: 48px;
-  margin-top: 1rem;
-  padding: 0 1.5rem;
-  border: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  margin-top: 0.5rem;
+  padding: 0 1.2rem;
   border-radius: 999px;
-  background: var(--fg);
-  color: var(--bg);
-  font: inherit;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), background-color 200ms ease;
+  background: var(--door-cta);
+  color: var(--door-cta-ink);
+  font-size: 0.95rem;
+  font-weight: var(--weight-body);
 }
-.next__cta:active { transform: scale(0.97); }
+.door__go svg { transition: transform 200ms var(--ease-out); }
 @media (hover: hover) and (pointer: fine) {
-  .next__cta:hover { background: var(--accent); }
+  .door:hover .door__art { transform: scale(1.04); }
+  .door:hover .door__go svg { transform: translateX(3px); }
+}
+
+/* data: the night pit lane, teal chevrons running toward the box */
+.door--data { --door-cta: #00d2be; --door-cta-ink: #03201c; background: #05070b; }
+.door--data .door__art {
+  background:
+    radial-gradient(120% 70% at 70% 0%, rgba(0, 210, 190, 0.22), transparent 60%),
+    linear-gradient(180deg, #0c1733 0%, #05070b 70%);
+}
+.door__lane { position: absolute; left: 50%; bottom: -10%; width: 70%; height: 80%; background: linear-gradient(180deg, transparent, rgba(232, 236, 241, 0.06)); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); translate: -50% 0; }
+.door__chev { position: absolute; left: 70%; width: 2.4rem; height: 0.9rem; background: #00d2be; clip-path: polygon(0 100%, 50% 0, 100% 100%, 82% 100%, 50% 36%, 18% 100%); opacity: 0.85; }
+.door__chev:nth-child(2) { top: 18%; scale: 0.6; opacity: 0.45; }
+.door__chev:nth-child(3) { top: 28%; scale: 0.8; opacity: 0.65; }
+.door__chev:nth-child(4) { top: 40%; }
+
+/* creative: the green grid, the lime button */
+.door--creative { --door-cta: #b6ed68; --door-cta-ink: #20221f; background: #0b6440; }
+.door--creative .door__art {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px) 0 0 / 32px 32px,
+    radial-gradient(90% 60% at 80% 10%, rgba(182, 237, 104, 0.25), transparent 60%),
+    #0b6440;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .door__art, .door__go svg { transition: none; }
 }
 
 /* ---------- Alter-ego pages (placeholders) ---------- */

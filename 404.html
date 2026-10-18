@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Wrong turn — Krish Viramgama</title>
+    <meta name="description" content="This page isn't on the track." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/assets/fonts/Nohemi-VF.ttf" as="font" type="font/ttf" crossorigin />
+    <!-- Standalone on purpose: a missing page should never depend on the site's scripts. Same
+         tokens as main.css (light / dark from the saved choice or the device), Nohemi, lowercase. -->
+    <script>
+      (function () {
+        var t;
+        try { t = localStorage.getItem('krish:theme'); } catch (e) {}
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <style>
+      @font-face { font-family: "Nohemi"; src: url("/assets/fonts/Nohemi-VF.ttf") format("truetype"); font-weight: 100 900; font-display: swap; }
+      :root { --bg: #f7f7f7; --fg: #111111; --muted: #6b6b6b; --line: rgba(17, 17, 17, 0.3); --accent: #1f4fff; color-scheme: light; }
+      :root[data-theme="dark"] { --bg: #0b0c10; --fg: #ececf1; --muted: #9a9ca6; --line: rgba(236, 236, 241, 0.18); --accent: #4c74ff; color-scheme: dark; }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { height: 100%; }
+      body {
+        display: grid;
+        place-content: center;
+        gap: 1.25rem;
+        padding: 2rem 1rem;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Nohemi", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-weight: 500;
+        text-transform: lowercase;
+        -webkit-font-smoothing: antialiased;
+      }
+      .code { color: var(--accent); font-size: 0.875rem; letter-spacing: 0.01em; }
+      h1 { max-width: 12ch; font-size: clamp(2.5rem, 9vw, 6rem); font-weight: 600; line-height: 0.98; letter-spacing: -0.035em; }
+      p { max-width: 36ch; color: var(--muted); font-size: clamp(1rem, 2vw, 1.15rem); line-height: 1.45; }
+      nav { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem; }
+      a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0 1.3rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--fg);
+        font-size: 1rem;
+        text-decoration: none;
+        transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 200ms ease, background-color 200ms ease;
+      }
+      a:first-child { border-color: transparent; background: var(--fg); color: var(--bg); }
+      a:active { transform: scale(0.97); }
+      a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      @media (hover: hover) and (pointer: fine) {
+        a:hover { border-color: var(--fg); }
+        a:first-child:hover { background: var(--accent); }
+      }
+    </style>
+  </head>
+  <body>
+    <p class="code">404 &middot; track limits</p>
+    <h1>you&rsquo;ve run wide.</h1>
+    <p>this page isn&rsquo;t on the track. maybe the link was mistyped, or it moved. back to the pits:</p>
+    <nav aria-label="pages">
+      <a href="/">home</a>
+      <a href="/data/">data</a>
+      <a href="/creative/">creative</a>
+    </nav>
+  </body>
+</html>

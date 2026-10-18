@@ -35,8 +35,10 @@ npm run preview   # serve the production build
 index.html              # Home (pamidordesign.co-style hero) + intro overlay + gradient wipe
 data/index.html         # Data alter-ego page: drive into the pit box, then the steering wheel is the page (design-system/pages/data.md)
 creative/index.html     # Creative alter-ego page: green grid, Mac windows, bento work (design-system/pages/creative.md)
+404.html                # Standalone "wrong turn" page (no site scripts); robots.txt + sitemap.xml are generated at build (vite.config.js)
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
+content/*.mp3           # music for the garage radio, local only: git-ignored and never built (rights unknown)
 vite.config.js
 api/                    # Vercel functions: scores.js (leaderboard), notes.js (visitor sticky notes), pitboard.js (the garage's guestbook); Upstash Redis. Setup: docs-backend.md
 public/assets/
@@ -47,7 +49,7 @@ public/assets/
 src/
   main.js               # Home entry (intro, home reveal)
   data.js               # Entry for the data page (+ src/garage/ modules, styles/data.css)
-  garage/               # Data page logic, no three.js: drive.js, vehicle.js, telemetry.js, wheel.js + modes/, radio-check.js (the noise project heard on the wheel), roam-ui.js (on foot in the garage) + pitboard-client.js, data/projects.js (add projects here)
+  garage/               # Data page logic, no three.js: drive.js, vehicle.js, telemetry.js, wheel.js + modes/, radio-check.js (the noise project heard on the wheel), roam-ui.js (on foot in the garage) + garage-radio.js + pitboard-client.js, data/projects.js (add projects here)
   creative.js           # Entry for the creative page (+ src/creative/ modules, styles/creative.css + creative-mac.css)
   creative/             # Creative page: mac/ (os.js, cabinet.js, apps/), desk.js, work.js, project-window.js, data/projects.js
   shared.js             # Every page: Lenis, menu, tab bar, page transitions, ⌘K palette (sections/palette.js), record player
@@ -60,6 +62,7 @@ src/
   three/garage/         # The data page's 3D: cockpit (car.js, car-body.js, gloves.js, driver.js, lcd.js), pit lane (pitlane.js), garage-props.js (stations), roam.js (walking)
   assets/local/         # git-ignored, never published: unlicensed models used only on Krish's Mac (the W11); loaded via virtual:local-models, which is empty in every build (vite.config.js)
 scripts/fbx-to-glb.mjs  # converts an FBX car to a geometry-only GLB
+scripts/cv.html         # Krish's CV; print it to public/assets/cv/krish-viramgama-cv.pdf (command inside)
   sections/             # One JS module per page section (home, intro, menu, tabbar, trail, about, journey)
   utils/                # motion.js, spring.js, liquid-glass.js, transition.js (page wipe)
 ```

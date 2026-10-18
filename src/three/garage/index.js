@@ -324,6 +324,17 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     // the engineers' stand's LED meters follow this level (0…1), or idle chatter with null
     setMeter: (v) => world.setMeter(v),
     printPage: () => world.printPage(),
+    setRadio: (o) => world.setRadio(o),
+    // where the radio is, and where you are and which way is your right (for the radio's sound)
+    radioAt: () => {
+      const p = world.stations.radio.getWorldPosition(new THREE.Vector3());
+      return { x: p.x, y: p.y + 0.17, z: p.z };
+    },
+    listener: () => {
+      const p = camera.getWorldPosition(new THREE.Vector3());
+      const r = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion())).setY(0).normalize();
+      return { x: p.x, y: p.y, z: p.z, rx: r.x, rz: r.z };
+    },
     setBoard: (text) => world.setBoard(text),
     // the props the page animates (printer paper, the pit board)
     parts: world.stations,

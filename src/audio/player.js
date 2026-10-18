@@ -172,6 +172,9 @@ export function initPlayer({ reducedMotion }) {
     if (next === playing) return;
     playing = next;
     if (playing) waiting = false;
+    // other music on the page (the data page's garage radio) steps aside while a record plays
+    document.documentElement.classList.toggle('is-record-playing', playing);
+    document.dispatchEvent(new CustomEvent('record:change', { detail: { playing } }));
     swingArm(playing);
     spin(playing);
     crackleOn(playing);

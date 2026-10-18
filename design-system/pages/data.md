@@ -61,9 +61,11 @@ Every control is a real button with one job:
 
 ## Free roam: out of the car (`src/garage/roam-ui.js`, `src/three/garage/roam.js`)
 For visitors who'd rather walk than read on the wheel. Inspired by the 3D world on Vivaan Jasapara's site, done first person so it carries on from the cockpit.
+- **In the car before the drive** the view follows the mouse ±30° / ±11° (listened for on the cockpit, since the intro covers the canvas); while driving it's a glance (±6° / ±3°).
 - **Getting out:** **GET OUT** under the wheel (E; on phones, OUT in the dock). The gloves come off, the steering wheel unclips and rests on the nose (real drivers take it off to climb out), and the camera rises out of the cockpit, over the sidepod on the gantry side, and down to standing height (1.68 m) beside the car (2.1 s; a cut under reduced motion). The driver's body hides and the halo shows. **Getting in:** E near the car, or the car station; the reverse move, then the zoom back into the wheel.
 - **Moving:**
-  - WASD / arrows to walk (shift runs), drag to look, click the floor to walk there (sidestepping people and props; a ring marks the spot);
+  - W S / ↑ ↓ walk (shift runs), A D step sideways, ← → turn; click the floor to walk there (sidestepping people and props; a ring marks the spot);
+  - **looking round:** rest the mouse in the outer 20% of the view and you turn that way (faster toward the edge; the cursor shows it), or drag, or swipe sideways on a trackpad. The first tip after getting out says so;
   - click or tap anything with a station to open it; 1–7 jump to a station; Esc steps back from it;
   - collisions keep you out of the car, props and crew (2D boxes with a 0.3 m body); you can walk the garage and the pit box in front of it.
 - **Stations** (the strip along the bottom lists them all; it's real buttons, so keyboard and screen-reader users never need the 3D):
@@ -74,11 +76,16 @@ For visitors who'd rather walk than read on the wheel. Inspired by the 3D world 
 | 2 | engineers' stand | the radio check on the big monitor; the console's red LED meters follow the audio level (`checkLevel()`) |
 | 3 | wall TV | LAP; drive it again / take the wheel |
 | 4 | the car | a line about the 2026 car; get in (E) |
-| 5 | printer | prints the CV: a sheet feeds out, then `/assets/cv/krish-viramgama-cv.pdf` downloads. Until that file exists it says it's out of paper and the button is off |
+| 5 | printer | prints the CV: a sheet feeds out, then `/assets/cv/krish-viramgama-cv.pdf` downloads (source: `scripts/cv.html`, one A4 page; reprint with the command at its top) |
 | 6 | pit board | the guestbook: up to 28 characters, chalked onto the 3D board (the newest shows on arrival); `api/pitboard.js`, 3 per hour per IP, same word rules as the notes; this browser only until Upstash is connected |
 | 7 | team radio | the headset on its hook: email, LinkedIn, GitHub, Instagram as menu rows |
 
 - **Focus:** the camera glides to frame the station (in-out ease; glides across the garage swing through the open floor behind the car, never through walls). Screens (1–3) get their HTML laid over the projected screen on wide screens; objects get a panel docked on the right with the object kept to its left. Phones get a bottom sheet with the station framed above it.
+- **The garage radio** (`src/garage/garage-radio.js`): a boombox on the cabinets right of the TV, with speaker cones that pump with the level and a display that reads KV FM.
+  - **Proximity:** quiet across the garage, louder and brighter as you walk up. The volume and a lowpass filter follow your distance (1.2 → 15 m), and it's panned to the side it's on.
+  - **The track:** a file Krish drops in `content/` (e.g. `f1.mp3`) plays on the dev server only. Its rights are unknown, so no build contains it (`virtual:local-models`) and git ignores it. Everyone else hears an original 8-bar loop (112 bpm, Am F C G) generated in Web Audio and rendered once.
+  - **Stepping aside:** it pauses for the header's record player (`record:change`), mutes with the site's sound switch, dips to 45% while a station is open and 6% for the radio check, and fades out when you get back in.
+  - **Controls:** click the radio or press M to turn it on or off.
 - **Life:** the crew shift their weight and turn their heads (with their headsets) toward you within 4.5 m; the session clock on the gantry counts your time on the page (red past an hour); the gantry and canopy screens drift; garage ambience plays under it all (a low rumble, cars on the straight, other teams' wheel guns). Footsteps follow your stride, and the printer, chalk and drink each have a sound. Stand in the pit box for 4 s and the radio calls "box, box!". The fridge has drinks.
 
 ## The garage (`src/three/garage/garage-props.js`, `car-body.js`)

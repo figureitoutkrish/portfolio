@@ -19,3 +19,9 @@ Inherits: design-system/MASTER.md
   - Reduced motion / no JS: no pin or terminal — a plain sideways-scrolling strip.
 - The intro jumps to the top and flags `html.is-intro`; the tab bar never shows during it.
 
+
+- **The two doors** (end of the page, `.doors` in `main.css`): "two alter egos / pick a side." then two big cards linking to the alter egos. Each previews its own page's world in CSS only:
+  - **data:** the night pit lane, teal chevrons, a teal "take the wheel" pill;
+  - **creative:** the green grid with a lime "boot it up" pill.
+
+  The art scales 1.04 on hover (600ms ease-out), the arrow nudges 3px, and a press scales the card to 0.985; reduced motion drops the transitions. Side by side from 760px, stacked on phones. They replaced the old "more of me is on the way" section and its newsletter button, which did nothing.

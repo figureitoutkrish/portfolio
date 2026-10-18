@@ -6,7 +6,7 @@
 //           opposite ways; a conic gradient on a 1px masked ring, angle animated via @property)
 //   shimmer a dotted texture blooms from the centre of a tile in a soft ring and drifts
 // Mouse and trackpad only: touch has no hover, so it gets the plain label. Reduced motion: none.
-const ROLL = ['.pill', '.next__cta', '.koach__chip:not(.koach__chip--static)', '.menu li a', '.menu__theme > span:first-child', '.content__foot a', '.tele__bar a'];
+const ROLL = ['.pill', '.koach__chip:not(.koach__chip--static)', '.menu li a', '.menu__theme > span:first-child', '.content__foot a', '.tele__bar a'];
 const SHINE = ['.card', '.crew', '.works__card', '.tt__sleeve-art'];
 const SHIMMER = ['.crew', '.works__card'];
 

@@ -1068,3 +1068,5 @@ html.is-gaming .speedo, html.is-mac-zoom .speedo { opacity: 0; }
   .os__close::after { content: ""; position: absolute; inset: -12px; }
   .os__btn::after { content: ""; position: absolute; inset: -8px -4px; }
 }
+
+.floppy--secret[hidden] { display: none; } /* until its video exists (creative.js) */

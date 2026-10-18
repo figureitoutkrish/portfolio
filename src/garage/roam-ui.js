@@ -3,6 +3,7 @@ import { lap } from './modes/lap.js';
 import { ROWS } from './modes/radio.js';
 import { renderCheck, toggleCheck, turnCheck, leaveCheck, checkLevel } from './radio-check.js';
 import { getBoard, postBoard } from './pitboard-client.js';
+import { createGarageRadio } from './garage-radio.js';
 import { sfx, loop, soundOn, onSoundChange } from '../audio/sfx.js';
 import { LAYOUT } from './layout.js';
 
@@ -13,10 +14,12 @@ import { LAYOUT } from './layout.js';
 // the team radio). Everything here is also reachable from the strip, so the 3D is a way to browse
 // the same things, never the only way.
 //
-//   W A S D / arrows   walk (shift: run)        drag    look round
+//   W S / ↑ ↓  walk (shift: run)   A D  step sideways   ← →  turn
+//   look round: push the mouse to a screen edge, drag, or swipe sideways on a trackpad
 //   click / tap        walk there, or open what's under it
 //   1 … 7              jump to a station        esc     step back from it
 //   E                  get back in the car (near it)
+//   M                  the garage radio on / off (or click it); it's louder the closer you are
 const STATIONS = [
   { id: 'gantry', key: '1', label: 'pit wall', what: 'projects' },
   { id: 'stand', key: '2', label: 'engineers', what: 'radio check' },
@@ -28,7 +31,9 @@ const STATIONS = [
 ];
 const ON_SCREEN = new Set(['gantry', 'stand', 'tv']); // HTML laid over a 3D screen
 const CV_URL = '/assets/cv/krish-viramgama-cv.pdf';
-const KEYS = { forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['KeyA', 'ArrowLeft'], right: ['KeyD', 'ArrowRight'] };
+const KEYS = { forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['KeyA'], right: ['KeyD'], turnLeft: ['ArrowLeft'], turnRight: ['ArrowRight'] };
+const TURN = 1.9; // rad/s, the arrow keys
+const EDGE = 0.8; // the outer 20% of the view, either side, turns you (mouse)
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
@@ -67,7 +72,8 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     moving = true;
     R.enter(() => {
       moving = false;
-      say(touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–7 jump to one');
+      say(touch ? 'drag to look round · tap a screen or the floor' : 'look round: mouse to the edge, drag, or ← →');
+      tipUntil = performance.now() + 6000; // (keeps that tip up for a few seconds)
       strip.querySelector('button')?.focus({ preventScroll: true });
       if (pending) openStation(pending.id, pending.index);
       pending = null;
@@ -95,6 +101,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     if (!active) return;
     if (moving) return void (pending = { id, index });
     if (id === 'fridge') return drink();
+    if (id === 'radio') return toggleRadio();
     close({ instant: true, keepCamera: true });
     open = { id, index };
     strip.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.station === id)));
@@ -306,6 +313,16 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     return m < 1 ? 'now' : m < 60 ? `${m}m` : m < 1440 ? `${Math.round(m / 60)}h` : `${Math.round(m / 1440)}d`;
   };
 
+  // ---------- the garage radio ----------
+  const radio = createGarageRadio();
+  const radioAt = garage.radioAt();
+  function toggleRadio() {
+    const on = radio.toggle();
+    sfx('toggle');
+    say(on ? 'radio on · walk up to it to turn it up' : 'radio off');
+    tipUntil = performance.now() + 2500;
+  }
+
   // ---------- the fridge ----------
   function drink() {
     sfx('drink');
@@ -331,6 +348,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       }
       return;
     }
+    if (e.code === 'KeyM' && !e.repeat) return toggleRadio();
     if (e.code === 'KeyE' && !e.repeat) {
       if (open?.id === 'car' || (!open && R.nearCar())) return leave();
     }
@@ -380,6 +398,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
 
   // drag to look; a click (or tap) that didn't drag picks what's under it
   let drag = null;
+  let edge = null; // the mouse over the view, −1…1 each way (null when it's off it)
   canvas.addEventListener('pointerdown', (e) => {
     if (!active || open || e.button > 0) return;
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: 0 };
@@ -403,7 +422,11 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       hover.hidden = true;
       return;
     }
-    if (e.pointerType === 'mouse' && !open) hoverAt(e.clientX, e.clientY);
+    if (e.pointerType === 'mouse') {
+      const r = canvas.getBoundingClientRect();
+      edge = { x: ((e.clientX - r.left) / r.width) * 2 - 1, y: ((e.clientY - r.top) / r.height) * 2 - 1 };
+      if (!open) hoverAt(e.clientX, e.clientY);
+    }
   });
   const endDrag = (e) => {
     if (!drag || e.pointerId !== drag.id) return;
@@ -414,7 +437,16 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
   };
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
-  canvas.addEventListener('pointerleave', () => (hover.hidden = true));
+  canvas.addEventListener('pointerleave', () => {
+    hover.hidden = true;
+    edge = null;
+  });
+  // a trackpad's sideways swipe turns you too
+  canvas.addEventListener('wheel', (e) => {
+    if (!active || open || moving || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    R.look(e.deltaX * 0.0035, 0);
+  }, { passive: false });
   function rel(x, y) {
     const r = canvas.getBoundingClientRect();
     return [x - r.left, y - r.top];
@@ -427,13 +459,15 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     R.go(hit.point);
     marker(x, y);
   }
+  // things you can click that aren't stations
+  const EXTRAS = { fridge: () => ({ label: 'fridge', what: 'drink' }), radio: () => ({ label: 'radio', what: radio.on ? 'turn it off · M' : 'turn it on · M' }) };
   let hoverRaf = 0;
   function hoverAt(x, y) {
     cancelAnimationFrame(hoverRaf);
     hoverRaf = requestAnimationFrame(() => {
       const hit = R.busy ? null : R.pick(...rel(x, y));
-      const st = hit?.station && (STATIONS.find((s) => s.id === hit.station) || (hit.station === 'fridge' && { label: 'fridge', what: 'drink' }));
-      canvas.style.cursor = st ? 'pointer' : 'grab';
+      const st = hit?.station && (STATIONS.find((s) => s.id === hit.station) || EXTRAS[hit.station]?.());
+      canvas.style.cursor = st ? 'pointer' : edge && Math.abs(edge.x) > EDGE ? (edge.x > 0 ? 'e-resize' : 'w-resize') : 'grab';
       hover.hidden = !st;
       if (st) {
         hover.innerHTML = `<b>${st.label}</b>${hit.station === 'gantry' ? esc(PROJECTS[hit.index]?.title || '') : st.what}`;
@@ -473,10 +507,18 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
   // stand in the pit box too long and the radio tells you
   let inBox = 0;
   let boxCalled = false; // (a cooldown, so it isn't every few seconds)
-  let boxShown = 0; // the call stays up a few seconds
+  let tipUntil = 0; // a tip or the box call stays up until then
 
   // ---------- per frame ----------
   const offFrame = garage.onFrame((dt) => {
+    // the radio: proximity while you're on foot, fading out when you get back in
+    const lvl = radio.update(dt, {
+      inGarage: active && !moving,
+      listener: active ? garage.listener() : null,
+      radio: radioAt,
+      duck: open ? (open.id === 'stand' ? 0.06 : 0.45) : 1,
+    });
+    if (active) garage.setRadio({ level: lvl, label: radio.label });
     if (!active) {
       if (ambience) {
         ambience.stop();
@@ -495,7 +537,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       inBox += dt;
       if (inBox > 4 && !boxCalled) {
         boxCalled = true;
-        boxShown = performance.now() + 4000;
+        tipUntil = performance.now() + 4000;
         sfx('radio');
         say('radio: box, box! …you’re standing in it.');
         setTimeout(() => (boxCalled = false), 20000);
@@ -503,8 +545,20 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     } else inBox = 0;
     const on = (k) => KEYS[k].some((c) => held.has(c));
     R.move((on('forward') ? 1 : 0) - (on('back') ? 1 : 0), (on('right') ? 1 : 0) - (on('left') ? 1 : 0), held.has('Shift'));
+    // turning: the arrow keys, or the mouse resting near a screen edge (faster the closer it gets)
+    if (!open && !moving && !drag) {
+      let yaw = ((on('turnRight') ? 1 : 0) - (on('turnLeft') ? 1 : 0)) * TURN;
+      let pitch = 0;
+      if (edge) {
+        const ax = Math.abs(edge.x);
+        if (ax > EDGE) yaw += Math.sign(edge.x) * Math.pow((ax - EDGE) / (1 - EDGE), 1.5) * 1.4;
+        const ay = Math.abs(edge.y);
+        if (ay > 0.82) pitch = Math.sign(edge.y) * Math.pow((ay - 0.82) / 0.18, 1.5) * 0.7;
+      }
+      if (yaw || pitch) R.look(yaw * dt, pitch * dt);
+    }
     if (open?.id === 'stand') garage.setMeter(checkLevel());
-    if (!open && !R.busy && performance.now() > boxShown) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–7 jump to one');
+    if (!open && !R.busy && performance.now() > tipUntil) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–7 jump to one');
   });
   const offStep = R.onStep(() => sfx('step'));
 

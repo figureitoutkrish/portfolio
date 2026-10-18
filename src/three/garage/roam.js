@@ -103,6 +103,7 @@ export function createRoam({ scene, camera, head, car, rig, colliders, parts, re
   tag(parts.printer, 'printer');
   tag(parts.board, 'board');
   tag(parts.fridge, 'fridge');
+  tag(parts.radio, 'radio');
   tag(car.group, 'car');
   function pick(x, y, width, height) {
     ndc.set((x / width) * 2 - 1, -(y / height) * 2 + 1);

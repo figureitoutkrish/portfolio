@@ -221,6 +221,40 @@ export function buildGarageProps(M, track) {
   mesh(new THREE.PlaneGeometry(0.62, 1.72), P.glass, 0.36, 0.98, 0, fridge).rotation.y = Math.PI / 2;
   fridge.name = 'fridge';
   block(back, back + 0.8, 6.2, 7.4);
+  // the garage radio: a boombox on the cabinets right of the TV. The page plays the garage's music
+  // through it, louder as you walk up (src/garage/garage-radio.js); its cones pump with the beat
+  const radio = new THREE.Group();
+  radio.name = 'radio';
+  radio.position.set(back + 0.45, 1.06, 4.0);
+  radio.rotation.y = Math.PI / 2; // faces into the garage (+x)
+  g.add(radio);
+  const radioBody = track(new THREE.MeshStandardMaterial({ color: 0x1b1d22, roughness: 0.5, metalness: 0.35 }));
+  const grille = track(new THREE.MeshStandardMaterial({ color: 0x0a0b0d, roughness: 0.9 }));
+  mesh(new THREE.BoxGeometry(0.66, 0.34, 0.2), radioBody, 0, 0.17, 0, radio);
+  mesh(new THREE.BoxGeometry(0.62, 0.3, 0.01), grille, 0, 0.17, 0.101, radio);
+  const cones = [];
+  for (const sx of [-0.19, 0.19]) {
+    mesh(new THREE.TorusGeometry(0.095, 0.012, 8, 32), P.grey, sx, 0.16, 0.108, radio);
+    const cone = mesh(new THREE.CylinderGeometry(0.085, 0.03, 0.03, 32, 1, true), grille, sx, 0.16, 0.1, radio);
+    cone.rotation.x = Math.PI / 2;
+    const cap = mesh(new THREE.SphereGeometry(0.028, 16, 10), radioBody, sx, 0.16, 0.112, radio);
+    cap.scale.z = 0.5;
+    cone.userData.z = cone.position.z;
+    cap.userData.z = cap.position.z;
+    cones.push(cone, cap);
+  }
+  // the display between the speakers: station and level bars (redrawn by setRadio)
+  const radioScreen = screen(0.13, 0.07, drawRadio, { px: 260 });
+  radioScreen.position.set(0, 0.25, 0.108);
+  radio.add(radioScreen);
+  for (const sx of [-0.035, 0.035]) mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.02, 16), M.tealPaint, sx, 0.09, 0.11, radio).rotation.x = Math.PI / 2;
+  // the handle and the antenna
+  const handle = mesh(new THREE.TorusGeometry(0.22, 0.012, 8, 32, Math.PI), P.grey, 0, 0.34, 0, radio);
+  handle.scale.y = 0.35;
+  const antenna = mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.55, 6), P.grey, 0.28, 0.6, -0.06, radio);
+  antenna.rotation.z = -0.5;
+  block(back, back + 0.9, 3.6, 4.4);
+
   // the race suit on a stand and two helmets on a shelf (the −z corner)
   const suit = new THREE.Group();
   suit.position.set(back + 0.7, 0, -6.5);
@@ -337,6 +371,7 @@ export function buildGarageProps(M, track) {
   let feed = null;
   // the printer: a sheet feeds out over ~1.2 s (the page downloads the PDF as it lands)
   let printT = -1;
+  let radioLabel = null;
   function tickPrinter(dt) {
     if (printT < 0) return;
     printT += dt;
@@ -357,10 +392,18 @@ export function buildGarageProps(M, track) {
     colliders,
     update,
     // the stations' parts (roam.js decides where to stand and what's focusable)
-    parts: { gantryScreens, clock, printer, paper, printerLed, board, boardFace, standScreen, headset, tv, fridge, tyreBoard },
+    parts: { gantryScreens, clock, printer, paper, printerLed, board, boardFace, standScreen, headset, tv, fridge, tyreBoard, radio },
     // the radio console follows the page's audio level (0…1), or null for idle chatter
     setMeter: (v) => (feed = v),
     printPage: () => (printT = 0),
+    // the radio: cones pump with `level` (0…1); the display shows `label` (or OFF)
+    setRadio({ level = 0, label } = {}) {
+      cones.forEach((c) => (c.position.z = c.userData.z + level * 0.02)); // the cones push out on the beat
+      if (label !== undefined && label !== radioLabel) {
+        radioLabel = label;
+        radioScreen.userData.redraw(label);
+      }
+    },
     // the pit board shows the newest message, chalked across up to four lines
     setBoard(text) {
       if (!text) return;
@@ -576,6 +619,14 @@ function drawBoard(c, w, h, lines = ['P1', 'KV', 'BOX', '+0.0']) {
     c.fillText(l.toUpperCase(), w / 2, (h * (i + 0.8)) / (n + 0.6));
   });
   c.textAlign = 'start';
+}
+function drawRadio(c, w, h, label = 'KV FM') {
+  c.fillStyle = '#041512';
+  c.fillRect(0, 0, w, h);
+  c.fillStyle = label === 'OFF' ? 'rgba(0,210,190,0.35)' : TEAL;
+  c.font = `700 ${Math.round(h * 0.42)}px ${MONO}`;
+  c.textBaseline = 'middle';
+  c.fillText(label, w * 0.07, h * 0.5);
 }
 function drawTyreBoard(c, w, h) {
   c.fillStyle = '#f3f4f6';

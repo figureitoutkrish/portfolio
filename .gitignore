@@ -18,6 +18,10 @@ content/*.heic
 content/*.HEIC
 content/*.webp
 content/*.zip
+# music Krish drops in for local use (rights unknown): never committed, never built (see vite.config.js)
+content/*.mp3
+content/*.m4a
+content/*.wav
 content/*/
 
 # Models that must not be published (game rips, unlicensed): only used on this Mac
