@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { loft, superRing, taperedTube, canvasTexture, carbonTexture } from './geometry.js';
 import { buildWheelModel } from './wheel-model.js';
+import { addCarBody } from './car-body.js';
 
-// The cockpit built in code (what the published site shows; a real model replaces it when one is
-// present, see car.js). Only what the driver can see is modelled: the tub and its rim, nose,
-// front tyres and arms, mirrors and the steering wheel. Car space: +z forward, +x the driver's
+// The car built in code (what the published site shows; a real model replaces it when one is
+// present, see car.js). This file is the cockpit: the tub and its rim, nose, front tyres and arms,
+// mirrors and the steering wheel; car-body.js adds the rest for when you walk round it. Car space: +z forward, +x the driver's
 // left, y up, ground at 0, in metres (sized like a 2020 car).
 const TEAL = 0x00d2be;
 
@@ -173,6 +174,9 @@ export function buildFallbackCar() {
     car.add(new THREE.Mesh(taperedTube(stalk, { segments: 2, radial: 6, radiusAt: () => 0.008, roundTip: false }), mats.carbon));
   }
 
+  // the rest of the car, seen when you get out (engine cover, floor, rear wheels, wings, halo)
+  const body = addCarBody(car, mats, { tyreMats, wheels });
+
   const wheel = buildWheelModel();
   car.add(wheel.pivot);
 
@@ -201,8 +205,11 @@ export function buildFallbackCar() {
     },
     eye: new THREE.Vector3(0, 0.99, -0.2),
     wheels,
+    halo: body.halo,
+    setAero: body.setAero,
     dispose() {
       car.traverse((o) => o.geometry?.dispose());
+      body.dispose();
       Object.values(mats).forEach((m) => m.dispose());
       tyreMats.forEach((m) => m.dispose());
       carbon.dispose();

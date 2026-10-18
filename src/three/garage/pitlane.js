@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { canvasTexture } from './geometry.js';
+import { buildGarageProps } from './garage-props.js';
 import { LAYOUT } from '../../garage/layout.js';
 
 // The night pit lane: a row of garages on the driver's right (−x), the pit wall and its stand on
@@ -23,7 +24,7 @@ export function buildWorld({ quality = 'high' } = {}) {
   const M = {
     asphalt: track(new THREE.MeshStandardMaterial({ color: 0x34383f, roughness: 0.85 })),
     concrete: track(new THREE.MeshStandardMaterial({ color: 0x5a5f67, roughness: 0.8 })),
-    epoxy: track(new THREE.MeshStandardMaterial({ color: 0xb4b9c0, roughness: 0.45 })),
+    epoxy: track(new THREE.MeshStandardMaterial({ color: 0x969ba3, roughness: 0.4 })),
     wall: track(new THREE.MeshStandardMaterial({ color: 0x4a4f58, roughness: 0.85 })),
     wallLight: track(new THREE.MeshStandardMaterial({ color: 0xeef1f4, roughness: 0.8 })),
     facade: track(new THREE.MeshStandardMaterial({ color: 0x1c2027, roughness: 0.7 })),
@@ -182,7 +183,7 @@ export function buildWorld({ quality = 'high' } = {}) {
   const canopy = new THREE.SpotLight(0xe8efff, 16, 30, 0.9, 0.7, 1.4);
   world.add(canopy, canopy.target);
 
-  function update(carPos) {
+  function update(carPos, dt = 0) {
     // the lane's lights fade out as the car backs into the garage (its own panels take over)
     const outside = Math.max(0, Math.min(1, (carPos.x - gx + 1) / 4));
     const nearest = Math.round((carPos.z - LAYOUT.ours) / pitch);
@@ -194,12 +195,14 @@ export function buildWorld({ quality = 'high' } = {}) {
     canopy.intensity = 16 * outside;
     canopy.position.set(gx + 3, 5.6, carPos.z + 2);
     canopy.target.position.set(carPos.x, 0.6, carPos.z + 1);
-    ours.update?.();
+    ours.update(dt, Math.abs(carPos.z - LAYOUT.ours) < 60);
   }
 
   return {
     group: world,
     stations: ours.stations,
+    colliders: ours.colliders,
+    setMeter: ours.props.setMeter,
     update,
     setCrew: guide.setCrew,
     outsideAt: (x) => Math.max(0, Math.min(1, (x - gx + 1) / 4)),
@@ -211,8 +214,8 @@ export function buildWorld({ quality = 'high' } = {}) {
   };
 }
 
-// Our garage: polished floor with the box marked out, our signage, tyre stacks in blankets, tool
-// cabinets, the engineers' desks, a wall of screens, and the crew (silhouettes) waiting.
+// Our garage: polished floor with the box marked out, our signage, tyre stacks in blankets, the
+// stations and dressing (garage-props.js), and the crew waiting.
 function buildOurGarage(M, track) {
   const g = new THREE.Group();
   g.name = 'our-garage';
@@ -261,60 +264,9 @@ function buildOurGarage(M, track) {
   signMesh.rotation.y = Math.PI / 2;
   g.add(signMesh);
 
-  // the back wall's screen bank (the projects station)
-  const screens = [];
-  const screenTex = (seed) =>
-    track(
-      canvasTexture(512, 288, (c, w, h) => {
-        c.fillStyle = '#05080b';
-        c.fillRect(0, 0, w, h);
-        c.strokeStyle = 'rgba(0,210,190,0.9)';
-        c.lineWidth = 3;
-        c.beginPath();
-        let y = h * 0.6;
-        for (let x = 0; x <= w; x += 8) {
-          y += Math.sin(x * 0.03 + seed) * 6 + (Math.random() - 0.5) * 8;
-          y = Math.min(h - 20, Math.max(40, y));
-          if (x === 0) c.moveTo(x, y);
-          else c.lineTo(x, y);
-        }
-        c.stroke();
-        c.fillStyle = 'rgba(255,255,255,0.7)';
-        c.font = '500 22px ui-monospace, monospace';
-        c.fillText(['LAP 12  1:29.402', 'S1  28.114  S2  31.902', 'TYRE  MED  14 LAPS', 'ERS  DEPLOY  78%'][seed % 4], 20, 32);
-      })
-    );
-  for (let i = 0; i < 3; i++) {
-    const s = new THREE.Mesh(keep(new THREE.PlaneGeometry(2.4, 1.35)), track(new THREE.MeshBasicMaterial({ map: screenTex(i), toneMapped: false })));
-    s.position.set(gx - gd + 0.2, 2.6, z0 + (i - 1) * 2.7);
-    s.rotation.y = Math.PI / 2;
-    g.add(s);
-    screens.push(s);
-  }
-
-  // engineers' desks with monitors on both side walls (the debrief station)
-  const desk = keep(new THREE.BoxGeometry(3.2, 0.06, 0.9));
-  const leg = keep(new THREE.BoxGeometry(0.05, 0.74, 0.05));
-  const mon = keep(new THREE.PlaneGeometry(0.62, 0.36));
-  for (const side of [-1, 1]) {
-    const zw = z0 + side * (gw / 2 - 0.7);
-    for (const xd of [gx - 4.5, gx - 9]) {
-      const d = new THREE.Mesh(desk, M.steel);
-      d.position.set(xd, 0.76, zw);
-      g.add(d);
-      for (const [lx, lz] of [[-1.5, -0.4], [1.5, -0.4], [-1.5, 0.4], [1.5, 0.4]]) {
-        const l = new THREE.Mesh(leg, M.steel);
-        l.position.set(xd + lx, 0.37, zw + lz);
-        g.add(l);
-      }
-      for (const k of [-0.8, 0, 0.8]) {
-        const m = new THREE.Mesh(mon, track(new THREE.MeshBasicMaterial({ map: screenTex(Math.round(xd + k * 10)), toneMapped: false })));
-        m.position.set(xd + k, 1.12, zw + side * 0.3);
-        m.rotation.y = side > 0 ? Math.PI : 0;
-        g.add(m);
-      }
-    }
-  }
+  // the stations and the dressing: gantry, engineers' stand, wall TV, light box, air lines…
+  const props = buildGarageProps(M, track);
+  g.add(props.group);
 
   // tyre stacks in blankets, front corners of the garage
   const tyreGeo = keep(new THREE.CylinderGeometry(0.34, 0.34, 0.37, 28));
@@ -330,48 +282,82 @@ function buildOurGarage(M, track) {
     g.add(band);
   }
 
-  // tool cabinets along the back wall
-  const cab = keep(new THREE.BoxGeometry(0.75, 1.05, 1.6));
-  const handle = keep(new THREE.BoxGeometry(0.02, 0.02, 1.2));
-  for (const dz of [-5.2, -3.4, 3.4, 5.2]) {
-    const c = new THREE.Mesh(cab, M.cabinet);
-    c.position.set(gx - gd + 0.6, 0.53, z0 + dz);
-    g.add(c);
-    for (let k = 0; k < 4; k++) {
-      const h = new THREE.Mesh(handle, M.lampTeal);
-      h.position.set(gx - gd + 0.98, 0.25 + k * 0.24, z0 + dz);
-      g.add(h);
-    }
-  }
-
-  // crew: silhouettes standing by, ready for the car
-  const body = keep(new THREE.CapsuleGeometry(0.2, 0.75, 6, 12));
-  const head = keep(new THREE.SphereGeometry(0.13, 16, 12));
+  // crew: in team kit (white shirts, dark trousers, a headset), standing round the car the way
+  // they do in the photos, clear of the walkways
+  const shirt = track(new THREE.MeshStandardMaterial({ color: 0xe9ebee, roughness: 0.75 }));
+  const trousers = track(new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.85 }));
+  const skin = track(new THREE.MeshStandardMaterial({ color: 0x2c2f35, roughness: 0.7 }));
+  const figure = crewFigure(keep);
   const crew = [];
-  for (const [x, z, ry] of [[gx - 6, z0 - 3.1, 0.2], [gx - 9.5, z0 + 3.2, Math.PI - 0.3], [gx - 13.5, z0 - 2.6, 0.6], [gx - 3, z0 + 3.4, Math.PI + 0.4], [gx - 11, z0 - 5.5, 0]]) {
+  for (const [x, z, ry] of [[box.x + 2.6, z0 - 2.0, -2.4], [box.x - 2.2, z0 + 2.0, 0.3], [box.x - 6.2, z0 - 1.4, 1.2], [gx - 1.6, z0 + 2.4, -1.9], [box.x + 1.2, z0 + 1.9, 3.0]]) {
     const p = new THREE.Group();
-    const b = new THREE.Mesh(body, M.crew);
-    b.position.y = 0.6 + 0.2;
-    b.scale.set(1, 1, 0.75);
-    const hd = new THREE.Mesh(head, M.crew);
-    hd.position.y = 1.62;
-    const stripe = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.205, 0.205, 0.05, 16)), M.tealPaint);
-    stripe.position.y = 1.18;
-    stripe.scale.set(1, 1, 0.75);
-    p.add(b, hd, stripe);
+    p.add(new THREE.Mesh(figure.shirt, shirt), new THREE.Mesh(figure.trousers, trousers), new THREE.Mesh(figure.dark, M.crew));
+    const hd = new THREE.Mesh(figure.head, skin); // its own mesh: the head turns to look at you
+    hd.position.y = 1.6;
+    p.add(hd);
+    const stripe = new THREE.Mesh(figure.stripe, M.tealPaint);
+    p.add(stripe);
     p.position.set(x, 0, z);
     p.rotation.y = ry;
+    p.userData.head = hd;
     g.add(p);
     crew.push(p);
   }
+  const colliders = [...props.colliders, ...crew.map((p) => [p.position.x - 0.3, p.position.x + 0.3, p.position.z - 0.3, p.position.z + 0.3])];
 
   return {
     group: g,
-    stations: { screens, crew },
+    stations: { ...props.parts, crew },
+    props,
+    colliders,
+    update: (dt, near) => props.update(dt, near),
     dispose() {
       local.forEach((x) => x.dispose());
+      props.dispose();
     },
   };
+}
+
+// A crew member in team kit, merged per material (shirt, trousers, the dark bits, the head, the
+// shirt's teal band): legs, hips, torso, arms behind the back (as they stand in the garage), a
+// neck, and a headset. 1.78 m tall, facing +z.
+function crewFigure(keep) {
+  const parts = { shirt: [], trousers: [], dark: [] };
+  const put = (list, geo, x, y, z, rx = 0, rz = 0, sx = 1, sy = 1, sz = 1) => {
+    geo.scale(sx, sy, sz);
+    if (rx) geo.rotateX(rx);
+    if (rz) geo.rotateZ(rz);
+    geo.translate(x, y, z);
+    list.push(geo);
+  };
+  for (const s of [-1, 1]) {
+    put(parts.trousers, new THREE.CapsuleGeometry(0.085, 0.72, 4, 10), s * 0.1, 0.47, 0);
+    put(parts.dark, new THREE.BoxGeometry(0.11, 0.07, 0.24), s * 0.1, 0.035, 0.04); // boots
+    // arms: from the shoulder down and back, hands meeting behind
+    put(parts.shirt, new THREE.CapsuleGeometry(0.052, 0.5, 4, 10), s * 0.2, 1.17, -0.07, 0.32, s * 0.16);
+  }
+  put(parts.trousers, new THREE.CapsuleGeometry(0.16, 0.1, 4, 12), 0, 0.93, 0, 0, Math.PI / 2, 1, 1, 0.75);
+  put(parts.shirt, new THREE.CapsuleGeometry(0.17, 0.36, 6, 14), 0, 1.24, 0, 0, 0, 1.18, 1, 0.66);
+  put(parts.shirt, new THREE.CylinderGeometry(0.05, 0.055, 0.1, 10), 0, 1.5, 0); // neck (collar)
+  // the headset: band over the head, cups at the ears, the mic boom
+  put(parts.dark, new THREE.TorusGeometry(0.118, 0.012, 6, 20, Math.PI), 0, 1.6, 0); // (an arc in x–y: ear to ear over the top)
+  for (const s of [-1, 1]) {
+    const cup = new THREE.CylinderGeometry(0.045, 0.045, 0.04, 14);
+    cup.rotateZ(Math.PI / 2);
+    cup.translate(s * 0.115, 1.6, 0);
+    parts.dark.push(cup);
+  }
+  const head = keep(new THREE.SphereGeometry(0.105, 18, 14));
+  head.scale(0.92, 1.08, 1);
+  const stripe = keep(new THREE.CylinderGeometry(0.2, 0.2, 0.035, 16));
+  stripe.scale(1.18, 1, 0.66);
+  stripe.translate(0, 1.33, 0);
+  const merge = (list) => {
+    const m = mergeGeometries(list, false);
+    list.forEach((x) => x.dispose());
+    return keep(m);
+  };
+  return { shirt: merge(parts.shirt), trousers: merge(parts.trousers), dark: merge(parts.dark), head, stripe };
 }
 
 // What a real pit lane shows you, so the HUD is a backup rather than the only guide:

@@ -163,7 +163,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     setLeds(drive.rpm, drive.flash);
     lcd.draw(drive);
     pos.set(pose.x, 0, pose.z);
-    world.update(pos);
+    world.update(pos, dt);
     // the car's own key light is for the dark lane; in the garage it would double up
     const out = world.outsideAt(pose.x);
     key.intensity = 4 + 10 * out;

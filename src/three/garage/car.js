@@ -33,6 +33,7 @@ export async function loadCar({ manager, lcdTexture }) {
   // the driver: body in the seat, arms from the shoulders to the gloves on the grips
   const driver = buildDriver();
   car.group.add(driver.group);
+  car.driver = driver.group; // hidden while you're out of the car
   car.group.updateMatrixWorld(true);
   car.gloves = car.grips.map((grip) => {
     const side = Math.sign(grip.out.x);
