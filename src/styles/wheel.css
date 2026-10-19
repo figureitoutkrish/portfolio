@@ -97,6 +97,14 @@ html[data-drive="wheel"] .hud { display: none; }
 .screen__mode { padding: 0.32em 0.6em; border-radius: 2px; background: var(--f1-team); color: var(--f1-team-ink); line-height: 1; }
 .screen__toast { color: var(--f1-ink); text-align: center; opacity: 0; transition: opacity 200ms ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .screen__toast.on { opacity: 1; }
+/* OVERTAKE: a battery bar under the screen's top bar, draining then harvesting back */
+.screen__boost { position: absolute; left: 0; right: 0; top: 0; height: 3px; pointer-events: none; opacity: 0; }
+.screen__boost i { display: block; height: 100%; background: linear-gradient(90deg, #3b6bff, #7d3cf0); transform-origin: left; transform: scaleX(1); }
+.screen__boost.is-on { animation: boost-bar 1.9s ease-out both; }
+.screen__boost.is-on i { animation: boost-drain 1.9s cubic-bezier(0.23, 1, 0.32, 1) both; }
+@keyframes boost-bar { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes boost-drain { 0% { transform: scaleX(1); } 30% { transform: scaleX(0.62); } 100% { transform: scaleX(1); } }
+.leds i.boost { --led: #3b6bff; }
 .screen__count { color: var(--f1-muted); font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
 .screen__body {
   min-height: 0;

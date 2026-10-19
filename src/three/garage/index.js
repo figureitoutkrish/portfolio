@@ -88,7 +88,20 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
   const black = new THREE.Color(0x000000);
   const BLUE = new THREE.Color(0x3b6bff);
   let litLeds = -1;
+  let boost = 0; // OVERTAKE: 0…1 through the shift lights' blue sweep (1.4 s)
   function setLeds(rpm, flash) {
+    // OVERTAKE sweeps the strip blue, out from the middle and back
+    if (boost > 0) {
+      const k = Math.sin(Math.min(1, boost) * Math.PI); // up, then down
+      const lit = Math.round(k * 8); // LEDs lit each side of the centre
+      car.leds.forEach((led, i) => {
+        const on = Math.abs(i - 7) < lit;
+        led.material.emissive.copy(on ? BLUE : black);
+        led.material.emissiveIntensity = on ? 2.4 : 0;
+      });
+      litLeds = -1; // (back to normal once it's over)
+      return;
+    }
     // on the pit limiter the whole strip flashes blue; otherwise it fills with the revs (or, once
     // the wheel is the page, shows whatever the page says: drive.leds)
     const n = drive.leds != null ? drive.leds : flash ? 99 : Math.max(0, Math.min(15, Math.round(((rpm - 6000) / (12000 - 6000)) * 15)));
@@ -133,7 +146,8 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     tickers.forEach((fn) => fn(dt));
-    const animating = car.controls.update(dt * 1000); // a button or knob still moving
+    if (boost > 0) boost = Math.max(0, boost - dt / 1.4);
+    const animating = car.controls.update(dt * 1000) || boost > 0; // a button or knob still moving, or the boost
     const t = clock.getElapsedTime();
     // a touch wider with speed (the lane rushes past a little more); narrow when zoomed on the wheel
     const z = view.zoom * view.zoom * (3 - 2 * view.zoom);
@@ -281,6 +295,11 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
       drive.leds = n;
       animate();
     },
+    // OVERTAKE: the shift lights sweep blue (drawn even while the wheel holds the frame)
+    boost() {
+      boost = 1;
+      animate();
+    },
     // the crew at the box: 'ready' (at their stations) or 'push' (round the back, pushing)
     crew: (state) => world.setCrew(state),
     hands(on) {
@@ -325,6 +344,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     setMeter: (v) => world.setMeter(v),
     printPage: () => world.printPage(),
     setRadio: (o) => world.setRadio(o),
+    setSeen: (list) => world.setSeen(list),
     // where the radio is, and where you are and which way is your right (for the radio's sound)
     radioAt: () => {
       const p = world.stations.radio.getWorldPosition(new THREE.Vector3());

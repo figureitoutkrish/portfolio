@@ -173,6 +173,12 @@ const THEMES = {
       noise({ dur: 0.18, vol: 0.05, type: 'bandpass', freq: 1800, q: 1 });
       tone({ freq: 1200, type: 'sine', dur: 0.06, vol: 0.025, delay: 0.16 });
     },
+    // OVERTAKE: the electric motor spooling up, a whoosh of deployment
+    overtake: () => {
+      tone({ freq: 400, to: 2400, type: 'sawtooth', dur: 0.6, vol: 0.02, attack: 0.05 });
+      tone({ freq: 800, to: 3200, type: 'sine', dur: 0.5, vol: 0.015, attack: 0.05, delay: 0.05 });
+      noise({ dur: 0.7, vol: 0.03, type: 'bandpass', freq: 600, to: 4000, q: 2, attack: 0.15 });
+    },
     // the garage, on foot
     step: () => {
       // a soft footstep on the epoxy floor

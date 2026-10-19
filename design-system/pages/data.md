@@ -38,7 +38,7 @@ Every control is a real button with one job:
 | BACK | esc / backspace | close the briefing |
 | PIT | – | back in the car at the pit entry |
 | GET OUT | E | out of the car to walk the garage (below) |
-| OVERTAKE · TALK · DRINK | – | short radio moments on the screen bar; TALK plays a radio call over gunfire that the noise model cleans up after a second |
+| OVERTAKE · TALK · DRINK | – | OVERTAKE: the shift lights sweep blue from the middle, a battery bar under the screen's top bar drains (100 → 62%) and harvests back, a boost sound. TALK and DRINK: short radio moments on the screen bar; TALK plays a radio call over gunfire that the noise model cleans up after a second |
 | shift lights | – | position (project n of N; on LAP, how close you parked; on RADIO, the channel) |
 
 - **PROJECTS:** `src/garage/data/projects.js`. Add a project there and the wheel picks it up.
@@ -86,6 +86,8 @@ For visitors who'd rather walk than read on the wheel. Inspired by the 3D world 
   - **The track:** Krish's own "F1" (`public/assets/audio/garage/f1.mp3`, 3 MB at 128 kbps), fetched only the first time you get out, so the page itself stays light. If it can't load, an original 8-bar loop (112 bpm, Am F C G) generated in Web Audio plays instead. The display reads KV FM · F1.
   - **Stepping aside:** it pauses for the header's record player (`record:change`), mutes with the site's sound switch, dips to 45% while a station is open and 6% for the radio check, and fades out when you get back in.
   - **Controls:** click the radio or press M to turn it on or off.
+- **Seen projects:** a project you've opened gets a ✓ and "SEEN · OPEN AGAIN" on its gantry monitor, and the strip's pit wall button counts them ("2 / 5 seen"). Kept for this visit in sessionStorage (`krish:seen`).
+- **Tyre warmers:** a control box by each front blanket stack reads 80 °C in amber. Stand within 2.4 m and it cools ("LID OPEN · COOLING", fading toward blue, down to 58); walk off and it heats back up.
 - **Life:** the crew shift their weight and turn their heads (with their headsets) toward you within 4.5 m; the session clock on the gantry counts your time on the page (red past an hour); the gantry and canopy screens drift; garage ambience plays under it all (a low rumble, cars on the straight, other teams' wheel guns). Footsteps follow your stride, and the printer, chalk and drink each have a sound. Stand in the pit box for 4 s and the radio calls "box, box!". The fridge has drinks.
 
 ## The garage (`src/three/garage/garage-props.js`, `car-body.js`)

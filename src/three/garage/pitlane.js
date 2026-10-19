@@ -205,6 +205,7 @@ export function buildWorld({ quality = 'high' } = {}) {
     setMeter: ours.props.setMeter,
     printPage: ours.props.printPage,
     setRadio: ours.props.setRadio,
+    setSeen: ours.props.setSeen,
     setBoard: ours.props.setBoard,
     update,
     setCrew: guide.setCrew,
@@ -336,7 +337,7 @@ function buildOurGarage(M, track) {
     props,
     colliders,
     update(dt, near, viewer) {
-      props.update(dt, near);
+      props.update(dt, near, viewer);
       if (near) crewLife(dt, viewer);
     },
     dispose() {

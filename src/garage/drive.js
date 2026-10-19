@@ -438,6 +438,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
         pressControl: (id) => garage.pressControl(id),
         turnControl: (id, deg) => garage.turnControl(id, deg),
         setLeds: (n) => garage.setLeds(n),
+        boost: () => garage.boost(),
       });
     }
     wheel.show();

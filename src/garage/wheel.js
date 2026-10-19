@@ -26,7 +26,6 @@ const MODES = { projects, lap, radio };
 const ORDER = ['projects', 'lap', 'radio'];
 const KNOB = { projects: -50, lap: 0, radio: 50 };
 const TOASTS = {
-  overtake: 'overtake mode · +350 kW · not in the pit lane',
   drink: 'drinks bottle · red bull, obviously',
   talk: 'radio check · loud and clear',
 };
@@ -111,6 +110,28 @@ export function initWheel({ root, reducedMotion, onPit, onOut }) {
     render(delta < 0 ? 'prev' : 'next');
   }
 
+  // OVERTAKE (2026: the electric boost that replaced DRS): the shift lights sweep blue, a battery
+  // bar across the top of the screen drains as the 350 kW goes out, then harvests back
+  const boostBar = document.createElement('span');
+  boostBar.className = 'screen__boost';
+  boostBar.setAttribute('aria-hidden', 'true');
+  boostBar.innerHTML = '<i></i>';
+  root.querySelector('.screen').append(boostBar);
+  function overtake() {
+    sfx('overtake');
+    toast('overtake · +350 kW · battery 100 → 62%');
+    surface?.boost?.();
+    if (!surface) {
+      // the drawn wheel: its own LEDs sweep
+      leds.forEach((l, i) => setTimeout(() => l.classList.add('on', 'boost'), Math.abs(i - 7) * 40));
+      setTimeout(() => leds.forEach((l) => l.classList.remove('boost')) || render(), 1400);
+    }
+    if (reducedMotion) return;
+    boostBar.classList.remove('is-on');
+    void boostBar.offsetWidth;
+    boostBar.classList.add('is-on');
+  }
+
   let toastTimer = 0;
   function toast(text) {
     toastEl.textContent = text;
@@ -128,6 +149,7 @@ export function initWheel({ root, reducedMotion, onPit, onOut }) {
     if (name === 'pit') return onPit?.();
     if (name === 'out') return onOut?.();
     if (name === 'talk' && radioCall(ui)) return;
+    if (name === 'overtake') return overtake();
     if (TOASTS[name]) {
       sfx(name === 'talk' ? 'radio' : 'tap');
       return toast(TOASTS[name]);

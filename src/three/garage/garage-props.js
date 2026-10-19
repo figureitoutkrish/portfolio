@@ -95,12 +95,14 @@ export function buildGarageProps(M, track) {
   box(P.grey, 0.08, 2.6, 0.08, gxC - gw / 2 - 0.05, 1.3, gz - 0.1);
   box(P.grey, 0.08, 2.6, 0.08, gxC + gw / 2 + 0.05, 1.3, gz - 0.1);
   block(gxC - gw / 2 - 0.15, gxC + gw / 2 + 0.15, gz - 0.95, 7.7);
-  // five monitors, one per project (the page lays each project's card over one when you look)
+  // five monitors, one per project (the page lays each project's card over one when you look);
+  // the ones you've opened this visit carry a SEEN mark
+  const seen = new Set();
   const gantryScreens = [];
   for (let i = 0; i < Math.min(5, PROJECTS.length); i++) {
     const x = gxC - (i - 2) * 1.22; // 01 on the left as you face the gantry
     box(P.bezel, 1.12, 0.68, 0.05, x, 1.6, gz - 0.05, 0, -0.08);
-    const s = screen(1.04, 0.6, drawProjectIdle(i));
+    const s = screen(1.04, 0.6, drawProjectIdle(i, seen));
     s.position.set(x, 1.6, gz - 0.085);
     s.rotation.set(-0.08, Math.PI, 0);
     s.name = `gantry-${i}`;
@@ -289,6 +291,39 @@ export function buildGarageProps(M, track) {
   tyreBoard.rotation.y = Math.PI / 2;
   g.add(tyreBoard);
 
+  // ======================= tyre warmers =======================
+  // A control box by each front corner's blanket stacks with its temperature. Stand next to the
+  // stack and it cools (you're letting the heat out); walk off and it climbs back to 80 °C.
+  const warmers = [
+    { at: [gx - 1.85, -4.95], ry: 0, temp: 80, target: 80 }, // the −z stacks, facing into the garage
+    { at: [gx - 2.3, 4.95], ry: Math.PI, temp: 79, target: 80 },
+  ].map((w) => {
+    const grp = new THREE.Group();
+    grp.position.set(w.at[0], 0, w.at[1]);
+    grp.rotation.y = w.ry;
+    g.add(grp);
+    mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 8), P.grey, 0, 0.5, 0, grp);
+    mesh(new THREE.BoxGeometry(0.34, 0.22, 0.1), P.black, 0, 1.1, 0, grp);
+    const face = screen(0.28, 0.16, drawWarmer, { px: 280 });
+    face.position.set(0, 1.1, 0.051);
+    grp.add(face);
+    // a cable down into the stack
+    const cable = new THREE.CatmullRomCurve3([new THREE.Vector3(0.1, 1.0, -0.04), new THREE.Vector3(0.18, 0.7, -0.25), new THREE.Vector3(0.2, 0.5, -0.5)]);
+    mesh(taperedTube(cable, { segments: 12, radial: 6, radiusAt: () => 0.008, roundTip: false }), P.rubber, 0, 0, 0, grp);
+    return { ...w, face, shown: null };
+  });
+  function tickWarmers(dt, viewer) {
+    for (const w of warmers) {
+      const near = viewer && Math.hypot(viewer.x - w.at[0], viewer.z - w.at[1]) < 2.4;
+      w.temp = near ? Math.max(58, w.temp - dt * 0.9) : Math.min(w.target, w.temp + dt * 1.6);
+      const label = `${Math.round(w.temp)}|${near ? 1 : 0}`;
+      if (label !== w.shown) {
+        w.shown = label;
+        w.face.userData.redraw(w.temp, near);
+      }
+    }
+  }
+
   // ======================= over the car =======================
   const car = LAYOUT.box;
   const lbx = car.x - 0.4; // the car is longer behind its origin
@@ -328,7 +363,7 @@ export function buildGarageProps(M, track) {
   let meterLevel = 0;
   let meterTarget = 0;
   let meterT = 0;
-  function update(dt, near = true) {
+  function update(dt, near = true, viewer = null) {
     // the session clock: time on the page, 00:16:07 style; red past an hour
     const sec = Math.floor((performance.now() - t0) / 1000);
     if (sec !== lastSec) {
@@ -352,6 +387,7 @@ export function buildGarageProps(M, track) {
     }
     meterLevel += (meterTarget - meterLevel) * Math.min(1, dt * 18);
     tickPrinter(dt);
+    if (near) tickWarmers(dt, viewer);
     const lit = Math.round(meterLevel * 24);
     if (lit !== litMeters) {
       litMeters = lit;
@@ -396,6 +432,12 @@ export function buildGarageProps(M, track) {
     // the radio console follows the page's audio level (0…1), or null for idle chatter
     setMeter: (v) => (feed = v),
     printPage: () => (printT = 0),
+    // the projects you've opened this visit (indices): their monitors get a SEEN mark
+    setSeen(list) {
+      seen.clear();
+      list.forEach((i) => seen.add(i));
+      gantryScreens.forEach((m) => m.userData.redraw(performance.now() / 1000));
+    },
     // the radio: cones pump with `level` (0…1); the display shows `label` (or OFF)
     setRadio({ level = 0, label } = {}) {
       cones.forEach((c) => (c.position.z = c.userData.z + level * 0.02)); // the cones push out on the beat
@@ -492,7 +534,7 @@ function frame(c, w, h, title) {
   c.textBaseline = 'middle';
   c.fillText(title, w * 0.03, h * 0.062);
 }
-function drawProjectIdle(i) {
+function drawProjectIdle(i, seen) {
   return (c, w, h, k = 0) => {
     frame(c, w, h, `PROJECT 0${i + 1}`);
     // a trace that drifts, like a live channel
@@ -513,7 +555,25 @@ function drawProjectIdle(i) {
     c.font = `500 ${Math.round(h * 0.05)}px ${MONO}`;
     c.fillText(p ? p.kind.toUpperCase() : '', w * 0.03, h * 0.37, w * 0.94);
     c.fillStyle = 'rgba(242,245,247,0.45)';
-    c.fillText('LOOK TO OPEN', w * 0.03, h * 0.9);
+    c.fillText(seen.has(i) ? 'SEEN · OPEN AGAIN' : 'LOOK TO OPEN', w * 0.03, h * 0.9);
+    if (seen.has(i)) {
+      // a check in the corner, like a ticked-off run plan
+      const r = h * 0.07;
+      const cx = w - r * 2.2;
+      const cy = h * 0.24;
+      c.fillStyle = TEAL;
+      c.beginPath();
+      c.arc(cx, cy, r, 0, Math.PI * 2);
+      c.fill();
+      c.strokeStyle = '#03201c';
+      c.lineWidth = r * 0.32;
+      c.lineCap = 'round';
+      c.beginPath();
+      c.moveTo(cx - r * 0.45, cy + r * 0.02);
+      c.lineTo(cx - r * 0.1, cy + r * 0.38);
+      c.lineTo(cx + r * 0.5, cy - r * 0.35);
+      c.stroke();
+    }
   };
 }
 function drawClock(c, w, h, sec = 0) {
@@ -619,6 +679,20 @@ function drawBoard(c, w, h, lines = ['P1', 'KV', 'BOX', '+0.0']) {
     c.fillText(l.toUpperCase(), w / 2, (h * (i + 0.8)) / (n + 0.6));
   });
   c.textAlign = 'start';
+}
+function drawWarmer(c, w, h, temp = 80, cooling = false) {
+  c.fillStyle = '#0d0a05';
+  c.fillRect(0, 0, w, h);
+  // amber when hot, cooling toward blue as the heat gets out
+  const k = Math.max(0, Math.min(1, (80 - temp) / 20));
+  const mix = (a, b) => Math.round(a + (b - a) * k);
+  c.fillStyle = `rgb(${mix(255, 110)}, ${mix(168, 180)}, ${mix(40, 255)})`; // (straight across, no green on the way)
+  c.font = `700 ${Math.round(h * 0.5)}px ${MONO}`;
+  c.textBaseline = 'middle';
+  c.fillText(`${Math.round(temp)}°C`, w * 0.07, h * 0.42);
+  c.fillStyle = 'rgba(242,245,247,0.6)';
+  c.font = `600 ${Math.round(h * 0.15)}px ${MONO}`;
+  c.fillText(cooling ? 'LID OPEN · COOLING' : 'BLANKETS · FRONT', w * 0.07, h * 0.82);
 }
 function drawRadio(c, w, h, label = 'KV FM') {
   c.fillStyle = '#041512';

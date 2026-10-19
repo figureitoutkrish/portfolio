@@ -53,6 +53,30 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
 
   strip.innerHTML = STATIONS.map((s) => `<button type="button" data-station="${s.id}"><kbd class="f1-key" aria-hidden="true">${s.key}</kbd><span>${s.label}</span><small>${s.what}</small></button>`).join('');
 
+  // the projects you've opened this visit: ticked on their gantry monitors and counted on the strip
+  const SEEN_KEY = 'krish:seen';
+  let seen = [];
+  try {
+    seen = JSON.parse(sessionStorage.getItem(SEEN_KEY)) || [];
+  } catch {
+    /* storage off: it starts fresh */
+  }
+  const seenLabel = strip.querySelector('[data-station="gantry"] small');
+  function showSeen() {
+    garage.setSeen(seen);
+    seenLabel.textContent = seen.length ? `${seen.length} / ${PROJECTS.length} seen` : 'projects';
+  }
+  function markSeen(i) {
+    if (seen.includes(i)) return;
+    seen = [...seen, i];
+    try {
+      sessionStorage.setItem(SEEN_KEY, JSON.stringify(seen));
+    } catch {
+      /* fine */
+    }
+    showSeen();
+  }
+
   let active = false;
   let moving = false; // getting out / back in: a station picked now opens when it's done
   let pending = null;
@@ -69,6 +93,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     root.classList.add('is-on');
     say('getting out…');
     getBoard().then(({ messages }) => garage.setBoard(messages[0]?.text)).catch(() => {}); // the newest line on the board
+    showSeen();
     moving = true;
     R.enter(() => {
       moving = false;
@@ -120,6 +145,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     panelTag.textContent = st.label;
     panelCount.textContent = id === 'gantry' ? `${String(index + 1).padStart(2, '0')} / ${String(PROJECTS.length).padStart(2, '0')}` : '';
     RENDER[id](index);
+    if (id === 'gantry') markSeen(index);
     panel.hidden = false;
     place();
     void panel.offsetWidth;
