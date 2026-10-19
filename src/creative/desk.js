@@ -8,18 +8,16 @@ import { checkNote } from './name-rules.js';
 //   - Stickers and the house notes can be picked up and moved (kept for the session). A tap on
 //     a sticker follows its link (Koach, YouTube, Behance); a drag never does.
 //   - The rose note flips (tap / Enter): the thumbnail origin story.
-//   - Visitors' notes: "+ leave a note" opens a little pad; the note is stuck on the Mac for
-//     everyone (api/notes.js), or just this browser until the server is connected.
+//   - Visitors' notes: "+ leave a note" opens a little pad; the Mac holds the three newest, the
+//     same for everyone (api/notes.js), or just this browser until the server is connected.
 const TONES = ['canary', 'rose', 'tang', 'mint', 'sky'];
 const PENS = { pen: 'pen', marker: 'marker', label: 'label maker' };
-// Free spots around the Mac for visitors' notes (percent of the desk; first ones first).
+// The Mac holds three visitors' notes (api/notes.js keeps the three newest, the same for everyone);
+// their spots around the Mac, newest first (percent of the desk).
 const SLOTS = [
-  { left: '-3%', top: '24%', r: -5 }, // left, between the welcome note and the photo
   { left: '24%', top: '-7%', r: 3 }, // on the Mac's top edge
-  { left: '15%', bottom: '0%', r: 5 }, // beside "+ leave a note"
-  { right: '1%', top: '-8%', r: -4 }, // above the story note
-  { right: '-5%', top: '60%', r: 4 }, // right side, under "drag a floppy"
-  { left: '40%', top: '-9%', r: -3 },
+  { left: '-3%', top: '24%', r: -5 }, // left, between the welcome note and the photo
+  { left: '50%', top: '-9%', r: -3 }, // on the top edge, next to the first
 ];
 
 export function initDesk({ reducedMotion }) {
@@ -77,6 +75,7 @@ export function initDesk({ reducedMotion }) {
     el.setAttribute('role', 'note');
     el.setAttribute('aria-label', `${note.mine ? 'Your note' : "A visitor's note"}: ${note.text}`);
     Object.entries(slot).forEach(([k, v]) => k !== 'r' && (el.style[k] = v));
+    if (slot.right) el.style.left = 'auto'; // (the stylesheet's default left would win over right)
     el.style.setProperty('--r', `${slot.r}deg`);
     const text = document.createElement('span');
     text.className = 'sticky__text';
@@ -116,9 +115,8 @@ export function initDesk({ reducedMotion }) {
       const { notes, local } = await getNotes();
       offline = local;
       layer.textContent = '';
-      // yours first (so you always see them), then the newest from everyone else
-      const sorted = [...notes.filter((n) => n.mine), ...notes.filter((n) => !n.mine)].slice(0, SLOTS.length);
-      sorted.forEach(renderNote);
+      // the same three for everyone, newest first
+      notes.slice(0, SLOTS.length).forEach(renderNote);
     } catch {
       /* the desk works without them */
     }
@@ -179,12 +177,14 @@ export function initDesk({ reducedMotion }) {
       go.disabled = true;
       go.textContent = 'sticking…';
       try {
-        const { note, local } = await postNote({ text, tone, pen });
+        const { local } = await postNote({ text, tone, pen });
         offline = local;
         closePad(false);
-        const el = renderNote({ ...note, mine: true }, layer.children.length);
-        if (!reducedMotion) gsap.from(el, { scale: 1.4, autoAlpha: 0, y: -30, duration: 0.45, ease: 'back.out(1.6)' });
-        el.focus({ preventScroll: true });
+        // yours is the newest now: it takes the first spot and the oldest of the three comes off
+        await load();
+        const el = layer.firstElementChild;
+        if (el && !reducedMotion) gsap.from(el, { scale: 1.4, autoAlpha: 0, y: -30, duration: 0.45, ease: 'back.out(1.6)' });
+        el?.focus({ preventScroll: true });
       } catch (ex) {
         error.textContent = ex.message || 'Could not stick it. Try again?';
         go.disabled = false;

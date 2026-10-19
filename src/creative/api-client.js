@@ -81,7 +81,7 @@ export async function getNotes() {
     return { ...res, local: false };
   } catch (e) {
     if (e.server) throw e;
-    return { notes: read(LOCAL_NOTES, []), local: true };
+    return { notes: read(LOCAL_NOTES, []).slice(-3).reverse(), local: true };
   }
 }
 
@@ -92,7 +92,7 @@ export async function postNote(note) {
   } catch (e) {
     if (e.server) throw e;
     const saved = { ...note, id: `local-${Date.now()}`, mine: true, at: Date.now() };
-    write(LOCAL_NOTES, [...read(LOCAL_NOTES, []), saved].slice(-12));
+    write(LOCAL_NOTES, [...read(LOCAL_NOTES, []), saved].slice(-3)); // (the Mac holds three)
     return { note: saved, local: true };
   }
 }

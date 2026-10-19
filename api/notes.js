@@ -3,15 +3,16 @@ import { getRedis } from './_lib/redis.js';
 import { send, readBody, clientIp, visitor, rateLimited } from './_lib/http.js';
 import { checkNote } from '../src/creative/name-rules.js';
 
-// Sticky notes visitors leave on the Mac.
-//   GET    /api/notes            → { notes: newest 30, yours flagged `mine` }
+// Sticky notes visitors leave on the Mac. The Mac holds three: everyone sees the same three newest,
+// and a new one pushes the oldest off (for everyone).
+//   GET    /api/notes            → { notes: the 3 newest, yours flagged `mine` }
 //   POST   /api/notes            { text, tone, pen } → { note }
 //   PATCH  /api/notes?id=…       { pos: {x, y} }   (your own notes only)
 //   DELETE /api/notes?id=…       (your own notes, or Krish with the x-admin-key header)
 // Visitors are anonymous: a random id kept in their browser (x-visitor). It's never returned.
 const TONES = ['canary', 'rose', 'tang', 'mint', 'sky'];
 const PENS = ['pen', 'marker', 'label'];
-const KEEP = 300;
+const KEEP = 3; // notes on the Mac at once
 
 export function createNotesHandler(redisFactory = getRedis) {
   return async function handler(req, res) {
@@ -21,7 +22,7 @@ export function createNotesHandler(redisFactory = getRedis) {
     const isAdmin = !!process.env.ADMIN_KEY && req.headers['x-admin-key'] === process.env.ADMIN_KEY;
 
     if (req.method === 'GET') {
-      const ids = await redis.zrange('notes:t', 0, 29, { rev: true });
+      const ids = await redis.zrange('notes:t', 0, KEEP - 1, { rev: true });
       if (!ids.length) return send(res, 200, { notes: [] });
       const rows = await redis.hmget('notes', ...ids);
       const notes = ids

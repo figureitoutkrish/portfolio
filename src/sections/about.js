@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 //   - the intro pins: the page holds still while the paragraph reveals word by word — each word
 //     lights up in the accent blue and settles to ink, so a blue wave runs through the text —
 //     then scrolling carries on
-//   - the tilted photo drifts gently while pinned
+//   - the two polaroids drift while pinned, at different rates, so they shift against each other
 //   - the numbers strip below it lives in metrics.js
 export function initAbout({ reducedMotion }) {
   const root = document.querySelector('.about');
@@ -16,7 +16,7 @@ export function initAbout({ reducedMotion }) {
 
   const intro = root.querySelector('.about__intro');
   const text = root.querySelector('.about__text');
-  const photo = root.querySelector('.about__float');
+  const [back, front] = root.querySelectorAll('.about__pol');
   const triggers = [];
 
   if (!reducedMotion) {
@@ -41,7 +41,8 @@ export function initAbout({ reducedMotion }) {
       { '--blue': 0, duration: 0.6, stagger: 0.12 },
       0.35
     );
-    tl.fromTo(photo, { yPercent: 10 }, { yPercent: -10, duration: tl.duration() }, 0);
+    tl.fromTo(back, { yPercent: 14, rotate: 6 }, { yPercent: -12, rotate: 3, duration: tl.duration() }, 0);
+    tl.fromTo(front, { yPercent: 6, rotate: -7 }, { yPercent: -8, rotate: -5, duration: tl.duration() }, 0);
     tl.to({}, { duration: 0.8 }); // rest on the finished paragraph before letting go
     triggers.push(tl.scrollTrigger);
   }
