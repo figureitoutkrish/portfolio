@@ -289,7 +289,7 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
   --tracking: 0.005em;
   margin: 0.25rem 0 0;
   font-family: var(--f-display);
-  font-size: clamp(4.5rem, 21vw, 10rem);
+  font-size: clamp(3.25rem, 16.5vw, 10rem); /* "CREATIVE." is ~5.3em wide: this keeps it inside the gutters */
   font-weight: 400;
   line-height: 0.88;
   text-transform: uppercase;
@@ -838,13 +838,14 @@ html.creative .menu__theme { font-family: var(--f-body); font-weight: 600; }
 @media (min-width: 1100px) {
   html.creative { --gutter: 4vw; }
   .chero {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
     gap: 2rem;
     min-height: min(calc(100svh - 5rem), 58rem);
     padding: 1rem 0 3rem;
   }
-  .chero__title { font-size: clamp(6.5rem, 9.6vw, 10rem); }
+  /* "CREATIVE." is ~5.3em wide: sized so it always fits its half (it ran under the desk's photo) */
+  .chero__title { font-size: clamp(5rem, 8.2vw, 7.5rem); }
   .desk { --mw: min(31rem, 36vw); padding: 3rem 5rem 1rem; }
 }
 

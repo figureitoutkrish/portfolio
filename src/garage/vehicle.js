@@ -87,7 +87,7 @@ export function createVehicle(layout = LAYOUT) {
   function reset({ parked = false } = {}) {
     Object.assign(s, {
       mode: 'drive', x: 3, z: layout.startZ, heading: 0, speed: layout.startKph / KPH, steer: 0, wheel: 0, road: 0, brake: 0,
-      limiter: false, onLimit: false, pitLane: false, speeding: false, lineKph: null, maxPitKph: 0, toMarks: Infinity, offMarks: null, message: '',
+      limiter: false, onLimit: false, pitLane: false, speeding: false, lineKph: null, maxPitKph: 0, toMarks: Infinity, offMarks: null, overshot: 0, message: '',
     });
     push = null;
     still = 0;
@@ -208,6 +208,9 @@ export function createVehicle(layout = LAYOUT) {
         s.speed = 0;
         s.brake = 0;
         s.offMarks = Math.hypot(s.x - box.x, s.z - box.z);
+        // rolled past the box (as far as the closed pit exit): in F1 the mechanics drag the car
+        // back to the box by hand, so the stop still counts, but the HUD and LAP say what happened
+        s.overshot = s.z - box.z > 2 ? s.z - box.z : 0;
         s.events.push('stopped');
       }
     } else still = 0;
@@ -271,7 +274,7 @@ export function createVehicle(layout = LAYOUT) {
 
   // ---------- the wheel's display banner ----------
   function message() {
-    if (s.mode === 'service') return s.offMarks < 0.3 ? 'ON THE MARKS' : `${s.offMarks.toFixed(1)} M OFF`;
+    if (s.mode === 'service') return s.overshot ? `OVERSHOT ${s.overshot.toFixed(0)} M` : s.offMarks < 0.3 ? 'ON THE MARKS' : `${s.offMarks.toFixed(1)} M OFF`;
     if (s.mode === 'push') return 'NEUTRAL';
     if (s.mode === 'parked') return 'ENGINE MODE: IDLE';
     if (!s.pitLane) return layout.entryLine - s.z < 60 && s.kph > layout.speedLimit ? 'SLOW: 80' : 'BOX BOX';

@@ -201,7 +201,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
         else if (ev === 'line') rec.mark('line', { kph: s.kph });
         else if (ev === 'bump') sfx('clunk');
         else if (ev === 'stopped') {
-          rec.mark('stopped', { error: s.offMarks, maxPit: s.maxPitKph });
+          rec.mark('stopped', { error: s.offMarks, maxPit: s.maxPitKph, overshot: s.overshot });
           rec.finish();
           service();
         } else if (ev === 'parked') park();
@@ -269,7 +269,9 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     }
     if (m.stopped) {
       const off = m.stopped.error;
-      sectors[3] = { state: off <= 0.5 ? 'purple' : off <= 1.5 ? 'green' : 'yellow', text: off < 1 ? `${Math.round(off * 100)} cm` : `${off.toFixed(1)} m` };
+      sectors[3] = m.stopped.overshot
+        ? { state: 'red', text: `+${Math.round(m.stopped.overshot)} m past` }
+        : { state: off <= 0.5 ? 'purple' : off <= 1.5 ? 'green' : 'yellow', text: off < 1 ? `${Math.round(off * 100)} cm` : `${off.toFixed(1)} m` };
     }
   }
   function updateHud() {
@@ -282,8 +284,8 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     let warn = false;
     let live = 0; // the sector you're in
     if (s.mode === 'service') {
-      phaseText = s.offMarks < 0.5 ? 'on the marks' : `${s.offMarks.toFixed(1)} m off the marks`;
-      msg = 'jack up · new tyres';
+      phaseText = s.overshot ? `overshot by ${Math.round(s.overshot)} m` : s.offMarks < 0.5 ? 'on the marks' : `${s.offMarks.toFixed(1)} m off the marks`;
+      msg = s.overshot ? 'the crew drags you back to the box · new tyres' : 'jack up · new tyres';
     } else if (s.mode === 'push' || s.mode === 'parked') {
       phaseText = 'into the garage';
       msg = 'the crew pushes you back in';
