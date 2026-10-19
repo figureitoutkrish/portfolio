@@ -40,7 +40,7 @@ design-system/          # MASTER.md (global design rules) + pages/<page>.md over
 content/about.md        # Personal copy, links and timeline (source for About content)
 content/*.mp3           # music originals (git-ignored); the garage radio's track ships from public/assets/audio/garage/
 vite.config.js
-api/                    # Vercel functions: scores.js (leaderboard), notes.js (visitor sticky notes), pitboard.js (the garage's guestbook); Upstash Redis. Setup: docs-backend.md
+api/                    # Vercel functions: scores.js (leaderboard), notes.js (visitor sticky notes), pitboard.js (the garage's guestbook), github.js (the garage's commits monitor); Redis (Upstash REST or REDIS_URL). Setup: docs-backend.md
 public/assets/
   images/               # Static images, served as-is at /assets/images/...
   work/<slug>/          # Creative-page project images (from Behance; originals in content/behance/)

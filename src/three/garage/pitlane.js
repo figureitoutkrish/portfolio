@@ -206,6 +206,7 @@ export function buildWorld({ quality = 'high' } = {}) {
     printPage: ours.props.printPage,
     setRadio: ours.props.setRadio,
     setSeen: ours.props.setSeen,
+    setGithub: ours.props.setGithub,
     setBoard: ours.props.setBoard,
     update,
     setCrew: guide.setCrew,

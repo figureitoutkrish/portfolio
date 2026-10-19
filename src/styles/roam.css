@@ -260,3 +260,26 @@ html[data-drive="roam"] .cockpit__gl { cursor: grab; touch-action: none; }
   .roam__strip { background: var(--f1-panel-solid); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 .roam-radio .f1-row__v::before, .roam-radio .f1-row__v::after { content: none; } /* links, not ‹ value › selectors */
+
+/* the commits monitor: the contribution calendar in the team colours, stats, latest commits */
+.gh { display: grid; gap: 0.9rem; align-content: start; }
+.gh-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.gh-cal { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 2px; width: 100%; aspect-ratio: 53 / 7.6; }
+.gh-cell { display: block; min-width: 0; border-radius: 1px; background: #14181d; }
+.gh-cell[data-l="1"] { background: #0b4a43; }
+.gh-cell[data-l="2"] { background: #0b7a6d; }
+.gh-cell[data-l="3"] { background: #06a896; }
+.gh-cell[data-l="4"] { background: var(--f1-team); }
+.gh-cell[data-today] { outline: 1.5px solid var(--f1-purple); outline-offset: 1px; }
+.gh-pad { visibility: hidden; }
+.gh-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.gh-stats div { display: grid; gap: 0.15rem; padding: 0.5rem 0.7rem; border-left: 2px solid var(--f1-team); background: var(--f1-zebra); }
+.gh-stats b { font-family: var(--f1-font); font-stretch: var(--f1-stretch); font-size: clamp(18px, 2.4cqi, 28px); font-weight: 800; font-style: italic; line-height: 1; }
+.gh-stats span { color: var(--f1-muted); font-size: var(--lab); font-stretch: var(--f1-stretch); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.gh-commits .f1-row { font-size: var(--lab); }
+.gh-commits .f1-row b { color: var(--f1-team); font-weight: 700; margin-right: 0.4em; }
+.gh-commits .f1-row > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gh-when { flex: none; color: var(--f1-muted); font-family: var(--font-mono); }
+@media (hover: hover) and (pointer: fine) {
+  .gh-commits .f1-row:hover { border-color: rgba(242, 245, 247, 0.85); }
+}

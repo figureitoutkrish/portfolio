@@ -291,6 +291,24 @@ export function buildGarageProps(M, track) {
   tyreBoard.rotation.y = Math.PI / 2;
   g.add(tyreBoard);
 
+  // ======================= the commits monitor (GitHub) =======================
+  // A monitor on a rolling cart near the back-left, turned toward the car: Krish's contribution
+  // calendar in the team colours and his latest commit (the page feeds it from /api/github).
+  const cart = new THREE.Group();
+  cart.position.set(back + 3.3, 0, -3.3);
+  cart.rotation.y = 0.95; // facing out toward the car and the middle of the garage
+  g.add(cart);
+  for (const sx of [-0.32, 0.32]) for (const sz of [-0.22, 0.22]) mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.05, 10), P.rubber, sx, 0.035, sz, cart).rotation.x = Math.PI / 2;
+  mesh(new THREE.BoxGeometry(0.78, 0.05, 0.56), P.black, 0, 0.09, 0, cart);
+  mesh(new THREE.BoxGeometry(0.06, 1.2, 0.06), P.grey, 0, 0.7, -0.1, cart);
+  mesh(new THREE.BoxGeometry(0.5, 0.03, 0.34), P.black, 0, 0.78, 0, cart); // a shelf
+  mesh(new THREE.BoxGeometry(1.32, 0.8, 0.06), P.bezel, 0, 1.62, -0.08, cart);
+  const githubScreen = screen(1.24, 0.72, drawGithub, { px: 900 });
+  githubScreen.position.set(0, 1.62, -0.045);
+  githubScreen.name = 'github';
+  cart.add(githubScreen);
+  block(back + 2.7, back + 3.9, -3.9, -2.7);
+
   // ======================= tyre warmers =======================
   // A control box by each front corner's blanket stacks with its temperature. Stand next to the
   // stack and it cools (you're letting the heat out); walk off and it climbs back to 80 °C.
@@ -428,11 +446,13 @@ export function buildGarageProps(M, track) {
     colliders,
     update,
     // the stations' parts (roam.js decides where to stand and what's focusable)
-    parts: { gantryScreens, clock, printer, paper, printerLed, board, boardFace, standScreen, headset, tv, fridge, tyreBoard, radio },
+    parts: { gantryScreens, clock, printer, paper, printerLed, board, boardFace, standScreen, headset, tv, fridge, tyreBoard, radio, githubScreen },
     // the radio console follows the page's audio level (0…1), or null for idle chatter
     setMeter: (v) => (feed = v),
     printPage: () => (printT = 0),
     // the projects you've opened this visit (indices): their monitors get a SEEN mark
+    // the commits monitor: { days, total, commits } from /api/github, or null for "no signal"
+    setGithub: (data) => githubScreen.userData.redraw(data),
     setSeen(list) {
       seen.clear();
       list.forEach((i) => seen.add(i));
@@ -679,6 +699,38 @@ function drawBoard(c, w, h, lines = ['P1', 'KV', 'BOX', '+0.0']) {
     c.fillText(l.toUpperCase(), w / 2, (h * (i + 0.8)) / (n + 0.6));
   });
   c.textAlign = 'start';
+}
+function drawGithub(c, w, h, data) {
+  frame(c, w, h, 'COMMITS · GITHUB');
+  const days = data?.days || [];
+  if (!days.length) {
+    c.fillStyle = 'rgba(242,245,247,0.5)';
+    c.font = `600 ${Math.round(h * 0.06)}px ${MONO}`;
+    c.fillText(data === undefined ? 'TUNING IN…' : 'NO SIGNAL FROM GITHUB', w * 0.04, h * 0.5);
+    return;
+  }
+  // the calendar: weeks as columns (sunday on top), five teal steps
+  const weeks = Math.ceil((days.length + new Date(days[0].date).getUTCDay()) / 7);
+  const gap = 2;
+  const cell = Math.floor(Math.min((w * 0.92) / weeks - gap, (h * 0.46) / 7 - gap));
+  const x0 = (w - weeks * (cell + gap)) / 2;
+  const y0 = h * 0.2;
+  const STEPS = ['#14181d', '#0b4a43', '#0b7a6d', '#06a896', '#00d2be'];
+  const offset = new Date(days[0].date).getUTCDay();
+  days.forEach((d, i) => {
+    const k = i + offset;
+    c.fillStyle = STEPS[Math.min(4, d.level)];
+    c.fillRect(x0 + Math.floor(k / 7) * (cell + gap), y0 + (k % 7) * (cell + gap), cell, cell);
+  });
+  c.fillStyle = '#f2f5f7';
+  c.font = `italic 800 ${Math.round(h * 0.075)}px ${WIDE}`;
+  c.fillText(`${data.total} CONTRIBUTIONS · LAST 12 MONTHS`, w * 0.04, h * 0.8);
+  const last = data.commits?.[0];
+  if (last) {
+    c.fillStyle = 'rgba(0,210,190,0.9)';
+    c.font = `500 ${Math.round(h * 0.045)}px ${MONO}`;
+    c.fillText(`LATEST · ${last.repo.toUpperCase()} · ${last.message.toUpperCase()}`, w * 0.04, h * 0.91, w * 0.92);
+  }
 }
 function drawWarmer(c, w, h, temp = 80, cooling = false) {
   c.fillStyle = '#0d0a05';

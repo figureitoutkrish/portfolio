@@ -83,6 +83,7 @@ export function createRoam({ scene, camera, head, car, rig, colliders, parts, re
     gantry: { label: 'pit wall', size: parts.gantryScreens.length, frame: (i = 0) => frameFor(parts.gantryScreens[i], { fill: 0.78 }), mesh: (i = 0) => parts.gantryScreens[i] },
     stand: { label: 'engineers', frame: () => frameFor(parts.standScreen, { fill: 0.7 }), mesh: () => parts.standScreen },
     tv: { label: 'timing tv', frame: () => frameFor(parts.tv, { fill: 0.8 }), mesh: () => parts.tv },
+    github: { label: 'commits', frame: () => frameFor(parts.githubScreen, { fill: 0.74 }), mesh: () => parts.githubScreen },
     car: { label: 'the car', frame: () => frameObject(car.group, { dist: 2.6, from: new THREE.Vector3(0.5, 0, 1), height: 1.75 }) },
     printer: { label: 'printer', frame: () => frameObject(parts.printer, { dist: 1.45, from: new THREE.Vector3(0.25, 0, -1), height: 1.6 }) },
     board: { label: 'pit board', frame: () => { const f = frameFor(parts.boardFace, { fill: 0.4, lift: -0.4 }); return { eye: f.eye, look: aside(f.eye, parts.boardFace.getWorldPosition(new THREE.Vector3())) }; } },
@@ -100,6 +101,7 @@ export function createRoam({ scene, camera, head, car, rig, colliders, parts, re
   tag(parts.standScreen, 'stand');
   tag(parts.headset, 'headset');
   tag(parts.tv, 'tv');
+  tag(parts.githubScreen, 'github');
   tag(parts.printer, 'printer');
   tag(parts.board, 'board');
   tag(parts.fridge, 'fridge');

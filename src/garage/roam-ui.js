@@ -17,7 +17,7 @@ import { LAYOUT } from './layout.js';
 //   W S / ↑ ↓  walk (shift: run)   A D  step sideways   ← →  turn
 //   look round: push the mouse to a screen edge, drag, or swipe sideways on a trackpad
 //   click / tap        walk there, or open what's under it
-//   1 … 7              jump to a station        esc     step back from it
+//   1 … 8              jump to a station        esc     step back from it
 //   E                  get back in the car (near it)
 //   M                  the garage radio on / off (or click it); it's louder the closer you are
 const STATIONS = [
@@ -28,8 +28,9 @@ const STATIONS = [
   { id: 'printer', key: '5', label: 'printer', what: 'cv' },
   { id: 'board', key: '6', label: 'pit board', what: 'sign it' },
   { id: 'headset', key: '7', label: 'team radio', what: 'contact' },
+  { id: 'github', key: '8', label: 'commits', what: 'github' },
 ];
-const ON_SCREEN = new Set(['gantry', 'stand', 'tv']); // HTML laid over a 3D screen
+const ON_SCREEN = new Set(['gantry', 'stand', 'tv', 'github']); // HTML laid over a 3D screen
 const CV_URL = '/assets/cv/krish-viramgama-cv.pdf';
 const KEYS = { forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['KeyA'], right: ['KeyD'], turnLeft: ['ArrowLeft'], turnRight: ['ArrowRight'] };
 const TURN = 1.9; // rad/s, the arrow keys
@@ -94,6 +95,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     say('getting out…');
     getBoard().then(({ messages }) => garage.setBoard(messages[0]?.text)).catch(() => {}); // the newest line on the board
     showSeen();
+    loadGithub();
     moving = true;
     R.enter(() => {
       moving = false;
@@ -170,7 +172,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     if (!keepCamera) {
       sfx('close');
       R.unfocus();
-      say(touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–7 jump to one');
+      say(touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–8 jump to one');
       strip.querySelector(`[data-station="${was.id}"]`)?.focus({ preventScroll: true });
     }
   }
@@ -261,6 +263,24 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       prompts.innerHTML = prompt([['↵', 'post'], ['esc', 'back']]);
       loadBoard();
     },
+    github() {
+      if (!github) {
+        body.innerHTML = `<div class="roam-info"><h2 class="f1-info__t" id="roam-title">commits</h2><p>${github === null ? 'no signal from github right now. it usually comes back in a minute.' : 'tuning in…'}</p><p class="p-links"><a class="roam-btn" href="https://github.com/figureitoutkrish" target="_blank" rel="noopener">open my github ↗</a></p></div>`;
+        prompts.innerHTML = prompt([['esc', 'back']]);
+        return;
+      }
+      const { days, total, commits } = github;
+      const { cur, best } = streaks(days);
+      const offset = new Date(days[0].date).getUTCDay();
+      const cells = [...Array(offset).fill('<i class="gh-cell gh-pad"></i>'), ...days.map((d, i) => `<i class="gh-cell" data-l="${Math.min(4, d.level)}"${i === days.length - 1 ? ' data-today' : ''} title="${d.count} on ${new Date(d.date + 'T12:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}"></i>`)].join('');
+      body.innerHTML = `<div class="gh">
+          <header class="gh-head"><h2 class="f1-info__t" id="roam-title">commits</h2><a class="roam-btn" href="https://github.com/figureitoutkrish" target="_blank" rel="noopener">open my github ↗</a></header>
+          <div class="gh-cal" role="img" aria-label="${total} contributions in the last 12 months">${cells}</div>
+          <div class="gh-stats"><div><b>${total}</b><span>last 12 months</span></div><div><b>${cur}</b><span>day streak</span></div><div><b>${best}</b><span>longest streak</span></div></div>
+          <ul class="f1-rows gh-commits">${(commits || []).slice(0, 5).map((c) => `<li><a class="f1-row" href="${esc(c.url)}" target="_blank" rel="noopener"><span><b>${esc(c.repo)}</b> ${esc(c.message)}</span><span class="gh-when">${c.date ? agoDate(c.date) : ''}</span></a></li>`).join('')}</ul>
+        </div>`;
+      prompts.innerHTML = prompt([['esc', 'back']]);
+    },
     headset() {
       body.innerHTML = `<div class="roam-info">
           <h2 class="f1-info__t" id="roam-title">team radio</h2>
@@ -337,6 +357,41 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
   const ago = (t) => {
     const m = Math.round((Date.now() - t) / 60000);
     return m < 1 ? 'now' : m < 60 ? `${m}m` : m < 1440 ? `${Math.round(m / 60)}h` : `${Math.round(m / 1440)}d`;
+  };
+
+  // ---------- the commits monitor: Krish's GitHub (api/github.js, cached on the edge) ----------
+  let github; // undefined = not asked yet, null = no signal
+  function loadGithub() {
+    if (github !== undefined) return;
+    github = null;
+    fetch('/api/github')
+      .then((r) => (r.ok && r.headers.get('content-type')?.includes('json') ? r.json() : null))
+      .catch(() => null)
+      .then((d) => {
+        github = d && Array.isArray(d.days) ? d : null;
+        garage.setGithub(github);
+        if (open?.id === 'github') RENDER.github();
+      });
+  }
+  const streaks = (days) => {
+    let best = 0;
+    let run = 0;
+    days.forEach((d) => {
+      run = d.count ? run + 1 : 0;
+      best = Math.max(best, run);
+    });
+    // the current streak counts back from today (or yesterday, if today has nothing yet)
+    let cur = 0;
+    for (let i = days.length - 1; i >= 0; i--) {
+      if (days[i].count) cur++;
+      else if (i === days.length - 1) continue;
+      else break;
+    }
+    return { cur, best };
+  };
+  const agoDate = (iso) => {
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    return m < 60 ? `${Math.max(1, m)}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`;
   };
 
   // ---------- the garage radio ----------
@@ -584,7 +639,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       if (yaw || pitch) R.look(yaw * dt, pitch * dt);
     }
     if (open?.id === 'stand') garage.setMeter(checkLevel());
-    if (!open && !R.busy && performance.now() > tipUntil) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–7 jump to one');
+    if (!open && !R.busy && performance.now() > tipUntil) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–8 jump to one');
   });
   const offStep = R.onStep(() => sfx('step'));
 

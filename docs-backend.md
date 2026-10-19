@@ -23,3 +23,9 @@ Until this is set up (and on `npm run dev`), everything still works: scores and 
 - Circle scores are recomputed on the server from the drawn points; machine-perfect circles are refused. Racer distances must be possible for the run's length.
 - Rate limits: 12 score submissions per 10 min and 4 notes and 3 pit board lines per hour per IP. The board keeps its newest 200. One leaderboard row per name (your best counts). Only the newest 300 notes are kept.
 - Visitors are anonymous (a random id in their browser); it's never shown to anyone.
+
+## GitHub (the garage's commits monitor)
+
+`api/github.js` reads Krish's public contribution calendar and recent commits; no setup needed. Vercel's edge caches it for 30 minutes. Optional: add a `GITHUB_TOKEN` env var (a fine-grained token with no permissions is enough) to raise GitHub's rate limit for the commit search.
+
+Commits only count on the calendar if their author email is one of the emails on the GitHub account (github.com/settings/emails).

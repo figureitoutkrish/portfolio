@@ -345,6 +345,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     printPage: () => world.printPage(),
     setRadio: (o) => world.setRadio(o),
     setSeen: (list) => world.setSeen(list),
+    setGithub: (data) => world.setGithub(data),
     // where the radio is, and where you are and which way is your right (for the radio's sound)
     radioAt: () => {
       const p = world.stations.radio.getWorldPosition(new THREE.Vector3());
