@@ -32,9 +32,9 @@ Every control is a real button with one job:
 | Control | Keys | Job |
 |---|---|---|
 | paddles − / + | ← → · swipe the screen | previous / next |
-| MODE rotary | 1 2 3 | projects · lap · radio (LAB comes later) |
-| SCROLL rotary | ↑ ↓ · wheel · drag the knob | scroll the screen; in the radio check it's the model dial (relabelled **model**) |
-| OK | enter | open the briefing → open the code (or the radio check); LAP: drive again; RADIO: open the channel |
+| MODE rotary | 1 2 3 4 | projects · lap · radio · lab (positions at −95°, −35°, 35°, 95°) |
+| SCROLL rotary | ↑ ↓ · wheel · drag the knob | scroll the screen; in the radio check it's the model dial (relabelled **model**); on LAB the learning rate (**rate**) |
+| OK | enter | open the briefing → open the code (or the radio check); LAP: drive again; RADIO: open the channel; LAB: train / pause |
 | BACK | esc / backspace | close the briefing |
 | PIT | – | back in the car at the pit entry |
 | GET OUT | E | out of the car to walk the garage (below) |
@@ -53,6 +53,11 @@ Every control is a real button with one job:
   - lap time, reaction, top speed, braking point before the box, corrections, cm off the marks;
   - a style call from five plain rules, with the rule that fired highlighted.
 - **RADIO:** a short exchange, then email, LinkedIn, GitHub, Instagram.
+- **LAB** (`modes/lab.js` + `src/garage/nn.js`): "teach it to brake". A hand-written network (2 inputs → tanh hidden → sigmoid, full-batch momentum on cross-entropy) learns from the visitor's own drive: each 0.1 s sample before the pit entry line is an example (speed / 120, distance / 150 → on the brake?).
+  - No drive? It learns from Krish's laps instead: the same vehicle model driven by a script from 90, 105, 120 and 135 km/h, so it can learn that faster means braking earlier. The header says which.
+  - The screen: a heat map of P(brake) over distance (150 m → the line) × speed (40–140), dark teal → red, with the 50% boundary in white, the samples as dots and 80 km/h dashed yellow; the loss line; the network with connection widths ∝ |w| (teal +, red −); steps, loss, lr.
+  - The payoff line: "at N km/h it brakes from X m before the line. you braked at Y m." (the speed and distance of the driver's first brake).
+  - OK trains / pauses (20 steps a frame, 3000 max), paddles set the hidden size (2 · 4 · 8, starts over), the SCROLL dial steps the learning rate (0.03 · 0.1 · 0.3 · 1), BACK starts over, the shift lights fill with progress. Leaving the mode pauses it.
 - **Overlay (with 3D):** `src/three/garage/controls.js` builds the physical controls per car from `car.controlSpots`. On the W11 they sit on the wheel's own knobs and buttons, found by scanning its face for bumps.
   - `garage.wheelLayout()` projects the display and each control to CSS px; `wheel.attach(surface)` lays the screen and the hotspots over them.
   - Compact framing (phones, and tablets held upright: `wheel.setCompact`): the display fills the width (94% on phones, 72% on tablets), sits just under the header, and a dock of caps (‹ back mode ok ›) stands in for the controls off-screen.

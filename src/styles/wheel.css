@@ -289,6 +289,28 @@ html[data-drive="wheel"] .hud { display: none; }
 .lap-empty b { font-size: max(22px, 6cqi); font-stretch: var(--f1-stretch); font-weight: 800; font-style: italic; text-transform: uppercase; }
 .lap-empty span { color: var(--f1-muted); font-size: var(--txt); }
 
+/* --- lab: a tiny network learning to brake (heat map, its loss, the net itself) --- */
+.lab { display: grid; gap: 2cqi; }
+.lab-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1cqi 3cqi; }
+.lab-who { color: var(--f1-muted); font-size: var(--lab); letter-spacing: 0.02em; }
+.lab-main { display: grid; grid-template-columns: 1fr; gap: 2.4cqi; }
+.lab-map { position: relative; margin: 0; padding-left: 3cqi; }
+.lab-map canvas { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 2px; background: #082220; }
+.lab-map figcaption { display: flex; justify-content: space-between; margin-top: 0.8cqi; color: var(--f1-muted); font-family: var(--font-mono); font-size: var(--lab); }
+.lab-y { position: absolute; top: 50%; left: 0; color: var(--f1-muted); font-family: var(--font-mono); font-size: var(--lab); rotate: -90deg; translate: -35% -50%; }
+.lab-side { display: grid; grid-template-columns: 1fr 1fr; gap: 2cqi; align-items: center; }
+.lab-net { width: 100%; height: auto; }
+.lab-node { fill: var(--f1-ink); stroke: var(--f1-team); stroke-width: 0.8; }
+.lab-txt { fill: var(--f1-muted); font-family: var(--font-mono); font-size: 5px; }
+.lab-loss { display: block; width: 100%; height: 9cqi; border-left: 2px solid var(--f1-team); }
+.lab-stat { grid-column: 1 / -1; color: var(--f1-muted); font-family: var(--font-mono); font-size: var(--lab); font-variant-numeric: tabular-nums; }
+.lab-stat b { color: var(--f1-ink); font-weight: 500; }
+.lab-say { padding: 1.2cqi 1.6cqi; border-left: 2px solid var(--f1-purple); background: var(--f1-zebra); font-size: var(--txt); font-weight: 500; line-height: 1.4; }
+@container (min-width: 520px) {
+  .lab-main { grid-template-columns: 1.7fr 1fr; align-items: start; }
+  .lab-side { grid-template-columns: 1fr; }
+}
+
 /* --- radio: the exchange, then the channels as menu rows --- */
 .radio-line { display: grid; grid-template-columns: 11cqi 1fr; gap: 2cqi; margin-bottom: 2.2cqi; font-size: var(--lab); line-height: 1.5; }
 .radio-line b { color: var(--f1-team); font-stretch: var(--f1-stretch); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }

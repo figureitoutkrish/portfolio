@@ -1,6 +1,7 @@
 import { projects } from './modes/projects.js';
 import { lap } from './modes/lap.js';
 import { radio } from './modes/radio.js';
+import { lab } from './modes/lab.js';
 import { sfx } from '../audio/sfx.js';
 import { radioCall } from './radio-check.js';
 
@@ -12,7 +13,7 @@ import { radioCall } from './radio-check.js';
 //   drawn    (no WebGL) the same controls on a wheel drawn in HTML/SVG.
 // Every control is a real button with one job:
 //   paddles − / +   previous / next (← →, or swipe the screen)
-//   MODE rotary     projects · lap · radio (1 2 3)
+//   MODE rotary     projects · lap · radio · lab (1 2 3 4)
 //   SCROLL rotary   scroll the screen (↑ ↓, wheel, drag the knob)
 //   OK / BACK       open / back (enter / esc)
 //   PIT             drive in again
@@ -22,9 +23,9 @@ import { radioCall } from './radio-check.js';
 //   shift lights    where you are (project 3 of 6; on LAP: how close you parked)
 // A mode can take a control over for one of its levels: step (paddles), turn (the SCROLL dial,
 // as the radio check's model dial does), labels (renamed hotspots) and leave (stop its audio).
-const MODES = { projects, lap, radio };
-const ORDER = ['projects', 'lap', 'radio'];
-const KNOB = { projects: -50, lap: 0, radio: 50 };
+const MODES = { projects, lap, radio, lab };
+const ORDER = ['projects', 'lap', 'radio', 'lab'];
+const KNOB = { projects: -95, lap: -35, radio: 35, lab: 95 };
 const TOASTS = {
   drink: 'drinks bottle · red bull, obviously',
   talk: 'radio check · loud and clear',
@@ -56,6 +57,7 @@ export function initWheel({ root, reducedMotion, onPit, onOut }) {
     },
     setKnob: (deg) => turnScrollKnob(deg),
     toast: (text) => toast(text),
+    refresh: () => chrome(MODES[state.mode]), // the count, hints and labels, after the mode changed them itself
   };
   // the mode has the SCROLL dial (it isn't scrolling the screen)
   const dialTaken = () => !!MODES[state.mode].labels?.(state)?.scroll;
@@ -67,14 +69,7 @@ export function initWheel({ root, reducedMotion, onPit, onOut }) {
     m.render(body, state, ui);
     body.scrollTop = 0;
     modeEl.textContent = state.mode;
-    countEl.textContent = m.count(state);
-    hintsEl.innerHTML = m.hints(state);
-    const lab = m.labels?.(state) || {};
-    hots.querySelectorAll('[data-hot]').forEach((el) => {
-      const t = lab[el.dataset.hot] || LABELS[el.dataset.hot];
-      if (el.firstElementChild.textContent !== t) el.firstElementChild.textContent = t;
-    });
-    root.querySelector('.rotary__label').textContent = lab.scroll || 'scroll';
+    chrome(m);
     modeKnob.style.setProperty('--knob', `${KNOB[state.mode]}deg`);
     modeBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.mode === state.mode)));
     const lit = m.leds(state);
@@ -85,6 +80,17 @@ export function initWheel({ root, reducedMotion, onPit, onOut }) {
       surface.turnControl('mode', KNOB[state.mode]);
     }
     if (!dialTaken()) syncScrollKnob();
+  }
+
+  function chrome(m) {
+    countEl.textContent = m.count(state);
+    hintsEl.innerHTML = m.hints(state);
+    const lab = m.labels?.(state) || {};
+    hots.querySelectorAll('[data-hot]').forEach((el) => {
+      const t = lab[el.dataset.hot] || LABELS[el.dataset.hot];
+      if (el.firstElementChild.textContent !== t) el.firstElementChild.textContent = t;
+    });
+    root.querySelector('.rotary__label').textContent = lab.scroll || 'scroll';
   }
 
   function setMode(id) {
@@ -270,7 +276,7 @@ export function initWheel({ root, reducedMotion, onPit, onOut }) {
       e.preventDefault();
       return scrollBy(e.key === 'ArrowUp' ? -1 : 1);
     }
-    if (['1', '2', '3'].includes(e.key)) return setMode(ORDER[Number(e.key) - 1]);
+    if (['1', '2', '3', '4'].includes(e.key)) return setMode(ORDER[Number(e.key) - 1]);
     if (e.code === 'KeyE' && !e.repeat && onOut) return onOut(); // out of the car, into the garage
     const hit = map[e.key];
     if (!hit) return;
@@ -349,7 +355,7 @@ export function initWheel({ root, reducedMotion, onPit, onOut }) {
       el.classList.toggle('hot--label-up', c.y > r.top + r.height * 1.25); // the row under the display: label above
       if (c.id === 'mode') {
         // positions printed in an arc above the knob, at the knob's pointer angles
-        const R = c.r + 16;
+        const R = c.r + 22;
         hots.querySelectorAll('.hot__pos').forEach((b) => {
           const a = (KNOB[b.dataset.mode] * Math.PI) / 180;
           Object.assign(b.style, { left: `${c.x + Math.sin(a) * R}px`, top: `${c.y - Math.cos(a) * R}px` });
