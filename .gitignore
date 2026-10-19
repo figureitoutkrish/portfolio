@@ -26,3 +26,5 @@ content/*/
 
 # Models that must not be published (game rips, unlicensed): only used on this Mac
 src/assets/local/
+.vercel
+.env*

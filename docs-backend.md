@@ -7,7 +7,7 @@ Until this is set up (and on `npm run dev`), everything still works: scores and 
 ## Turn it on (once, ~5 minutes)
 
 1. **Vercel → Add New → Project →** import `figureitoutkrish/portfolio`. Framework preset: **Vite**. Deploy.
-2. In the project: **Storage → Create / Connect → Upstash for Redis** (Marketplace) → free plan → connect it to this project. Vercel adds the env vars (`KV_REST_API_URL` / `KV_REST_API_TOKEN` or `UPSTASH_REDIS_REST_URL` / `_TOKEN`; both work).
+2. In the project: **Storage → Create / Connect → Upstash for Redis** (Marketplace) → free plan → connect it to this project. Vercel adds the env vars (`KV_REST_API_URL` / `KV_REST_API_TOKEN`, `UPSTASH_REDIS_REST_URL` / `_TOKEN`, either with a prefix, or a plain `REDIS_URL`; all of them work, see `api/_lib/redis.js`).
 3. Optional, for moderating notes from anywhere: **Settings → Environment Variables →** add `ADMIN_KEY` = any long random string.
 4. **Redeploy.** Scores and notes are now shared.
 
