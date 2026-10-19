@@ -423,16 +423,19 @@ export function mountRacer(body, { os, reducedMotion }) {
     ctx.restore();
   }
 
+  // (named tick, not loop: `loop` is the sound import that starts the engine hum. When this was
+  // called loop too, starting a race called the game loop with "engine" as its time and every
+  // number on screen went NaN)
   let raf = 0;
-  let last = performance.now();
-  const loop = (now) => {
-    const dt = Math.min(0.05, (now - last) / 1000);
+  let last = null;
+  const tick = (now) => {
+    const dt = last === null ? 0 : Math.max(0, Math.min(0.05, (now - last) / 1000));
     last = now;
     if (!document.hidden) {
       update(dt);
       draw();
     }
-    raf = requestAnimationFrame(loop);
+    raf = requestAnimationFrame(tick);
   };
 
   actions.addEventListener('click', (e) => {
@@ -446,7 +449,7 @@ export function mountRacer(body, { os, reducedMotion }) {
   canvas.addEventListener('pointerdown', () => mode === 'demo' && start('play'));
 
   start('demo');
-  raf = requestAnimationFrame(loop);
+  raf = requestAnimationFrame(tick);
 
   return {
     key(key, down) {

@@ -20,12 +20,64 @@ const viaWipe = arrivedViaWipe();
 const cockpit = document.querySelector('.cockpit');
 const canvas = cockpit.querySelector('.cockpit__gl');
 const pct = cockpit.querySelector('.cockpit__load-pct');
-let carIn = false; // the loading manager reports 1/1 before it knows about every texture: hold under 100% until the car is in
-const check = (name) => {
-  if (name === 'car') carIn = true;
-  cockpit.querySelector(`[data-check="${name}"]`)?.classList.add('is-done');
-};
 const bar = cockpit.querySelector('.cockpit__load-track');
+
+// ---------- the loader: honest, but never a blink ----------
+// Each line ticks only once that part has really loaded, in order, at most one every ~320 ms, with
+// a spinner on the one being worked on; the percentage counts up smoothly toward the real progress;
+// the whole thing takes at least ~1.4 s so a fast load still reads as loading.
+const ORDER = ['engine', 'lane', 'car', 'radio'];
+const STEP = 320;
+const MIN_TOTAL = 1400;
+const loadStart = performance.now();
+const loaded = new Set();
+let ticked = 0;
+let lastTick = loadStart;
+let carIn = false; // the loading manager reports 1/1 before it knows about every texture: don't trust it until the car is in
+let realP = 0;
+let shownP = 0;
+let pumpTimer = 0;
+let doneLoading;
+const loaderDone = new Promise((r) => (doneLoading = r));
+const lineOf = (name) => cockpit.querySelector(`[data-check="${name}"]`);
+lineOf(ORDER[0])?.classList.add('is-active');
+function check(name) {
+  if (name === 'car') carIn = true;
+  loaded.add(name);
+  pump();
+}
+function pump() {
+  clearTimeout(pumpTimer);
+  const now = performance.now();
+  const next = ORDER[ticked];
+  if (next && loaded.has(next)) {
+    const wait = reducedMotion ? 0 : STEP - (now - lastTick);
+    if (wait > 0) return void (pumpTimer = setTimeout(pump, wait));
+    lineOf(next)?.classList.replace('is-active', 'is-done') || lineOf(next)?.classList.add('is-done');
+    ticked += 1;
+    lastTick = now;
+    lineOf(ORDER[ticked])?.classList.add('is-active');
+    return pump();
+  }
+  if (!next) {
+    const left = reducedMotion ? 0 : MIN_TOTAL - (now - loadStart);
+    if (left > 0) return void (pumpTimer = setTimeout(pump, left));
+    doneLoading();
+  }
+}
+// the bar and the number ease toward what's really loaded (and what the checklist says)
+function showProgress() {
+  // a quarter per line: the line being worked on fills part of its quarter (more once it's in)
+  const working = ORDER[ticked];
+  const part = !working ? 0 : loaded.has(working) ? 0.85 : working === 'car' ? 0.75 * realP * (carIn ? 1 : 0.9) : 0.35;
+  const target = Math.min(1, (ticked + part) / ORDER.length);
+  shownP += (target - shownP) * (reducedMotion ? 1 : 0.12);
+  if (Math.abs(target - shownP) < 0.002) shownP = target;
+  bar.style.setProperty('--p', shownP.toFixed(3));
+  pct.textContent = `${Math.round(shownP * 100)}%`;
+  if (!cockpit.classList.contains('is-ready')) requestAnimationFrame(showProgress);
+}
+requestAnimationFrame(showProgress);
 const lines = cockpit.querySelectorAll('.cockpit__title .line > span');
 const wheelEl = document.getElementById('wheel');
 
@@ -47,6 +99,9 @@ fontsReady.then(async () => {
     return plainWheel();
   }
   progress(1);
+  await loaderDone; // (every line ticked, and at least ~1.4 s on screen)
+  bar.style.setProperty('--p', '1');
+  pct.textContent = '100%';
   cockpit.classList.add('is-ready');
   if (import.meta.env.DEV) window.__garage = garage;
   if (!reducedMotion) gsap.to(lines, { yPercent: 0, duration: 0.9, ease: 'ui-out', stagger: 0.08, delay: 0.25 });
@@ -58,9 +113,7 @@ fontsReady.then(async () => {
 });
 
 function progress(p) {
-  const v = Math.max(0, Math.min(carIn ? 1 : 0.9, p));
-  bar.style.setProperty('--p', v.toFixed(3));
-  pct.textContent = `${Math.round(v * 100)}%`;
+  realP = Math.max(realP, Math.min(1, p));
 }
 
 // phones, tablets and low-memory devices get the light version; ?q=low|high overrides

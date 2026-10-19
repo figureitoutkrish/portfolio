@@ -12,7 +12,6 @@ import gsap from 'gsap';
 import { initShared } from './shared.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
 import { createOS } from './creative/mac/os.js';
-import { secretReady } from './creative/mac/apps/secret.js';
 import { initCabinet } from './creative/mac/cabinet.js';
 import { initDesk } from './creative/desk.js';
 import { initHeaderLights } from './creative/header-lights.js';
@@ -34,18 +33,13 @@ const viaWipe = arrivedViaWipe();
 
 const os = createOS({ reducedMotion, lenis });
 const cabinet = initCabinet({ os, reducedMotion });
-// the secret disk only appears once its video exists (public/assets/secret/message.mp4)
-const secretDisk = document.querySelector('.floppy--secret');
-if (secretDisk) {
-  secretDisk.hidden = true;
-  secretReady().then((ok) => (secretDisk.hidden = !ok));
-}
 initDesk({ reducedMotion });
 const lights = initHeaderLights({ lenis, reducedMotion });
-// Phones: the Mac's screen is small, so a game takes the whole screen (and gives it back after).
+// A game takes the whole screen (the Mac's own screen is a few hundred pixels wide), and gives it
+// back when you eject, quit or close it.
 let autoZoomed = false;
 os?.on((type, on) => {
-  if (type !== 'gaming' || !matchMedia('(max-width: 767px)').matches) return;
+  if (type !== 'gaming') return;
   if (on && !lights.isZoomed()) {
     lights.zoom(true);
     autoZoomed = true;

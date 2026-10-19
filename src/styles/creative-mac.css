@@ -425,6 +425,15 @@
   /* while a game runs, the spare disk would sit on the keys: tuck it away until you eject */
   html.is-gaming .desk.is-zoomed .floppy:not(.is-inside) { opacity: 0; pointer-events: none; }
 }
+/* Desktop, while a game runs: the Mac grows until its screen fills ~78% of the window height
+   (the screen is 0.575 × --mw tall), shifted so the screen is centred; the cabinet's base runs off
+   the bottom. You play with the keyboard here, so the on-screen keys and spare disk can go. */
+@media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+  html.is-gaming .desk.is-zoomed { --mw: min(135svh, 120vw); align-content: start; padding: 0; }
+  html.is-gaming .desk.is-zoomed [data-mac] { translate: 0 calc(50svh - var(--mw) * 0.41); }
+  html.is-gaming .desk.is-zoomed .pad { opacity: 0; pointer-events: none; }
+  html.is-gaming .desk.is-zoomed .floppy:not(.is-inside) { display: none; } /* (gsap leaves inline opacity on disks; display wins) */
+}
 /* Full screen is for playing: just the Mac, its keys and the disks. */
 .desk.is-zoomed .photo, .desk.is-zoomed .sticky, .desk.is-zoomed .notes { display: none; }
 .lights__btn[aria-pressed="true"]::before { box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.25), 0 0 0 2px rgba(255, 255, 255, 0.6); }
@@ -1069,4 +1078,7 @@ html.is-gaming .speedo, html.is-mac-zoom .speedo { opacity: 0; }
   .os__btn::after { content: ""; position: absolute; inset: -8px -4px; }
 }
 
-.floppy--secret[hidden] { display: none; } /* until its video exists (creative.js) */
+
+/* dragging stickers, notes and disks around the desk never selects text (the note pad still can) */
+.desk { -webkit-user-select: none; user-select: none; }
+.desk :is(textarea, input) { -webkit-user-select: text; user-select: text; }

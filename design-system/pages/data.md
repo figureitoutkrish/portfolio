@@ -116,7 +116,7 @@ Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no
   - `.f1-btn` / `--primary`;
   - `.f1-streaks` (the moving light behind menus; still under reduced motion).
 - **Where they're used:**
-  - **Loader:** an install-style checklist (3d engine, pit lane, car & textures, team radio), each ticked when that part has really loaded (`createGarage({ onStage })`). The percentage holds under 100% until the car is in.
+  - **Loader:** an install-style checklist (3d engine, pit lane, car & textures, team radio). Each line ticks only once that part has really loaded (`createGarage({ onStage })`), in order and at most one every 320 ms, with a spinning ring on the line being worked on. The percentage climbs a quarter per line, the bar has a running sheen, and the whole thing stays up at least 1.4 s so a fast load still reads as loading. Reduced motion: no spinner or sheen.
   - **Intro:** session header, the title in 800 italic, the objective pill, **take the wheel ↵** (Enter starts) and **skip to the garage**.
   - **Drive HUD:**
     - top left: the session box (phase, your time) and the objective, the only part announced to screen readers;

@@ -89,18 +89,25 @@ html:not(.js) .site-header--over { position: relative; inset: auto; margin: 1.25
 .cockpit__checks li { display: flex; align-items: center; gap: 0.7rem; transition: color 200ms ease; }
 .cockpit__checks i { position: relative; width: 0.9rem; height: 0.9rem; border: 1px solid rgba(242, 245, 247, 0.35); border-radius: 2px; transition: background-color 200ms ease, border-color 200ms ease; }
 .cockpit__checks i::after { content: ""; position: absolute; left: 0.27rem; top: 0.08rem; width: 0.24rem; height: 0.48rem; border: solid var(--f1-team-ink); border-width: 0 2px 2px 0; rotate: 45deg; opacity: 0; transition: opacity 160ms ease; }
+/* the line being loaded: a small spinning ring in its box */
+.cockpit__checks li.is-active { color: var(--f1-ink); }
+.cockpit__checks li.is-active i { border-color: rgba(0, 210, 190, 0.35); border-top-color: var(--f1-team); border-radius: 50%; animation: load-spin 700ms linear infinite; }
+@keyframes load-spin { to { rotate: 1turn; } }
 .cockpit__checks li.is-done { color: var(--f1-ink); }
 .cockpit__checks li.is-done i { border-color: var(--f1-team); background: var(--f1-team); }
 .cockpit__checks li.is-done i::after { opacity: 1; }
 .cockpit__load-row { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.8rem; padding: 0 1.1rem; font-family: var(--font-mono); }
-.cockpit__load-track { height: 3px; background: var(--f1-line); overflow: hidden; }
+.cockpit__load-track { position: relative; height: 3px; background: var(--f1-line); overflow: hidden; }
+/* a sheen running along the bar while it works */
+.cockpit__load-track::after { content: ""; position: absolute; inset: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent); animation: load-sheen 1.1s ease-in-out infinite; }
+@keyframes load-sheen { from { translate: -100% 0; } to { translate: 260% 0; } }
+.cockpit.is-ready .cockpit__load-track::after { animation: none; opacity: 0; }
 .cockpit__load-track i {
   display: block;
   height: 100%;
   background: var(--f1-team);
   transform-origin: left;
   transform: scaleX(var(--p, 0));
-  transition: transform 200ms linear;
 }
 .cockpit__load-pct { min-width: 3.5ch; color: var(--f1-ink); text-align: right; font-variant-numeric: tabular-nums; }
 
@@ -387,4 +394,9 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cockpit__checks li.is-active i { animation: none; border-radius: 2px; }
+  .cockpit__load-track::after { animation: none; opacity: 0; }
 }

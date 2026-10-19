@@ -1,14 +1,8 @@
 // MESSAGE.MOV: the secret floppy (hidden under a sticky note). Plays Krish's video message,
 // QuickTime-style. Drop the file at public/assets/secret/message.mp4 (and an optional poster at
-// message.jpg); until then the disk is hidden (secretReady), and the card below is a fallback.
+// message.jpg); until then it shows a "coming soon" card.
 const SRC = '/assets/secret/message.mp4';
 const POSTER = '/assets/secret/message.jpg';
-
-// Is the video there yet? Until it is, the disk stays off the desk (nothing unfinished on show).
-export const secretReady = () =>
-  fetch(SRC, { method: 'HEAD' })
-    .then((r) => r.ok && (r.headers.get('content-type') || '').startsWith('video'))
-    .catch(() => false);
 
 export function mountSecret(body) {
   body.classList.add('os__body--movie');
