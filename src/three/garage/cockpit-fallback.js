@@ -207,6 +207,7 @@ export function buildFallbackCar() {
     wheels,
     halo: body.halo,
     setAero: body.setAero,
+    rearAxle: -2.275,
     dispose() {
       car.traverse((o) => o.geometry?.dispose());
       body.dispose();

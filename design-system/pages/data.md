@@ -108,6 +108,7 @@ Dressed from Krish's photos of a team garage:
   - The converter re-winds the STL's inconsistent triangles, moves it into car space (front axle at z 1.44, so the rear sits at −1.96, `LAYOUT.axles`), and cuts the halo and the cockpit's flat CAD lid into a `halo` mesh the seat hides (`scripts/concept-zones.mjs`). The CAD tyres are doubled surfaces that z-fight, so it ships only their measurements; `car-concept.js` lathes clean tyres and rims from them.
   - Livery (`car-livery.js`), painted per pixel from car-space position (the mesh has no UVs), after Krish's references of the black Mercedes cars (W11, W14), with no team logos or sponsors: gloss black, carbon weave underneath and on the wings, teal lines (the side sweep dipping over the sidepod, two down the nose, the endplate and rear-wing edges, the halo's top), and a three-pointed star pattern on the engine cover that fades toward the cockpit. Tyres: a yellow compound ring and a teal rim lip.
   - The cockpit is still the code car's steering wheel, display, shift lights and controls, so the wheel interface is unchanged; a dark tub sits under the hidden lid.
+  - Each car reports its `rearAxle` (the rear gunners crouch by its wheels, `world.setRearAxle`) and its `credit` (shown on the car's panel only when it's someone's model).
   - `?car=code` shows the code car (`cockpit-fallback.js` + `car-body.js`), which is also the fallback if the model fails to load. `?car=w11` uses the local W11 on Krish's Mac only.
 
 ## Look: the F1 game's UI (`src/styles/f1ui.css`)

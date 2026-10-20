@@ -228,10 +228,12 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       prompts.innerHTML = prompt([['esc', 'back']]);
     },
     car() {
+      const c = garage.carCredit;
+      const credit = () => (c ? `<p class="roam-credit">body: <a href="${c.url}" target="_blank" rel="noopener">“${esc(c.title)}”</a> by <a href="${c.authorUrl}" target="_blank" rel="noopener">${esc(c.author)}</a>, <a href="${c.licenseUrl}" target="_blank" rel="noopener">${esc(c.license)}</a></p>` : '');
       body.innerHTML = `<div class="roam-info">
           <h2 class="f1-info__t" id="roam-title">kv 01</h2>
           <p>2026 rules: lighter and narrower, half its power from the battery, active aero, no drs. painted black and teal for this page.</p>
-          <p class="roam-credit">body: <a href="https://sketchfab.com/3d-models/f1-2026-concept-polygon-model-ea3bde709b1e4dc9b0ec8557d106ed42" target="_blank" rel="noopener">“F1 2026 concept (polygon model)”</a> by <a href="https://sketchfab.com/Qvist_Designs" target="_blank" rel="noopener">Qvist_designs</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p>
+          ${credit()}
           <p class="p-links"><button type="button" class="roam-btn roam-btn--primary" data-roam-act="getin">get in <kbd class="f1-key">E</kbd></button></p>
         </div>`;
       prompts.innerHTML = prompt([['E', 'get in'], ['esc', 'back']]);

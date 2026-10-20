@@ -215,6 +215,7 @@ async function loadW11(manager) {
       pit: [-0.0832, -0.0382, 0.0046],
     },
     eye: new THREE.Vector3(0, 0.99, -0.2), // the driver's eye line (no halo, nothing in the way)
+    rearAxle: -2.275,
     wheels,
     dispose() {
       root.traverse((o) => o.geometry?.dispose());

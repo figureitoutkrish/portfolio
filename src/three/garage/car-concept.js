@@ -4,6 +4,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { buildFallbackCar } from './cockpit-fallback.js';
 import { bodyMaterial, wheelMaterial } from './car-livery.js';
+import { LAYOUT } from '../../garage/layout.js';
 
 // The published car: "F1 2026 concept (polygon model)" by Qvist_designs
 // (https://sketchfab.com/3d-models/f1-2026-concept-polygon-model-ea3bde709b1e4dc9b0ec8557d106ed42),
@@ -13,7 +14,7 @@ import { bodyMaterial, wheelMaterial } from './car-livery.js';
 // wheel interface is the same) and swaps everything else: the body painted by car-livery.js, the
 // halo (hidden from the driver's seat), and tyres built here from the model's own sizes.
 export const CONCEPT_URL = '/assets/models/car-2026.glb';
-export const CREDIT = { title: 'F1 2026 concept (polygon model)', author: 'Qvist_designs', url: 'https://sketchfab.com/3d-models/f1-2026-concept-polygon-model-ea3bde709b1e4dc9b0ec8557d106ed42', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/' };
+export const CREDIT = { title: 'F1 2026 concept (polygon model)', author: 'Qvist_designs', authorUrl: 'https://sketchfab.com/Qvist_Designs', url: 'https://sketchfab.com/3d-models/f1-2026-concept-polygon-model-ea3bde709b1e4dc9b0ec8557d106ed42', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/' };
 
 export async function loadConcept(manager) {
   const gltf = await new GLTFLoader(manager).setMeshoptDecoder(MeshoptDecoder).loadAsync(CONCEPT_URL);
@@ -83,7 +84,7 @@ export async function loadConcept(manager) {
     ...base,
     wheels,
     halo,
-    setAero: undefined, // (the model's rear flap is part of its wing)
+    rearAxle: LAYOUT.axles.rear, // (the converter measured it: −1.96)
     credit: CREDIT,
     dispose() {
       dispose(); // (disposes every geometry under the group, the model's included)

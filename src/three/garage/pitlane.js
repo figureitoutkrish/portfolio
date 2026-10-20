@@ -210,6 +210,7 @@ export function buildWorld({ quality = 'high' } = {}) {
     setBoard: ours.props.setBoard,
     update,
     setCrew: guide.setCrew,
+    setRearAxle: guide.setRearAxle,
     outsideAt: (x) => Math.max(0, Math.min(1, (x - gx + 1) / 4)),
     dispose() {
       disposables.forEach((d) => d.dispose());
@@ -598,10 +599,15 @@ function buildGuide(M, track) {
   function setCrew(state) {
     gunners.forEach((p) => (p.visible = state !== 'push'));
   }
+  // the rear gunners crouch by the rear wheels of whichever car loaded (the axles differ)
+  function setRearAxle(z) {
+    gunners[2].position.z = gunners[3].position.z = bz + z;
+  }
 
   return {
     group: g,
     setCrew,
+    setRearAxle,
     // the jack man and the lollipop stay at the box: walk round them, not through them
     colliders: [jackMan, lolly].map((p) => [p.position.x - 0.32, p.position.x + 0.32, p.position.z - 0.32, p.position.z + 0.32]),
     dispose() {

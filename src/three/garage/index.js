@@ -38,6 +38,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
 
   const lcd = createLcd();
   const car = await loadCar({ manager, lcdTexture: lcd.texture });
+  world.setRearAxle(car.rearAxle ?? LAYOUT.axles.rear);
   onStage?.('car');
   // the rig is the car's pose in the world; the car model and the camera ride on it
   // the display's real width (before the car is placed anywhere): the page sizes the zoom with it
@@ -362,6 +363,7 @@ export async function createGarage(canvas, { quality = 'high', reducedMotion = f
     onFrame: (fn) => (tickers.add(fn), () => tickers.delete(fn)),
     render: frame,
     info: () => renderer.info.render,
+    carCredit: car.credit || null, // the model's licence credit, when the car is someone's model
     debug: { scene, camera, head, car, THREE }, // for tuning in the console (dev only)
     dispose() {
       stop();
