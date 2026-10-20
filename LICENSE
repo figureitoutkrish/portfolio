@@ -1,0 +1,14 @@
+Copyright (c) 2026 Krish Viramgama. All rights reserved.
+
+This repository is public so the code can be read and learned from. No licence is granted to copy,
+modify, redistribute or reuse any part of it, including (but not limited to) the photographs,
+artwork, client and project images, music and audio, written copy, and personal information.
+
+Third-party material keeps its own licence and is credited in README.md:
+  - public/assets/models/car-2026.glb: based on "F1 2026 concept (polygon model)" by Qvist_designs,
+    CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  - public/assets/audio/radio-check/: LibriSpeech and Kabealo & Wyatt's gunshot dataset, CC BY 4.0
+  - public/assets/fonts/Nohemi-VF.ttf: Nohemi by Rajesh Rajput, under the designer's own terms
+  - npm dependencies: their own licences (see package.json)
+
+For anything else, ask: krishviramgamatir@gmail.com

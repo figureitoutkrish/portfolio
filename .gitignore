@@ -28,3 +28,6 @@ content/*/
 src/assets/local/
 .vercel
 .env*
+
+# Personal copy and private notes (local only; the site copy lives in the code)
+content/about.md
