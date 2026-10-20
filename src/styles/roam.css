@@ -181,6 +181,8 @@ html[data-drive="roam"] .cockpit__gl { cursor: grab; touch-action: none; }
 .roam-info { display: grid; gap: 0.8rem; align-content: start; font-size: var(--txt); line-height: 1.5; }
 .roam-info .f1-info__t { font-size: clamp(18px, 2.6cqi, 24px); }
 .roam-info > p { color: rgba(242, 245, 247, 0.84); }
+.roam-info > p.roam-credit { color: var(--f1-muted); font-family: var(--font-mono); font-size: max(10px, 0.72rem); line-height: 1.45; }
+.roam-credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .roam-btn {
   display: inline-flex;
   align-items: center;

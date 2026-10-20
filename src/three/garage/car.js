@@ -5,23 +5,33 @@ import { placeGlove, disposeGloves } from './gloves.js';
 import { carbonTexture } from './geometry.js';
 import { buildDriver } from './driver.js';
 import { buildControls, placeControls } from './controls.js';
+import { loadConcept } from './car-concept.js';
 import LOCAL from 'virtual:local-models'; // the local W11 on the dev server only; always empty in a build (vite.config.js)
 
-// The car. A real model is used when one sits in src/assets/local/ (kept out of git: the W11 there
-// is unlicensed, so it only ever runs on Krish's Mac). Without it, the cockpit built in code
-// (cockpit-fallback.js) is used, which is what the published site shows. Either way the rest of
-// the scene gets the same handles: the steering pivot, 15 shift lights, the display mesh, the
-// grips for the gloves and the driver's eye point.
+// The car. Three versions, all handing the rest of the scene the same handles (the steering pivot,
+// 15 shift lights, the display mesh, the grips for the gloves and the driver's eye point):
+//   concept  what the site shows: Qvist_designs' 2026 concept (CC BY 4.0) in Krish's black and
+//            teal livery, around the code car's cockpit (car-concept.js)
+//   code     the car built in code (cockpit-fallback.js): if the model can't load, or ?car=code
+//   w11      ?car=w11 on Krish's Mac only, when the unlicensed W11 sits in src/assets/local/
+//            (kept out of git and out of every build)
 const local = (name) => LOCAL[`/src/assets/local/w11/${name}`];
 
 export async function loadCar({ manager, lcdTexture }) {
   let car = null;
-  const forceCode = new URLSearchParams(location.search).get('car') === 'code'; // preview the published cockpit
-  if (local('w11.glb') && !forceCode) {
+  const want = new URLSearchParams(location.search).get('car'); // 'code' | 'w11'
+  if (want === 'w11' && local('w11.glb')) {
     try {
       car = await loadW11(manager);
     } catch (err) {
-      console.warn('[garage] local model failed, using the built-in cockpit', err);
+      console.warn('[garage] local model failed', err);
+    }
+  }
+  if (!car && want !== 'code') {
+    try {
+      car = await loadConcept(manager);
+    } catch (err) {
+      console.warn('[garage] the car model failed, using the built-in car', err);
     }
   }
   if (!car) car = buildFallbackCar();

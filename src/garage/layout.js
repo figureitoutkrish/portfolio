@@ -20,8 +20,8 @@ export const LAYOUT = {
   // the pit box in the working lane, in front of our garage: where the car stops (car origin;
   // the front tyres sit on the T at z + axles.front)
   pitBox: { x: -4.6, z: 0 },
-  // the car's axles relative to its origin (the W11 measures 3.715 m between them)
-  axles: { front: 1.44, rear: -2.275 },
+  // the car's axles relative to its origin (the concept car's: 3.4 m between them)
+  axles: { front: 1.44, rear: -1.96 },
   // where the crew pushes it: inside the garage, nose out toward the lane
   box: { x: -12.6, z: 0, heading: Math.PI / 2 },
   pitWall: 9.5,

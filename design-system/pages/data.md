@@ -3,7 +3,7 @@
 Overrides `MASTER.md` for the data alter ego.
 
 ## Concept (one flow, nothing outside it)
-1. **Cockpit:** first person in an F1 car (2020 W11 look) on a floodlit night pit lane. The opening line is "every project has a starting grid.", then the objective in one sentence ("box this lap: get under 80 before the pit entry line, limiter on, and stop on your crew's marks."), with **take the wheel** and **skip to the garage** (a dark pill, so it reads over the car).
+1. **Cockpit:** first person in an F1 car (a 2026 concept in a black-and-teal livery) on a floodlit night pit lane. The opening line is "every project has a starting grid.", then the objective in one sentence ("box this lap: get under 80 before the pit entry line, limiter on, and stop on your crew's marks."), with **take the wheel** and **skip to the garage** (a dark pill, so it reads over the car).
 2. **Drive in (about 20s), the way it's done in F1** (researched; sources in the commit that made it):
    - you take over rolling at 110 km/h; brake under 80 before the **pit entry line**, and press **L** (touch: PIT) for the limiter as you cross it;
    - down the fast lane on the limiter (it stutters the engine and blinks the shift lights);
@@ -103,7 +103,12 @@ Dressed from Krish's photos of a team garage:
 - **Back wall:** the wall TV, tool cabinets with lit handles, the fridge, a race suit on a stand and two helmets, the tyre allocation board (S ×8, M ×3, H ×2).
 - **Over the car:** the light box on cables, four coiled air lines, and a cooling duct into the sidepod. The pit board stands by the door.
 - **Crew:** people in team kit (white shirts, dark trousers, headsets, arms behind their backs), placed to leave a lane either side of the car. When the car's in the garage, the gunners at the box stand down.
-- **The car** (`car-body.js` adds to `cockpit-fallback.js`): engine cover with the airbox and a teal spine, a rain light, the flat floor and diffuser, rear wheels on the same rig, an active-aero rear wing (`setAero`) and front main plane, the 01 · KV flank numbers, and the halo (shown from outside only). The W11 stays local-only as before.
+- **The car** (`car-concept.js`): "F1 2026 concept (polygon model)" by Qvist_designs, CC BY 4.0, credited on the car's panel (station 4).
+  - Converted by `scripts/concept-to-glb.mjs`: the original goes in `content/models/` (git-ignored); the output is `public/assets/models/car-2026.glb` (~0.5 MB, ~160k triangles, meshopt).
+  - The converter re-winds the STL's inconsistent triangles, moves it into car space (front axle at z 1.44, so the rear sits at −1.96, `LAYOUT.axles`), and cuts the halo and the cockpit's flat CAD lid into a `halo` mesh the seat hides (`scripts/concept-zones.mjs`). The CAD tyres are doubled surfaces that z-fight, so it ships only their measurements; `car-concept.js` lathes clean tyres and rims from them.
+  - Livery (`car-livery.js`), painted per pixel from car-space position (the mesh has no UVs), after Krish's references of the black Mercedes cars (W11, W14), with no team logos or sponsors: gloss black, carbon weave underneath and on the wings, teal lines (the side sweep dipping over the sidepod, two down the nose, the endplate and rear-wing edges, the halo's top), and a three-pointed star pattern on the engine cover that fades toward the cockpit. Tyres: a yellow compound ring and a teal rim lip.
+  - The cockpit is still the code car's steering wheel, display, shift lights and controls, so the wheel interface is unchanged; a dark tub sits under the hidden lid.
+  - `?car=code` shows the code car (`cockpit-fallback.js` + `car-body.js`), which is also the fallback if the model fails to load. `?car=w11` uses the local W11 on Krish's Mac only.
 
 ## Look: the F1 game's UI (`src/styles/f1ui.css`)
 Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no standalone F1 26) using EA's own in-game screenshots: the race HUD and the menus. Our team throughout: KV in teal, with no F1 marks, font, team names or drivers.
@@ -156,7 +161,7 @@ Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no
 
 ## The drive (`src/garage/`)
 - `vehicle.js`: a kinematic bicycle model, pure and testable in Node (`createVehicle()`; a scripted driver lives in the scratchpad, not the repo):
-  - the rear axle follows the heading; yaw rate = v · tan δ / wheelbase, with the W11's wheelbase (3.715 m, measured off the model);
+  - the rear axle follows the heading; yaw rate = v · tan δ / wheelbase, with the concept car's wheelbase (3.4 m, measured off the model);
   - ±18° at the front wheels, ±180° at the steering wheel (a 10:1 ratio); a key asks for less lock the faster you go, and steering is capped by grip (~2.2 g), past which the car runs wide;
   - the limiter (80 km/h) is a toggle, as in the car; F1 gearing, so the lane is 1st and 2nd, revving to about 11.8k before each shift, with blipped downshifts;
   - the brake builds pressure over ~0.2 s; the pit wall and the garages are soft walls you glance off;
