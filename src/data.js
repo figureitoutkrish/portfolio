@@ -7,6 +7,7 @@ import '@fontsource-variable/saira/wdth.css';
 import '@fontsource-variable/jetbrains-mono/wght.css';
 import gsap from 'gsap';
 import { initShared } from './shared.js';
+import { initQuickLap } from './sections/quicklap.js';
 import { initDrive } from './garage/drive.js';
 import { initWheel } from './garage/wheel.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
@@ -15,6 +16,7 @@ import { arrivedViaWipe, revealArrival } from './utils/transition.js';
 // Drive in, park, and the camera zooms into the steering wheel: the wheel (src/garage/wheel.js) is
 // the page from then on. Without WebGL it's just the wheel. Plan: design-system/pages/data.md
 const { reducedMotion, fontsReady, lenis } = initShared();
+initQuickLap({ page: 'data', reducedMotion }); // the 60-second version, for people short on time
 const viaWipe = arrivedViaWipe();
 
 const cockpit = document.querySelector('.cockpit');

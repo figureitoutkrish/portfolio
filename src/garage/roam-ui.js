@@ -1,6 +1,6 @@
 import { PROJECTS } from './data/projects.js';
 import { lap } from './modes/lap.js';
-import { ROWS } from './modes/radio.js';
+import { ROWS, ASK, attrs } from './modes/radio.js';
 import { renderCheck, toggleCheck, turnCheck, leaveCheck, checkLevel } from './radio-check.js';
 import { getBoard, postBoard } from './pitboard-client.js';
 import { createGarageRadio } from './garage-radio.js';
@@ -287,8 +287,8 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     headset() {
       body.innerHTML = `<div class="roam-info">
           <h2 class="f1-info__t" id="roam-title">team radio</h2>
-          <p>pick a channel.</p>
-          <ul class="f1-rows roam-radio">${ROWS.map((r) => `<li><a class="f1-row" href="${r.href}"${r.href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${r.label}<span class="f1-row__v">${esc(r.value)}</span></a></li>`).join('')}</ul>
+          <p>${ASK} pick a channel.</p>
+          <ul class="f1-rows roam-radio">${ROWS.map((r) => `<li><a class="f1-row" href="${r.href}"${attrs(r)}>${r.label}<span class="f1-row__v">${esc(r.value)}</span></a></li>`).join('')}</ul>
         </div>`;
       prompts.innerHTML = prompt([['↵', 'open'], ['esc', 'back']]);
       sfx('radio');

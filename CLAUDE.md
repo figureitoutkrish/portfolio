@@ -65,6 +65,7 @@ scripts/fbx-to-glb.mjs  # converts an FBX car to a geometry-only GLB
 scripts/concept-to-glb.mjs # the published car: content/models/<Qvist_designs concept> → public/assets/models/car-2026.glb (CC BY 4.0)
 scripts/cv.html         # Krish's CV; print it to public/assets/cv/krish-viramgama-cv.pdf (command inside)
   sections/             # One JS module per page section (home, intro, menu, tabbar, trail, about, journey)
+                        # quicklap.js + quicklap-content.js: the 60-second summary on data + creative (header pill, Q)
   utils/                # motion.js, spring.js, liquid-glass.js, transition.js (page wipe)
 ```
 

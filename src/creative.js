@@ -10,6 +10,7 @@ import '@fontsource/pixelify-sans/latin-400.css';
 import '@fontsource/vt323/latin-400.css';
 import gsap from 'gsap';
 import { initShared } from './shared.js';
+import { initQuickLap } from './sections/quicklap.js';
 import { arrivedViaWipe, revealArrival } from './utils/transition.js';
 import { createOS } from './creative/mac/os.js';
 import { initCabinet } from './creative/mac/cabinet.js';
@@ -29,6 +30,7 @@ import { soundOn, setSound, sfx } from './creative/sound.js';
 
 // Creative page (alter ego 02): the vintage Mac, then the work.
 const { reducedMotion, lenis, fontsReady, palette } = initShared();
+initQuickLap({ page: 'creative', reducedMotion }); // the 60-second version, for people short on time
 const viaWipe = arrivedViaWipe();
 
 const os = createOS({ reducedMotion, lenis });

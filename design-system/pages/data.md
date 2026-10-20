@@ -179,3 +179,8 @@ Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no
 
 ## Converting a model
 `node scripts/fbx-to-glb.mjs in.fbx out.glb` (geometry and names only; materials are assigned by name in `car.js`).
+
+
+## The quick lap and the ask
+- **Quick lap** (`src/sections/quicklap.js`, copy in `quicklap-content.js`, styles `src/styles/quicklap.css`): the 60-second version for recruiters and clients. A pill in the header ("quick lap", Q) opens a `<dialog>` styled as an F1 timing sheet: who, the ask, three rows, chips, one primary action, the links, and "or take the long way". Esc / Q / the backdrop close it; keys inside it don't reach the page behind; from Q it appears instantly, from a click it rises in (240 ms); reduced motion: no animation.
+- **The ask:** "open to data science internships and freelance projects." It's in the wheel's RADIO exchange (the cv is now its first row, downloaded on OK), on the team radio station's panel, and in the quick lap. Primary action: the cv.

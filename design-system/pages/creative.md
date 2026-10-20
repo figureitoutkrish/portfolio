@@ -97,3 +97,8 @@ A platinum-beige vintage Macintosh, built in CSS. The front face sits at z = 0, 
 Name lines rise (ui-out, 70ms stagger), the rest fades up after. Same eases/durations as MASTER. Reduced motion: no entrance.
 
 - **Visitor notes: three on the Mac.** Everyone sees the same three newest (`api/notes.js` keeps 3); a new one pushes the oldest off, for everyone. Their spots: the top edge (newest), the left beside the welcome note, the top edge again. Your own carry × to remove and can be moved; others' move only on your screen. Without the database the same rule applies in this browser.
+
+
+## The quick lap and the ask
+- **Quick lap** (`src/sections/quicklap.js`, copy in `quicklap-content.js`, styles `src/styles/quicklap.css`): the 60-second version for recruiters and clients. A pill in the header ("quick lap", Q) opens a `<dialog>` styled as a Mac window: who, the ask, three rows, chips, one primary action, the links, and "or take the long way". Esc / Q / the backdrop close it; keys inside it don't reach the page behind; from Q it appears instantly, from a click it rises in (240 ms); reduced motion: no animation.
+- **The ask:** "need a pit crew for your brand? talk to koach." Under the podium's "lap complete" (one lime pill to koach's instagram) and in the quick lap.

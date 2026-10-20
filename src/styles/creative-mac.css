@@ -709,6 +709,9 @@ kbd { font-family: var(--f-mono); font-size: 0.75em; opacity: 0.7; }
 .licence__chk { width: 76px; height: 16px; border-radius: 3px; background: repeating-conic-gradient(#20221f 0 25%, #f5f4ef 0 50%) 0 0 / 8px 8px; }
 .podium__end { display: grid; gap: 0.75rem; justify-items: center; text-align: center; color: var(--c-white); }
 .podium__title { font-size: clamp(2.25rem, 7vw, 3.5rem); line-height: 0.95; }
+/* the ask: one thing to do once the lap is over */
+.podium__ask { display: grid; gap: 0.6rem; justify-items: inherit; margin: 0.4rem 0 0.2rem; }
+.podium__ask p { font-family: var(--f-body); font-size: 1.05rem; font-weight: 600; }
 .signoff__meta { font-family: var(--f-mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* The cat sticker (src/creative/cat.js): starts at the finish, lives wherever it's dropped */
