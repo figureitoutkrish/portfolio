@@ -227,7 +227,7 @@ function drawMap() {
     const y = ((V_MAX - kph) / (V_MAX - V_MIN)) * h;
     g.fillStyle = b ? '#ff453a' : '#f2f5f7';
     g.beginPath();
-    g.arc(x, y, Math.max(2, w / 160), 0, Math.PI * 2);
+    g.arc(x, y, Math.max(1.4, w / 240), 0, Math.PI * 2);
     g.fill();
   }
   // 80 km/h, the limit
