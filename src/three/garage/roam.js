@@ -84,7 +84,7 @@ export function createRoam({ scene, camera, head, car, rig, colliders, parts, re
     stand: { label: 'engineers', frame: () => frameFor(parts.standScreen, { fill: 0.7 }), mesh: () => parts.standScreen },
     tv: { label: 'timing tv', frame: () => frameFor(parts.tv, { fill: 0.8 }), mesh: () => parts.tv },
     github: { label: 'commits', frame: () => frameFor(parts.githubScreen, { fill: 0.74 }), mesh: () => parts.githubScreen },
-    car: { label: 'the car', frame: () => frameObject(car.group, { dist: 2.6, from: new THREE.Vector3(0.5, 0, 1), height: 1.75 }) },
+    car: { label: 'the car', frame: () => frameObject(car.group, { dist: 3.6, from: new THREE.Vector3(0.6, 0, 1), height: 1.9 }) },
     printer: { label: 'printer', frame: () => frameObject(parts.printer, { dist: 1.45, from: new THREE.Vector3(0.25, 0, -1), height: 1.6 }) },
     board: { label: 'pit board', frame: () => { const f = frameFor(parts.boardFace, { fill: 0.4, lift: -0.4 }); return { eye: f.eye, look: aside(f.eye, parts.boardFace.getWorldPosition(new THREE.Vector3())) }; } },
     headset: { label: 'team radio', frame: () => frameObject(parts.headset, { dist: 1.05, from: new THREE.Vector3(0.15, 0, 1), height: 1.75 }) },
