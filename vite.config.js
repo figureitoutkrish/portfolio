@@ -51,6 +51,7 @@ export default defineConfig({
         data: page('./data/index.html'),
         creative: page('./creative/index.html'),
         notfound: page('./404.html'), // Vercel serves dist/404.html for any missing page
+        open: page('./open/index.html'), // the hand-over from Instagram/TikTok/Facebook's in-app browsers
       },
     },
   },

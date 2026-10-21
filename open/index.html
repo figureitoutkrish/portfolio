@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Open in your browser — Krish Viramgama</title>
+    <meta name="description" content="This site opens in Safari or Chrome." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/assets/fonts/Nohemi-VF.ttf" as="font" type="font/ttf" crossorigin />
+    <!-- The hand-over from an app's built-in browser (Instagram, TikTok, Facebook) to the phone's real
+         one, after Krish's Unlock project (its Worker's in-app-browser check). Every page's head sends
+         those visitors here with ?to=<the page they opened>. Then:
+           Android  straight into Chrome (an intent: URL), automatically
+           iPhone   into Safari (x-safari-https:), automatically where Instagram allows it
+           else     this card: one button to try again, the two taps to do it by hand, copy the link
+         No "stay here": the in-app browsers can't run the site properly (3D, sound).
+         Standalone like 404.html: no site scripts. Opened in a real browser, it just goes to the page. -->
+    <script>
+      (function () {
+        var d = document.documentElement;
+        var t;
+        try { t = localStorage.getItem('krish:theme'); } catch (e) {}
+        if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        d.dataset.theme = t;
+
+        var ua = navigator.userAgent;
+        var app = /Instagram/i.test(ua) ? 'instagram' : /FBAN|FBAV|FB_IAB/i.test(ua) ? 'facebook' : /BytedanceWebview|musical_ly/i.test(ua) ? 'tiktok' : null;
+        var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var android = /Android/i.test(ua);
+        // only a page of this site (a path), never another address: no open redirect
+        var to = new URLSearchParams(location.search).get('to') || '/';
+        if (to.charAt(0) !== '/' || to.charAt(1) === '/' || to.charAt(1) === '\\') to = '/';
+        var url = location.origin + to;
+        var test = /[?&]iab=1/.test(location.search); // preview the card from a normal browser
+
+        if (!app && !test) {
+          location.replace(url); // already in a real browser (the link was copied over): just go
+          return;
+        }
+        function jump() {
+          if (android) location.href = 'intent://' + location.host + to.split('#')[0] + '#Intent;scheme=https;package=com.android.chrome;end';
+          else if (ios) location.href = 'x-safari-' + url;
+        }
+        window.__open = { app: app || 'instagram', ios: ios, android: android, url: url, jump: jump };
+        if (!test) jump();
+      })();
+    </script>
+    <style>
+      @font-face { font-family: "Nohemi"; src: url("/assets/fonts/Nohemi-VF.ttf") format("truetype"); font-weight: 100 900; font-display: swap; }
+      :root { --bg: #f7f7f7; --fg: #111111; --muted: #6b6b6b; --line: rgba(17, 17, 17, 0.3); --accent: #1f4fff; --card: #ffffff; color-scheme: light; }
+      :root[data-theme="dark"] { --bg: #0b0c10; --fg: #ececf1; --muted: #9a9ca6; --line: rgba(236, 236, 241, 0.18); --accent: #4c74ff; --card: #15171d; color-scheme: dark; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { min-height: 100%; }
+      body {
+        display: grid;
+        place-content: center;
+        gap: 1.1rem;
+        min-height: 100svh;
+        padding: 2rem 1rem;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Nohemi", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-weight: 500;
+        text-transform: lowercase;
+        -webkit-font-smoothing: antialiased;
+      }
+      .code { color: var(--accent); font-size: 0.875rem; letter-spacing: 0.01em; }
+      h1 { max-width: 11ch; font-size: clamp(2.4rem, 11vw, 4.5rem); font-weight: 600; line-height: 0.98; letter-spacing: -0.035em; }
+      p { max-width: 34ch; color: var(--muted); font-size: 1.05rem; line-height: 1.45; }
+      ol { display: grid; gap: 0.55rem; max-width: 34ch; padding: 1rem 1.1rem; border-radius: 14px; background: var(--card); list-style: none; counter-reset: s; }
+      li { display: flex; gap: 0.7rem; align-items: baseline; line-height: 1.4; counter-increment: s; }
+      li::before { content: counter(s); flex: none; display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--fg); color: var(--bg); font-size: 0.8rem; }
+      b { font-weight: 600; }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+      button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        padding: 0 1.3rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: none;
+        color: var(--fg);
+        font: inherit;
+        font-size: 1rem;
+        text-transform: lowercase;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 200ms ease;
+      }
+      button.primary { border-color: transparent; background: var(--accent); color: #fff; }
+      button:active { transform: scale(0.97); }
+      button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      .url { max-width: 34ch; color: var(--muted); font-size: 0.8125rem; overflow-wrap: anywhere; }
+    </style>
+  </head>
+  <body>
+    <p class="code" data-app>opened in instagram</p>
+    <h1 data-title>open me in safari.</h1>
+    <p data-why>instagram’s built-in browser can’t run this site properly: the 3d garage, the sound, the games. your phone’s browser can.</p>
+    <div class="actions">
+      <button class="primary" type="button" data-go>open in safari</button>
+      <button type="button" data-copy>copy link</button>
+    </div>
+    <ol data-steps>
+      <li><span>tap <b>⋯</b> in the top right corner</span></li>
+      <li><span>tap <b data-menu>open in external browser</b></span></li>
+    </ol>
+    <p class="url" data-url></p>
+    <script>
+      (function () {
+        var o = window.__open;
+        if (!o) return;
+        var names = { instagram: 'instagram', facebook: 'facebook', tiktok: 'tiktok' };
+        var browser = o.android ? 'chrome' : o.ios ? 'safari' : 'your browser';
+        var $ = function (s) { return document.querySelector(s); };
+        $('[data-app]').textContent = 'opened in ' + names[o.app];
+        $('[data-title]').textContent = 'open me in ' + browser + '.';
+        $('[data-why]').textContent = names[o.app] + '’s built-in browser can’t run this site properly: the 3d garage, the sound, the games. ' + (o.android || o.ios ? 'your phone’s browser can.' : 'a real browser can.');
+        $('[data-menu]').textContent = o.app === 'tiktok' ? 'open in browser' : o.android ? 'open in chrome' : 'open in external browser';
+        $('[data-url]').textContent = o.url.replace(/^https?:\/\//, '');
+        var go = $('[data-go]');
+        go.textContent = 'open in ' + browser;
+        if (!o.android && !o.ios) go.hidden = true; // (nothing to hand over to on a computer)
+        go.addEventListener('click', o.jump);
+        var copy = $('[data-copy]');
+        copy.addEventListener('click', function () {
+          var done = function () {
+            copy.textContent = 'copied: paste it in ' + browser;
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(o.url).then(done, fallback);
+          else fallback();
+          function fallback() {
+            var i = document.createElement('input');
+            i.value = o.url;
+            document.body.appendChild(i);
+            i.select();
+            try { document.execCommand('copy'); done(); } catch (e) {}
+            i.remove();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

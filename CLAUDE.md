@@ -36,6 +36,7 @@ index.html              # Home (pamidordesign.co-style hero) + intro overlay + g
 data/index.html         # Data alter-ego page: drive into the pit box, then the steering wheel is the page (design-system/pages/data.md)
 creative/index.html     # Creative alter-ego page: green grid, Mac windows, bento work (design-system/pages/creative.md)
 404.html                # Standalone "wrong turn" page (no site scripts); robots.txt + sitemap.xml are generated at build (vite.config.js)
+open/index.html         # Standalone hand-over page: every page's head sends Instagram/TikTok/Facebook in-app browsers here, which opens Chrome (Android) or Safari (iPhone), or shows how; ?iab=1 previews it
 design-system/          # MASTER.md (global design rules) + pages/<page>.md overrides
 content/about.md        # Personal copy, links and timeline (source for About content)
 content/*.mp3           # music originals (git-ignored); the garage radio's track ships from public/assets/audio/garage/

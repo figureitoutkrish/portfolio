@@ -26,6 +26,14 @@
     <!-- Before first paint: flag JS, pick the theme, and if we arrived through a page-change wipe, start covered. -->
     <script>
       (function () {
+        // inside instagram / tiktok / facebook's own browser? hand the visit to safari or chrome
+        // before anything loads (open/index.html, after Krish's Unlock project)
+        // (?iab=1 previews it from any browser)
+        var iabTest = /[?&]iab=1/.test(location.search);
+        if (iabTest || /Instagram|FBAN|FBAV|FB_IAB|BytedanceWebview|musical_ly/i.test(navigator.userAgent)) {
+          location.replace('/open/?' + (iabTest ? 'iab=1&' : '') + 'to=' + encodeURIComponent(location.pathname + location.search.replace(/[?&]iab=1/, '') + location.hash));
+          return;
+        }
         var d = document.documentElement;
         d.classList.add('js');
         var t;
