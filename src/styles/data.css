@@ -348,14 +348,37 @@ html[data-drive="paused"] .hud { opacity: 1; visibility: visible; transition: op
   transition: transform 120ms var(--ease-out), background-color 120ms ease;
 }
 .hud__pedal small { font-size: 0.6rem; color: var(--night-muted); }
-.hud__pedal--back { left: var(--gutter); }
+/* left thumb steers (‹ ›), right thumb drives (brake · go), PIT between them */
+.hud__pedal, .hud__steer { width: 4rem; height: 4rem; }
+.hud__pedal--back { right: calc(var(--gutter) + 4.4rem); }
 .hud__pedal--go { right: var(--gutter); border-color: rgba(0, 210, 190, 0.6); }
-.hud__pedal.is-down { transform: scale(0.94); background: rgba(0, 210, 190, 0.22); }
+.hud__pedal.is-down, .hud__steer.is-down { transform: scale(0.94); background: rgba(0, 210, 190, 0.22); }
+.hud__steer {
+  position: absolute;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  display: grid;
+  place-content: center;
+  border: 1px solid rgba(232, 236, 241, 0.3);
+  border-radius: 50%;
+  background: rgba(5, 7, 11, 0.6);
+  color: var(--night-ink);
+  font: inherit;
+  font-size: 1.8rem;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 120ms var(--ease-out), background-color 120ms ease;
+}
+.hud__steer--left { left: var(--gutter); }
+.hud__steer--right { left: calc(var(--gutter) + 4.4rem); }
+/* while driving, a swipe on the cockpit is the game's (steering), not the page's */
+html[data-drive="driving"] .cockpit__gl { touch-action: none; }
 /* touch: the pit limiter, between the pedals (orange, like the PIT button on the wheel) */
 .hud__limiter {
   position: absolute;
   left: 50%;
-  bottom: max(2.25rem, calc(env(safe-area-inset-bottom) + 1rem));
+  bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.25rem));
   width: 3.5rem;
   height: 3.5rem;
   border: 1px solid rgba(255, 159, 10, 0.7);

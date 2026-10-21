@@ -184,3 +184,7 @@ Studied from the current game (EA's F1 25 with the 2026 Season Pack; there is no
 ## The quick lap and the ask
 - **Quick lap** (`src/sections/quicklap.js`, copy in `quicklap-content.js`, styles `src/styles/quicklap.css`): the 60-second version for recruiters and clients. A pill in the header ("quick lap", Q) opens a `<dialog>` styled as an F1 timing sheet: who, the ask, three rows, chips, one primary action, the links, and "or take the long way". Esc / Q / the backdrop close it; keys inside it don't reach the page behind; from Q it appears instantly, from a click it rises in (240 ms); reduced motion: no animation.
 - **The ask:** "open to data science internships and freelance projects." It's in the wheel's RADIO exchange (the cv is now its first row, downloaded on OK), on the team radio station's panel, and in the quick lap. Primary action: the cv.
+
+## Touch controls (phones)
+- **Drive:** ‹ › steer (left thumb), brake · go (right thumb), PIT between them; dragging on the cockpit steers too. While driving, the cockpit canvas has `touch-action: none`, so a swipe is the game's, not the page's (without it phones cancel the touch within a few pixels and nothing steers).
+- **On foot:** a joystick above the strip, bottom left (pushed to the rim, it runs); drag anywhere else to look, tap a screen or the floor to walk there. Hidden while a station's panel is open.

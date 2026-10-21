@@ -151,8 +151,10 @@
           </p>
           <button class="hud__skip f1-btn" type="button" data-skip>skip to the garage</button>
           <div class="hud__pedals">
-            <button class="hud__pedal hud__pedal--back" type="button" data-pedal="brake" aria-label="brake">brake</button>
+            <button class="hud__steer hud__steer--left" type="button" data-steer="-1" aria-label="steer left">&lsaquo;</button>
+            <button class="hud__steer hud__steer--right" type="button" data-steer="1" aria-label="steer right">&rsaquo;</button>
             <button class="hud__limiter" type="button" data-limiter aria-label="pit limiter">pit</button>
+            <button class="hud__pedal hud__pedal--back" type="button" data-pedal="brake" aria-label="brake">brake</button>
             <button class="hud__pedal hud__pedal--go" type="button" data-pedal="throttle" aria-label="accelerate">go</button>
           </div>
         </div>
@@ -249,6 +251,7 @@
           </section>
           <p class="roam__objective f1-objective" data-roam-objective aria-live="polite"></p>
           <span class="roam__dot" aria-hidden="true"></span>
+          <span class="roam__joy" aria-hidden="true"><i></i></span>
           <span class="roam__ring" aria-hidden="true"></span>
           <p class="roam__hover f1-panel" aria-hidden="true" hidden></p>
           <section class="roam__panel f1-panel" role="dialog" aria-labelledby="roam-title" tabindex="-1" hidden>

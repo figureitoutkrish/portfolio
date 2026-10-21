@@ -10,6 +10,28 @@ html[data-drive="roam"] :is(.cockpit__intro, .hud) { display: none; }
 /* a shade under the header so the logo and the session box read over the garage's white walls */
 .roam::before { content: ""; position: absolute; inset: 0 0 auto; height: 10rem; background: linear-gradient(rgba(5, 7, 11, 0.6), rgba(5, 7, 11, 0)); pointer-events: none; }
 .roam > :is(.roam__strip, .roam__panel) { pointer-events: auto; }
+/* touch: the walking joystick, above the strip under the left thumb (hidden while a panel is up) */
+.roam__joy { display: none; }
+.drive-touch .roam__joy {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 11.5rem;
+  display: grid;
+  place-items: center;
+  width: 7rem;
+  height: 7rem;
+  border: 1px solid rgba(242, 245, 247, 0.3);
+  border-radius: 50%;
+  background: rgba(5, 7, 11, 0.45);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: opacity 200ms ease;
+}
+.roam__joy i { width: 2.9rem; height: 2.9rem; border-radius: 50%; background: rgba(242, 245, 247, 0.9); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); transition: translate 160ms var(--ease-out); }
+.roam__joy.is-down i { background: var(--f1-team); transition: none; }
+.roam:has(.roam__panel:not([hidden])) .roam__joy { opacity: 0; pointer-events: none; }
 html[data-drive="roam"] .cockpit__gl { cursor: grab; touch-action: none; }
 .roam.is-dragging ~ * , .roam.is-dragging { cursor: grabbing; }
 

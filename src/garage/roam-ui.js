@@ -52,6 +52,43 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
   const touch = matchMedia('(pointer: coarse)').matches;
   const docEl = document.documentElement;
 
+  // touch: a joystick under the left thumb walks (pushed to the rim, it runs); dragging anywhere
+  // else still looks round, and a tap on a screen or the floor still walks you there
+  const joyEl = root.querySelector('.roam__joy');
+  const joyKnob = joyEl.firstElementChild;
+  const joy = { id: null, f: 0, s: 0, run: false };
+  function joyAt(e) {
+    const r = joyEl.getBoundingClientRect();
+    const R0 = r.width / 2;
+    let dx = (e.clientX - (r.left + R0)) / R0;
+    let dy = (e.clientY - (r.top + R0)) / R0;
+    const m = Math.hypot(dx, dy);
+    if (m > 1) (dx /= m), (dy /= m);
+    joy.s = Math.abs(dx) < 0.15 ? 0 : dx;
+    joy.f = Math.abs(dy) < 0.15 ? 0 : -dy;
+    joy.run = m > 0.95;
+    joyKnob.style.translate = `${dx * R0 * 0.55}px ${dy * R0 * 0.55}px`;
+  }
+  function joyEnd(e) {
+    if (e.pointerId !== joy.id) return;
+    Object.assign(joy, { id: null, f: 0, s: 0, run: false });
+    joyKnob.style.translate = '';
+    joyEl.classList.remove('is-down');
+  }
+  joyEl.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    joy.id = e.pointerId;
+    try {
+      joyEl.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    joyEl.classList.add('is-down');
+    joyAt(e);
+  });
+  joyEl.addEventListener('pointermove', (e) => e.pointerId === joy.id && joyAt(e));
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => joyEl.addEventListener(t, joyEnd));
+
   strip.innerHTML = STATIONS.map((s) => `<button type="button" data-station="${s.id}"><kbd class="f1-key" aria-hidden="true">${s.key}</kbd><span>${s.label}</span><small>${s.what}</small></button>`).join('');
 
   // the projects you've opened this visit: ticked on their gantry monitors and counted on the strip
@@ -99,7 +136,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     moving = true;
     R.enter(() => {
       moving = false;
-      say(touch ? 'drag to look round · tap a screen or the floor' : 'look round: mouse to the edge, drag, or ← →');
+      say(touch ? 'joystick to walk · drag to look round · tap a screen' : 'look round: mouse to the edge, drag, or ← →');
       tipUntil = performance.now() + 6000; // (keeps that tip up for a few seconds)
       strip.querySelector('button')?.focus({ preventScroll: true });
       if (pending) openStation(pending.id, pending.index);
@@ -172,7 +209,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
     if (!keepCamera) {
       sfx('close');
       R.unfocus();
-      say(touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–8 jump to one');
+      say(touch ? 'joystick to walk · tap a screen · drag to look' : 'walk up to a screen · 1–8 jump to one');
       strip.querySelector(`[data-station="${was.id}"]`)?.focus({ preventScroll: true });
     }
   }
@@ -628,7 +665,9 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       }
     } else inBox = 0;
     const on = (k) => KEYS[k].some((c) => held.has(c));
-    R.move((on('forward') ? 1 : 0) - (on('back') ? 1 : 0), (on('right') ? 1 : 0) - (on('left') ? 1 : 0), held.has('Shift'));
+    const kf = (on('forward') ? 1 : 0) - (on('back') ? 1 : 0);
+    const ks = (on('right') ? 1 : 0) - (on('left') ? 1 : 0);
+    R.move(kf || joy.f, ks || joy.s, held.has('Shift') || joy.run);
     // turning: the arrow keys, or the mouse resting near a screen edge (faster the closer it gets)
     if (!open && !moving && !drag) {
       let yaw = ((on('turnRight') ? 1 : 0) - (on('turnLeft') ? 1 : 0)) * TURN;
@@ -642,7 +681,7 @@ export function initRoam({ garage, cockpit, reducedMotion, onGetIn, onDrive }) {
       if (yaw || pitch) R.look(yaw * dt, pitch * dt);
     }
     if (open?.id === 'stand') garage.setMeter(checkLevel());
-    if (!open && !R.busy && performance.now() > tipUntil) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'tap a screen or the floor · drag to look' : 'walk up to a screen · 1–8 jump to one');
+    if (!open && !R.busy && performance.now() > tipUntil) say(R.nearCar() ? (touch ? 'tap the car to get in' : 'press E to get back in the car') : touch ? 'joystick to walk · tap a screen · drag to look' : 'walk up to a screen · 1–8 jump to one');
   });
   const offStep = R.onStep(() => sfx('step'));
 

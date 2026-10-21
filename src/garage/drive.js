@@ -15,7 +15,8 @@ import { initRoam } from './roam-ui.js';
 //
 // Controls (only while driving; never while typing, and never over the menu/palette):
 //   W ↑ throttle · S ↓ Space brake · A D ← → steer · L pit limiter · Esc pause
-//   touch: brake and go pedals, the PIT button, drag anywhere on the cockpit to steer
+//   touch: ‹ › to steer (left thumb), brake and go (right thumb), the PIT button; dragging on the
+//          cockpit steers too
 const KEYS = {
   throttle: ['KeyW', 'ArrowUp'],
   brake: ['KeyS', 'ArrowDown', 'Space'],
@@ -118,6 +119,26 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     btn.addEventListener('pointercancel', up);
     btn.addEventListener('lostpointercapture', up);
   });
+  // touch steering buttons: hold ‹ or › (both held cancel out)
+  const steerHeld = new Set();
+  hud.querySelectorAll('[data-steer]').forEach((btn) => {
+    const dir = Number(btn.dataset.steer);
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      try {
+        btn.setPointerCapture(e.pointerId);
+      } catch {
+        /* synthetic or already-released pointer */
+      }
+      steerHeld.add(dir);
+      btn.classList.add('is-down');
+    });
+    const up = () => {
+      steerHeld.delete(dir);
+      btn.classList.remove('is-down');
+    };
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((t) => btn.addEventListener(t, up));
+  });
   hud.querySelector('[data-limiter]')?.addEventListener('click', () => (limiterPress = true));
   // drag to steer (touch), anywhere on the cockpit that isn't a control
   let dragId = null;
@@ -158,7 +179,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
     const on = (k) => KEYS[k].some((c) => held.has(c));
     input.throttle = on('throttle') || pedals.throttle ? 1 : 0;
     input.brake = on('brake') || pedals.brake ? 1 : 0;
-    input.steer = (on('right') ? 1 : 0) - (on('left') ? 1 : 0) || dragSteer;
+    input.steer = (on('right') ? 1 : 0) - (on('left') ? 1 : 0) || [...steerHeld].reduce((a, b) => a + b, 0) || dragSteer;
     input.limiter = limiterPress;
     limiterPress = false;
   }
@@ -240,7 +261,7 @@ export function initDrive({ garage, cockpit, wheel, reducedMotion, lenis }) {
   });
 
   // ---------- the HUD: what's happening, what to do next, how far ----------
-  const KEY = touch ? { brake: 'brake', limiter: 'PIT', steer: 'drag', go: 'go' } : { brake: 'S', limiter: 'L', steer: 'A D', go: 'W' };
+  const KEY = touch ? { brake: 'brake', limiter: 'PIT', steer: '‹ ›', go: 'go' } : { brake: 'S', limiter: 'L', steer: 'A D', go: 'W' };
   const shown = {};
   const put = (el, k, v) => {
     if (shown[k] !== v) el.textContent = shown[k] = v;
